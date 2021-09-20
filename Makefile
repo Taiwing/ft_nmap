@@ -12,7 +12,8 @@ NAME		=	ft_nmap
 
 ############################## SOURCES #########################################
 
-SRCC			=	main.c\
+SRCC			=	options.c\
+					main.c\
 
 ODIR			=	obj
 OBJ				=	$(patsubst %.c,%.o,$(SRCC))
@@ -32,7 +33,8 @@ $(NAME): $(SUB1D)/libft.a $(ODIR) $(OBJ)
 $(SUB1D)/libft.a:
 	make -C $(SUB1D)
 
-main.o: ft_nmap.h
+options.o: ft_nmap.h libft.h
+main.o: ft_nmap.h libft.h
 %.o: %.c
 	@mkdir -p $(ODIR)
 	$(CC) -c $(CFLAGS) $< $(HFLAGS) -o $(ODIR)/$@

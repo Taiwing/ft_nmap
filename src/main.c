@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/20 15:34:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/20 16:29:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ int			main(int argc, char **argv)
 	(void)argc;
 	ft_exitmsg((char *)cfg.exec);
 	ft_atexit(cleanup_handler);
+	get_options(&cfg, argc, argv);
 	ft_printf("This is %s!\n", cfg.exec);
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
