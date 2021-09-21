@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 13:39:25 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 14:56:49 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,27 +95,29 @@ char			*intopt(int *dest, const char *arg, int min, int max)
 
 const char		*parse_comma_list(const char *str)
 {
+	static char			buf[MAX_LST_ELM_LEN + 1] = { 0 };
 	static const char	*list = NULL;
+	const char			*end = NULL;
 	static const char	*p = NULL;
-	const char			*s = NULL;
-	const char			*ret;
+	size_t				len;
 
 	if (str != list)
-	{
-		list = str;
-		p = list;
-	}
+		list = p = str;
 	else if (p && *p == ',' && p[1])
 		++p;
-	if (p && ((!*p && p == list) || *p == ','))
+	end = p;
+	while (end && !ft_strchr(",", *end))
+		++end;
+	if (!p || ((!*p && p == list) || *p == ',')
+		|| (len = end - p) > MAX_LST_ELM_LEN)
 	{
-		p = NULL;
-		list = NULL;
+		list = p = NULL;
+		return (NULL);
 	}
-	ret = p;
-	while (p && !(s = ft_strchr(",", *p)))
-		++p;
-	return (ret);
+	ft_strncpy(buf, p, len);
+	buf[len] = 0;
+	p = end;
+	return ((const char *)buf);
 }
 
 void		get_options(t_nmap_config *cfg, int argc, char **argv)

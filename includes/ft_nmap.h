@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 13:39:08 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 14:18:00 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 
 # define	MAX_SPEEDUP		250
 # define	MAX_PORTS		1024	// maximum number of ports to scan
+# define	MAX_LST_ELM_LEN	1024	// biggest possible comma list element
 
 // scans
 # define	S_SYN			0x01
