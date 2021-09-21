@@ -14,6 +14,7 @@ NAME		=	ft_nmap
 
 SRCC			=	options.c\
 					main.c\
+					get_options.c\
 
 ODIR			=	obj
 OBJ				=	$(patsubst %.c,%.o,$(SRCC))
@@ -35,6 +36,7 @@ $(SUB1D)/libft.a:
 
 options.o: ft_nmap.h libft.h
 main.o: ft_nmap.h libft.h
+get_options.o: ft_nmap.h libft.h
 %.o: %.c
 	@mkdir -p $(ODIR)
 	$(CC) -c $(CFLAGS) $< $(HFLAGS) -o $(ODIR)/$@

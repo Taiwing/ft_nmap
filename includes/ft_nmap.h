@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/20 21:37:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 10:53:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,10 @@ typedef struct	s_nmap_config
 /*
 ** nmap functions
 */
-void	get_options(t_nmap_config *cfg, int argc, char **argv);
+char		*intopt(int *dest, const char *arg, int min, int max);
+const char	*parse_comma_list(const char *str);
+void		get_options(t_nmap_config *cfg, int argc, char **argv);
+char		*ports_option(t_nmap_config *cfg, t_optdata *optd);
+void		scan_option(t_nmap_config *cfg, t_optdata *optd);
 
 #endif

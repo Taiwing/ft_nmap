@@ -5,117 +5,59 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/09/20 15:55:31 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/20 21:42:03 by yforeau          ###   ########.fr       */
+/*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
+/*   Updated: 2021/09/21 11:00:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"hs:"
-
-t_opt	g_nmap_opt[] = {
-	{ "file",		1,	NULL,	'f'	},
-	{ "help",		0,	NULL,	'h'	},
-	{ "ip",			1,	NULL,	'i'	},
-	{ "ports",		1,	NULL,	'p'	},
-	{ "scan",		1,	NULL,	'S'	},
-	{ "speedup",	1,	NULL,	's'	},
-	{ NULL,			0,	NULL,	0	},
-};
-
-char	*g_nmap_help[] = {
-	"File containing a list of hosts to scan (1 per line).",
-	"Print this and exit.",
-	"Hosts to scan specified as a comma separated list of IPv4-IPv6 addresses\n"
-	"\t\tor hostnames (eg: localhost,192.168.1.0/24,2001::ffff).",
-	"Ports to scan specified as a comma separated list of individual ports or\n"
-	"\t\tranges (eg: 80,22,1024-2048). The default is 1-1024.",
-	"Scans to perform specified as a comma separated list. Possible values:\n"
-	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). Does them all by default.",
-	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
-	NULL,
-};
-
-char	*g_nmap_usage[] = {
-	"[--file path] [--help] [--ports list] [--scan list] "
-	"[--speedup number] --ip list",
-	"[--help] [--ip list] [--ports list] [--scan list] "
-	"[--speedup number] --file path",
-	NULL,
-};
-
-static void	usage(const char *exec, int exit_value)
+static char	*set_ports(t_nmap_config *cfg, int porta, int portb)
 {
-	t_opt	*opts = g_nmap_opt;
-	char	**help = g_nmap_help;
-	char	**usage = g_nmap_usage;
+	char	*err = NULL;
 
-	ft_printf("Usage:\n");
-	while (*usage)
+	do
 	{
-		ft_printf("\t%s %s\n", exec, *usage);
-		++usage;
-	}
-	ft_printf("\nOptions:\n");
-	while (opts->name && *help)
+		if (!cfg->ports_to_scan[porta] && cfg->nb_ports < MAX_PORTS)
+			++cfg->nb_ports;
+		else if (!cfg->ports_to_scan[porta])
+			ft_asprintf(&err, "too many ports to scan, max is: %d", MAX_PORTS);
+		cfg->ports_to_scan[porta] = 1;
+		++porta;
+	} while (!err && porta <= portb);
+	return (err);
+}
+
+char		*ports_option(t_nmap_config *cfg, t_optdata *optd)
+{
+	char		*err = NULL;
+	const char	*arg = NULL;
+	int			porta, portb;
+
+	while (!err && (arg = parse_comma_list(optd->optarg)) && *arg)
 	{
-		ft_printf("\t-%c, --%s\n", opts->val, opts->name);
-		ft_printf("\t\t%s\n", *help);
-		++opts;
-		++help;
-	}
-	ft_exit(NULL, exit_value);
-}
-
-static void	intopt(int *dest, t_optdata *optd, int min, int max)
-{
-	int		ret;
-	char	*err;
-
-	if ((ret = ft_secatoi(dest, min, max, optd->optarg)))
-	{
-		if (ret == FT_E_NOT_A_NUMBER)
-			ft_asprintf(&err, "invalid argument: '%s'", optd->optarg);
-		else
-			ft_asprintf(&err, "invalid argument: '%s': "
-				"out of range: %d <= value <= %d", optd->optarg, min, max);
-		ft_exit(err, EXIT_FAILURE);
-	}
-}
-
-void		ports_option(t_nmap_config *cfg, const char *arg)
-{
-	(void)cfg;
-	(void)arg;
-}
-
-void		scan_option(t_nmap_config *cfg, const char *arg)
-{
-	(void)cfg;
-	(void)arg;
-}
-
-void		get_options(t_nmap_config *cfg, int argc, char **argv)
-{
-	int			opt;
-	char		**args;
-	t_optdata	optd = { 0 };
-
-	init_getopt(&optd, FT_NMAP_OPT, g_nmap_opt, NULL);
-	args = ft_memalloc((argc + 1) * sizeof(char *));
-	ft_memcpy((void *)args, (void *)argv, argc * sizeof(char *));
-	*args = (char *)cfg->exec;
-	while ((opt = ft_getopt_long(argc, args, &optd)) >= 0)
-		switch (opt)
+		portb = 0;
+		err = intopt(&porta, arg, 0, USHRT_MAX);
+		for (; !err && *arg && ft_isdigit(*arg); ++arg);
+		if (!err && *arg && *arg == '-')
 		{
-			case 'f': cfg->hosts_file = optd.optarg;					break;
-			case 'i': cfg->hosts = optd.optarg;							break;
-			case 'p': ports_option(cfg, optd.optarg);					break;
-			case 'S': scan_option(cfg, optd.optarg);					break;
-			case 's': intopt(&cfg->speedup, &optd, 0, MAX_SPEEDUP);		break;
-			default:
-				usage(cfg->exec, opt != 'h');
+			err = intopt(&portb, ++arg, 0, USHRT_MAX);
+			if (!err && portb <= porta)
+				ft_asprintf(&err, "second port must be greater than first "
+					"port in range: '%s'", optd->optarg);
 		}
-	ft_memdel((void **)&args);
+		for (; !err && *arg && ft_isdigit(*arg); ++arg);
+		if (!err && *arg && *arg != ',')
+			break;
+		err = !err ? set_ports(cfg, porta, portb) : err;
+	}
+	if (!err && (!arg || *arg))
+		ft_asprintf(&err, "invalid list argument: '%s'", optd->optarg);
+	return (err);
+}
+
+void		scan_option(t_nmap_config *cfg, t_optdata *optd)
+{
+	(void)cfg;
+	(void)optd;
 }
