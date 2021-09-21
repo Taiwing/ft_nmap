@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 17:40:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 17:58:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 
 static void	cleanup(t_nmap_config *cfg)
 {
-	(void)cfg;
+	if (cfg->hosts_fd >= 0)
+		close(cfg->hosts_fd);
 }
 
 static void	check_config(t_nmap_config *cfg)
@@ -53,16 +54,25 @@ void		print_config(t_nmap_config *cfg)
 
 static const char	*get_target(t_nmap_config *cfg)
 {
-	char		*err = NULL;
-	const char	*ret = NULL;
+	char				*err = NULL;
+	static const char	*ret = NULL;
 
 	if (cfg->hosts && !(ret = parse_comma_list(cfg->hosts)))
-	{
 		ft_asprintf(&err, "invalid list argument: '%s'", cfg->hosts);
-		ft_exit(err, EXIT_FAILURE);
-	}
 	else if (cfg->hosts && !*ret)
 		cfg->hosts = ret = NULL;
+	if (!err && !cfg->hosts && cfg->hosts_file && cfg->hosts_fd < 0
+		&& (cfg->hosts_fd = open(cfg->hosts_file, O_RDONLY)) < 0)
+		ft_asprintf(&err, "open: %s", strerror(errno));
+	else if (!err && !cfg->hosts && cfg->hosts_fd >= 0)
+	{
+		if (ret)
+			ft_memdel((void *)&ret);
+		if (get_next_line(cfg->hosts_fd, (char **)&ret) < 0)
+			ft_asprintf(&err, "get_next_line: unknown error");
+	}
+	if (err)
+		ft_exit(err, EXIT_FAILURE);
 	return (ret);
 }
 

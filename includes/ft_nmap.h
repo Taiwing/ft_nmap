@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 14:18:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 17:59:20 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 
 # include "libft.h"
 # include <limits.h>
+# include <errno.h>
+# include <fcntl.h>
 
 /*
 ** ft_nmap macros
@@ -37,7 +39,7 @@
 # define	S_ALL			(S_SYN | S_NULL | S_ACK | S_FIN | S_XMAS | S_UDP)
 
 # define	CONFIG_DEF	{\
-	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, 0\
+	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, 0, -1\
 }
 
 /*
@@ -57,6 +59,7 @@ extern const uint8_t	g_nmap_scan_codes[];
 ** hosts: hosts list given by cmd argument
 ** hosts_file: file containing a list of hosts
 ** scans: scans to perform as an or'ed integer
+** hosts_fd: file descriptor for the hosts_file
 */
 typedef struct	s_nmap_config
 {
@@ -68,6 +71,7 @@ typedef struct	s_nmap_config
 	const char	*hosts;
 	const char	*hosts_file;
 	uint8_t		scans;
+	int			hosts_fd;
 }				t_nmap_config;
 
 /*
