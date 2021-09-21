@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 15:32:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 17:40:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,24 @@ void		print_config(t_nmap_config *cfg)
 		cfg->nb_ports, buf, cfg->speedup);
 }
 
-int			main(int argc, char **argv)
+static const char	*get_target(t_nmap_config *cfg)
 {
+	char		*err = NULL;
+	const char	*ret = NULL;
+
+	if (cfg->hosts && !(ret = parse_comma_list(cfg->hosts)))
+	{
+		ft_asprintf(&err, "invalid list argument: '%s'", cfg->hosts);
+		ft_exit(err, EXIT_FAILURE);
+	}
+	else if (cfg->hosts && !*ret)
+		cfg->hosts = ret = NULL;
+	return (ret);
+}
+
+int	main(int argc, char **argv)
+{
+	const char		*target;
 	t_nmap_config	cfg = CONFIG_DEF;
 	void			cleanup_handler(void) { cleanup(&cfg); };
 
@@ -63,6 +79,8 @@ int			main(int argc, char **argv)
 	check_config(&cfg);
 	print_config(&cfg);
 	ft_printf("\nThis is %s!\n", cfg.exec);
+	while ((target = get_target(&cfg)))
+		ft_printf("Scanning %s ...\n", target);
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }
