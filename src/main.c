@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 12:21:14 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 15:32:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,23 @@ static void	check_config(t_nmap_config *cfg)
 	//TODO: set the scans in an array of scan function pointers
 }
 
+void		print_config(t_nmap_config *cfg)
+{
+	char	buf[64] = { 0 };
+
+	for (int i = 0, scans = cfg->scans; scans; ++i)
+	{
+		if (scans & 0x01)
+			ft_strcat(ft_strcat(buf, " "), g_nmap_scan_strings[i]);
+		scans >>= 1;
+	}
+	ft_printf("--- Scan Configuration ---\n"
+		"Number of ports to scan: %d\n"
+		"Scans to be performed:%s\n"
+		"Number of threads: %d\n",
+		cfg->nb_ports, buf, cfg->speedup);
+}
+
 int			main(int argc, char **argv)
 {
 	t_nmap_config	cfg = CONFIG_DEF;
@@ -44,7 +61,8 @@ int			main(int argc, char **argv)
 	ft_atexit(cleanup_handler);
 	get_options(&cfg, argc, argv);
 	check_config(&cfg);
-	ft_printf("This is %s!\n", cfg.exec);
+	print_config(&cfg);
+	ft_printf("\nThis is %s!\n", cfg.exec);
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }
