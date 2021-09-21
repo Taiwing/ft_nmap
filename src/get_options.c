@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 11:25:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 11:38:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,8 +79,10 @@ char			*intopt(int *dest, const char *arg, int min, int max)
 
 	ft_strncpy(buf, arg, INTOPT_BUF);
 	for (i = 0; buf[i] && ft_isdigit(buf[i]); ++i);
+	if (i == INTOPT_BUF && ft_isdigit(arg[i]))
+		ft_asprintf(&err, "invalid argument: '%s'", arg);
 	buf[i] = 0;
-	if ((ret = ft_secatoi(dest, min, max, buf)))
+	if (!err && (ret = ft_secatoi(dest, min, max, buf)))
 	{
 		if (ret == FT_E_NOT_A_NUMBER)
 			ft_asprintf(&err, "invalid argument: '%s'", arg); 
