@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 10:53:17 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 13:39:08 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 # include <limits.h>
 
 /*
-** nmap macros
+** ft_nmap macros
 */
 
 # define	xstr(s)	str(s)			// stringify macro value
@@ -33,10 +33,17 @@
 # define	S_FIN			0x08
 # define	S_XMAS			0x10
 # define	S_UDP			0x20
+# define	S_ALL			(S_SYN | S_NULL | S_ACK | S_FIN | S_XMAS | S_UDP)
 
 # define	CONFIG_DEF	{\
 	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, 0\
 }
+
+/*
+** ft_nmap constants
+*/
+extern const char		*g_nmap_scan_strings[];
+extern const uint8_t	g_nmap_scan_codes[];
 
 /*
 ** t_nmap_config: nmap configuration
@@ -63,12 +70,12 @@ typedef struct	s_nmap_config
 }				t_nmap_config;
 
 /*
-** nmap functions
+** ft_nmap functions
 */
 char		*intopt(int *dest, const char *arg, int min, int max);
 const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 char		*ports_option(t_nmap_config *cfg, t_optdata *optd);
-void		scan_option(t_nmap_config *cfg, t_optdata *optd);
+char		*scan_option(t_nmap_config *cfg, t_optdata *optd);
 
 #endif

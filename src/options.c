@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 11:00:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/21 14:09:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,38 @@ char		*ports_option(t_nmap_config *cfg, t_optdata *optd)
 	return (err);
 }
 
-void		scan_option(t_nmap_config *cfg, t_optdata *optd)
+const char		*g_nmap_scan_strings[] = {
+	"SYN", "NULL", "ACK", "FIN", "XMAS", "UDP", NULL
+};
+
+const uint8_t	g_nmap_scan_codes[] = {
+	S_SYN, S_NULL, S_ACK, S_FIN, S_XMAS, S_UDP
+};
+
+// This value must be greater than the biggest nmap scan string
+#define	BUF_LEN	8
+
+char		*scan_option(t_nmap_config *cfg, t_optdata *optd)
 {
-	(void)cfg;
-	(void)optd;
+	char		*err = NULL;
+	const char	*arg = NULL;
+	int			len, i;
+
+	while (!err && (arg = parse_comma_list(optd->optarg)) && *arg)
+	{
+		for (i = 0; g_nmap_scan_strings[i]; ++i)
+		{
+			len = ft_strlen(g_nmap_scan_strings[i]);
+			if (!ft_ignore_case_strncmp(g_nmap_scan_strings[i], arg, len)
+				&& (!arg[len] || arg[len] == ','))
+				break;
+		}
+		if (!g_nmap_scan_strings[i])
+			ft_asprintf(&err, "invalid scan type: %s", arg);
+		else
+			cfg->scans |= g_nmap_scan_codes[i];
+	}
+	if (!err && (!arg || *arg))
+		ft_asprintf(&err, "invalid list argument: '%s'", optd->optarg);
+	return (err);
 }
