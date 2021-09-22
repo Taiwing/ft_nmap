@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/22 11:25:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/22 11:47:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,24 +22,27 @@
 ** ft_nmap macros
 */
 
-# define	xstr(s)	str(s)			// stringify macro value
-# define	str(s)	#s
+# define	xstr(s)					str(s)	// stringify macro value
+# define	str(s)					#s
 
-# define	MAX_SPEEDUP		250
-# define	MAX_PORTS		1024	// maximum number of ports to scan
-# define	MAX_LST_ELM_LEN	1024	// biggest possible comma list element
-# define	PORTS_COUNT		0x10000	// Number of ports (USHRT_MAX + 1)
+# define	MAX_SPEEDUP				250
+# define	MAX_PORTS				1024	// maximum number of ports to scan
+# define	MAX_LST_ELM_LEN			1024	// biggest possible comma list element
+# define	PORTS_COUNT				0x10000	// Number of ports (USHRT_MAX + 1)
+
+# define	SERVICE_NAME_MAXLEN		20
+# define	SERVICE_DESC_MAXLEN		331
 
 // scans
-# define	S_SYN			0x01
-# define	S_NULL			0x02
-# define	S_ACK			0x04
-# define	S_FIN			0x08
-# define	S_XMAS			0x10
-# define	S_UDP			0x20
-# define	S_ALL			(S_SYN | S_NULL | S_ACK | S_FIN | S_XMAS | S_UDP)
+# define	S_SYN					0x01
+# define	S_NULL					0x02
+# define	S_ACK					0x04
+# define	S_FIN					0x08
+# define	S_XMAS					0x10
+# define	S_UDP					0x20
+# define	S_ALL					(S_SYN | S_NULL | S_ACK | S_FIN | S_XMAS | S_UDP)
 
-# define	CONFIG_DEF	{\
+# define	CONFIG_DEF				{\
 	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, 0, -1\
 }
 
