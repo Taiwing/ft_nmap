@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 17:59:20 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/22 10:09:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,9 @@
 */
 extern const char		*g_nmap_scan_strings[];
 extern const uint8_t	g_nmap_scan_codes[];
+extern const char		*g_tcp_services[USHRT_MAX + 1][2];
+extern const char		*g_udp_services[USHRT_MAX + 1][2];
+extern const char		*g_sctp_services[USHRT_MAX + 1][2];
 
 /*
 ** t_nmap_config: nmap configuration
