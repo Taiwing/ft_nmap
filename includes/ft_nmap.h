@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/22 11:47:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/22 11:51:44 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@
 # define	MAX_LST_ELM_LEN			1024	// biggest possible comma list element
 # define	PORTS_COUNT				0x10000	// Number of ports (USHRT_MAX + 1)
 
-# define	SERVICE_NAME_MAXLEN		20
-# define	SERVICE_DESC_MAXLEN		331
+# define	SERVICE_NAME_MAXLEN		20		// biggest service name string
+# define	SERVICE_DESC_MAXLEN		331		// biggest service description string
 
 // scans
 # define	S_SYN					0x01
