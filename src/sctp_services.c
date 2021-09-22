@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/22 10:06:44 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/22 10:07:29 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/22 11:25:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-const char	*g_sctp_services[USHRT_MAX + 1][2] = {
+const char	*g_sctp_services[PORTS_COUNT][2] = {
 	[7]		= { "echo", NULL },
 	[9]		= { "discard", "sink null" },
 	[20]	= { "ftp-data", "File Transfer [Default Data] | FTP" },

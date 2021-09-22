@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/22 10:09:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/22 11:25:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 # define	MAX_SPEEDUP		250
 # define	MAX_PORTS		1024	// maximum number of ports to scan
 # define	MAX_LST_ELM_LEN	1024	// biggest possible comma list element
+# define	PORTS_COUNT		0x10000	// Number of ports (USHRT_MAX + 1)
 
 // scans
 # define	S_SYN			0x01
@@ -47,9 +48,9 @@
 */
 extern const char		*g_nmap_scan_strings[];
 extern const uint8_t	g_nmap_scan_codes[];
-extern const char		*g_tcp_services[USHRT_MAX + 1][2];
-extern const char		*g_udp_services[USHRT_MAX + 1][2];
-extern const char		*g_sctp_services[USHRT_MAX + 1][2];
+extern const char		*g_tcp_services[PORTS_COUNT][2];
+extern const char		*g_udp_services[PORTS_COUNT][2];
+extern const char		*g_sctp_services[PORTS_COUNT][2];
 
 /*
 ** t_nmap_config: nmap configuration
@@ -68,7 +69,7 @@ typedef struct	s_nmap_config
 {
 	const char	*exec;
 	int			speedup;
-	uint8_t		ports_to_scan[USHRT_MAX + 1];
+	uint8_t		ports_to_scan[PORTS_COUNT];
 	uint16_t	ports[MAX_PORTS + 1];
 	int			nb_ports;
 	const char	*hosts;

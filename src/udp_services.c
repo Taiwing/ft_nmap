@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/22 10:07:56 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/22 10:07:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/22 11:25:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-const char	*g_udp_services[USHRT_MAX + 1][2] = {
+const char	*g_udp_services[PORTS_COUNT][2] = {
 	[1]		= { "tcpmux", "TCP Port Service Multiplexer" },
 	[2]		= { "compressnet", "Management Utility" },
 	[3]		= { "compressnet", "Compression Process" },
