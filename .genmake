@@ -1,1 +1,1 @@
--n ft_nmap -sn libft libft.a
+-n ft_nmap -sn libft libft.a -f '-DTHREAD_SAFE'

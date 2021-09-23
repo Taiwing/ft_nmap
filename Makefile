@@ -1,8 +1,8 @@
 ############################## COMPILE VAR #####################################
 
 CC			=	gcc
-#CFLAGS		=	-Wall -Wextra -Werror
-CFLAGS		=	-Wall -Wextra -Werror -g -fsanitize=address,undefined
+#CFLAGS		=	'-DTHREAD_SAFE'
+CFLAGS		=	'-DTHREAD_SAFE' -g -fsanitize=address,undefined
 HDIR		=	includes
 SRCDIR		=	src
 SUB1D		=	libft

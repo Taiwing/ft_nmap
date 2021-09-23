@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/22 11:51:44 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/22 15:25:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <limits.h>
 # include <errno.h>
 # include <fcntl.h>
+# include <pthread.h>
 
 /*
 ** ft_nmap macros
