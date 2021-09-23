@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/21 14:56:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/23 21:21:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,8 @@ static char	*set_ports(t_nmap_config *cfg, int porta, int portb)
 
 	do
 	{
-		if (!cfg->ports_to_scan[porta] && cfg->nb_ports < MAX_PORTS)
-			++cfg->nb_ports;
+		if (!cfg->ports_to_scan[porta] && cfg->nports < MAX_PORTS)
+			++cfg->nports;
 		else if (!cfg->ports_to_scan[porta])
 			ft_asprintf(&err, "too many ports to scan, max is: %d", MAX_PORTS);
 		cfg->ports_to_scan[porta] = 1;
@@ -57,12 +57,8 @@ char		*ports_option(t_nmap_config *cfg, t_optdata *optd)
 	return (err);
 }
 
-const char		*g_nmap_scan_strings[] = {
-	"SYN", "NULL", "ACK", "FIN", "XMAS", "UDP", NULL
-};
-
-const uint8_t	g_nmap_scan_codes[] = {
-	S_SYN, S_NULL, S_ACK, S_FIN, S_XMAS, S_UDP
+const char		*g_nmap_scan_strings[NB_SCANS] = {
+	"SYN", "NULL", "ACK", "FIN", "XMAS", "UDP"
 };
 
 char		*scan_option(t_nmap_config *cfg, t_optdata *optd)
@@ -73,13 +69,16 @@ char		*scan_option(t_nmap_config *cfg, t_optdata *optd)
 
 	while (!err && (arg = parse_comma_list(optd->optarg)) && *arg)
 	{
-		for (i = 0; g_nmap_scan_strings[i]; ++i)
+		for (i = 0; i < NB_SCANS; ++i)
 			if (!ft_ignore_case_strcmp(g_nmap_scan_strings[i], arg))
 				break;
-		if (!g_nmap_scan_strings[i])
+		if (i == NB_SCANS)
 			ft_asprintf(&err, "invalid scan type: '%s'", arg);
-		else
-			cfg->scans |= g_nmap_scan_codes[i];
+		else if (!cfg->scans[i])
+		{
+			cfg->scans[i] = 1;
+			++cfg->nscans;
+		}
 	}
 	if (!err && (!arg || *arg))
 		ft_asprintf(&err, "invalid list argument: '%s'", optd->optarg);

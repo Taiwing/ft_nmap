@@ -1,1 +1,1 @@
--n ft_nmap -sn libft libft.a -f '-DTHREAD_SAFE'
+-n ft_nmap -sn libft libft.a -f '-Wall -Wextra -Werror -DTHREAD_SAFE'
