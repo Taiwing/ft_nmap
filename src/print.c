@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 22:02:45 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 22:07:32 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,21 @@ const char	*g_scan_results[STATE_CLOSED | STATE_UNFILTERED | 0x01] = {
 	[ STATE_OPEN | STATE_UNFILTERED ] = "OU",
 	[ STATE_CLOSED | STATE_UNFILTERED ] = "CU",
 };
+
+/*
+** ts_msdiff: timestamp ms substraction
+**
+** Substracts b from a and returns the result in ms.
+*/
+static double	ts_msdiff(struct timeval *a, struct timeval *b)
+{
+	double s;
+	double us;
+
+	s = ((double)(a->tv_sec - b->tv_sec)) * 1000.0;
+	us = ((double)(a->tv_usec - b->tv_usec)) / 1000.0;
+	return (s + us);
+}
 
 //TODO: switch services array in function of type (tcp/udp/sctp)
 static void	print_port(t_task *task, uint16_t task_id,
@@ -57,10 +72,10 @@ static void	print_port(t_task *task, uint16_t task_id,
 void	print_job(t_job *job, t_nmap_config *cfg)
 {
 	uint16_t	i, c;
-	double		scan_time = 3.666; //TEMP (TODO: compute actual time with job ts)
+	double		scan_time = ts_msdiff(&job->end_ts, &job->start_ts);
 
 	//TODO: here flush job text buffer if needed
-	ft_printf("\n\nScan took %g seconds\n", scan_time);
+	ft_printf("\n\nScan took %g seconds\n", scan_time / 1000.0);
 	ft_printf("host: %s\n", job->host);
 	ft_printf("IP address: %s\n", "lol.mdr.xd.ptdr"); //TEMP
 	ft_printf("Open ports:");

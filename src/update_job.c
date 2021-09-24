@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 21:00:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 22:19:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,12 +42,13 @@ static void	flush_jobs(t_nmap_config *cfg)
 // Port is set as open if one of the scans returns an open status
 // TODO: this is very simple and should probably changed for something
 // a little bit more subtle in function of the type of scan
-static void	set_job_status(t_scan *scan)
+static int	set_job_status(t_scan *scan)
 {
 	int		i;
-	uint8_t	status;
+	int		ret = 0;
+	char	*err = NULL;
+	uint8_t	status = STATE_CLOSED;
 
-	status = STATE_CLOSED;
 	scan->task->status |= STATE_DONE;
 	for (i = 0; i < NB_SCANS; ++i)
 		if ((scan->task->scans[i] & STATE_OPEN)
@@ -57,8 +58,17 @@ static void	set_job_status(t_scan *scan)
 		status = STATE_OPEN;
 	scan->task->status |= status;
 	if (++scan->job->done == scan->cfg->nports)
+	{
 		scan->job->status |= STATE_DONE;
+		if (gettimeofday(&scan->job->end_ts, NULL) < 0)
+		{
+			ft_asprintf(&err, "gettimeofday: %s", strerror(errno));
+			ft_exit(err, EXIT_FAILURE);
+		}
+		ret = 1;
+	}
 	ft_putchar('.');
+	return (ret);
 }
 
 void		update_job(t_scan *scan)
@@ -69,15 +79,14 @@ void		update_job(t_scan *scan)
 	scan->task->scans[scan->type] |= scan->result;
 	scan->result = 0;
 	if (++scan->task->done == scan->cfg->nscans)
-		set_job_status(scan);
-	if (scan->job_ptr == scan->cfg->jobs)
-	{
-		flush_jobs(scan->cfg);
-		scan->task = NULL;
-		scan->task_id = 0;
-		scan->job = NULL;
-		scan->job_ptr = NULL;
-	}
+		if (set_job_status(scan) && scan->job_ptr == scan->cfg->jobs)
+		{
+			flush_jobs(scan->cfg);
+			scan->task = NULL;
+			scan->task_id = 0;
+			scan->job = NULL;
+			scan->job_ptr = NULL;
+		}
 	if (scan->cfg->speedup)
 		ft_mutex_unlock(&(scan->cfg->mutex));
 }
