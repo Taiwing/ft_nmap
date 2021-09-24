@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 21:09:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 22:02:45 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,6 @@ const char	*g_scan_results[STATE_CLOSED | STATE_UNFILTERED | 0x01] = {
 	[ STATE_CLOSED | STATE_UNFILTERED ] = "CU",
 };
 
-#define _TO_STR_INTERNAL(arg) #arg
-#define	TO_STR(arg) _TO_STR_INTERNAL(arg)
-
 //TODO: switch services array in function of type (tcp/udp/sctp)
 static void	print_port(t_task *task, uint16_t task_id,
 		uint16_t c, t_nmap_config *cfg)
@@ -43,7 +40,7 @@ static void	print_port(t_task *task, uint16_t task_id,
 	//services = (char ***)g_tcp_services; //TEMP: pretend it's always TCP for now
 	if (!c)
 	{
-		line = ft_printf("\n%-*s | %-*s |%#*t %-"TO_STR(SCAN_FIELD)"s| %-*s",
+		line = ft_printf("\n%-*s | %-*s |%#*t %-"xstr(SCAN_FIELD)"s| %-*s",
 			PORT_FIELD, "Port", SERVICE_FIELD, "Service", cfg->nscans,
 			cfg->scan_strings, STATE_FIELD, "State");
 		if (line > 1)
@@ -51,7 +48,7 @@ static void	print_port(t_task *task, uint16_t task_id,
 	}
 	if (!(service = g_tcp_services[cfg->ports[task_id]][0]))
 		service = "(unknown)";
-	ft_printf("%-*hu | %-*s |%#*t %-"TO_STR(SCAN_FIELD)"s| %-*s\n",
+	ft_printf("%-*hu | %-*s |%#*t %-"xstr(SCAN_FIELD)"s| %-*s\n",
 		PORT_FIELD, cfg->ports[task_id], SERVICE_FIELD, service,
 		cfg->nscans, results, STATE_FIELD, (task->status & STATE_OPEN) ?
 		"Open" : "Closed");
