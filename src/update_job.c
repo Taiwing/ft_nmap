@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 22:19:27 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 22:28:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,14 +79,16 @@ void		update_job(t_scan *scan)
 	scan->task->scans[scan->type] |= scan->result;
 	scan->result = 0;
 	if (++scan->task->done == scan->cfg->nscans)
+	{
 		if (set_job_status(scan) && scan->job_ptr == scan->cfg->jobs)
 		{
 			flush_jobs(scan->cfg);
-			scan->task = NULL;
-			scan->task_id = 0;
 			scan->job = NULL;
 			scan->job_ptr = NULL;
 		}
+		scan->task = NULL;
+		scan->task_id = 0;
+	}
 	if (scan->cfg->speedup)
 		ft_mutex_unlock(&(scan->cfg->mutex));
 }
