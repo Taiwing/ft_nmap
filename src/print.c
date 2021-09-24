@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 15:48:50 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 16:09:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,30 +28,28 @@ const char	*g_scan_results[STATE_CLOSED | STATE_UNFILTERED | 0x01] = {
 #define _TO_STR_INTERNAL(arg) #arg
 #define	TO_STR(arg) _TO_STR_INTERNAL(arg)
 
+//TODO: switch services array in function of type (tcp/udp/sctp)
 static void	print_port(t_task *task, uint16_t task_id,
 		uint16_t c, t_nmap_config *cfg)
 {
 	//char		***services;
-	//const char	*results[NB_SCANS] = { 0 };
+	const char	*service;
+	const char	*results[NB_SCANS] = { 0 };
 
-	(void)task;
-	(void)task_id;
-	/*
 	for (int i = 0, j = 0; i < NB_SCANS && j < cfg->nscans; ++i)
 		if (cfg->scans[i])
 			results[j++] = g_scan_results[task->scans[i] & SCAN_MASK];
-	services = (char ***)g_tcp_services; //TEMP: pretend it's always TCP for now
-	*/
+	//services = (char ***)g_tcp_services; //TEMP: pretend it's always TCP for now
 	if (!c)
 		ft_printf("\n%-*s | %-*s |%#*t %-"TO_STR(SCAN_FIELD)"s| %-*s\n%s\n",
 			PORT_FIELD, "Port", SERVICE_FIELD, "Service", cfg->nscans,
 			cfg->scan_strings, STATE_FIELD, "State", g_sep_line);
-	/*
-	ft_printf("\n%-*hu | %-*s |%#*t %-"TO_STR(SCAN_FIELD)"s| %-*s\n",
-		PORT_FIELD, cfg->ports[task_id], SERVICE_FIELD,
-		services[cfg->ports[task_id]][0], cfg->nscans, results, STATE_FIELD,
-		(task->status & STATE_OPEN) ? "Open" : "Closed");
-	*/
+	if (!(service = g_tcp_services[cfg->ports[task_id]][0]))
+		service = "(unknown)";
+	ft_printf("%-*hu | %-*s |%#*t %-"TO_STR(SCAN_FIELD)"s| %-*s\n",
+		PORT_FIELD, cfg->ports[task_id], SERVICE_FIELD, service,
+		cfg->nscans, results, STATE_FIELD, (task->status & STATE_OPEN) ?
+		"Open" : "Closed");
 }
 
 void	print_job(t_job *job, t_nmap_config *cfg)
@@ -60,7 +58,7 @@ void	print_job(t_job *job, t_nmap_config *cfg)
 	double		scan_time = 3.666; //TEMP (TODO: compute actual time with job ts)
 
 	//TODO: here flush job text buffer if needed
-	ft_printf("Scan took %g seconds\n", scan_time);
+	ft_printf("\nScan took %g seconds\n", scan_time);
 	ft_printf("host: %s\n", job->host);
 	ft_printf("IP address: %s\n", "lol.mdr.xd.ptdr"); //TEMP
 	ft_printf("Open ports:");
