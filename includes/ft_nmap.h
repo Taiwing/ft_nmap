@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 15:05:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 16:45:30 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,8 +91,8 @@ typedef struct		s_job
 {
 	char			*host;
 	uint8_t			status;
-	uint8_t			ongoing;
-	uint8_t			done;
+	uint16_t		ongoing;
+	uint16_t		done;
 	struct timeval	start_ts;
 	struct timeval	end_ts;
 	t_task			*tasks;
