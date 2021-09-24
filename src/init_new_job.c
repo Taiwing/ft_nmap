@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 01:26:32 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 01:58:08 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 14:57:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ static const char	*get_target(t_nmap_config *cfg)
 			ft_asprintf(&err, "get_next_line: unknown error");
 	}
 	if (err)
-		ft_exit(err, EXIT_FAILURE);
+		ft_nmap_exit(cfg, err, EXIT_FAILURE);
 	return (ret);
 }
 
@@ -53,7 +53,7 @@ t_list	*init_new_job(t_scan *scan)
 	if (gettimeofday(&job->start_ts, NULL) < 0)
 	{
 		ft_asprintf(&err, "gettimeofday: %s", strerror(errno));
-		ft_exit(err, EXIT_FAILURE);
+		ft_nmap_exit(scan->cfg, err, EXIT_FAILURE);
 	}
 	if (!new)
 	{

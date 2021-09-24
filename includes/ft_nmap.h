@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 02:32:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 15:05:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <errno.h>
 # include <fcntl.h>
 # include <pthread.h>
+# include <sys/time.h>
 
 /*
 ** ft_nmap macros
@@ -31,9 +32,6 @@
 # define	MAX_LST_ELM_LEN			1024	// biggest possible comma list element
 # define	PORTS_COUNT				0x10000	// Number of ports (USHRT_MAX + 1)
 
-# define	SERVICE_NAME_MAXLEN		20		// biggest service name string
-# define	SERVICE_DESC_MAXLEN		331		// biggest service description string
-
 # define	NB_SCANS				6
 
 // Scan/Task/Job states
@@ -45,11 +43,17 @@
 # define	STATE_CLOSED			0x10
 # define	STATE_FILTERED			0x20
 # define	STATE_UNFILTERED		0x40
+# define	SCAN_MASK				0xf8	// Mask for scan status
 
-# define	CONFIG_DEF				{\
-	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
-	0, -1, NULL, NULL, { 0 }\
-}
+// Print format constants
+# define	SERVICE_NAME_MAXLEN		20
+# define	SERVICE_DESC_MAXLEN		331
+# define	RES_MAXLEN				3
+# define	JOB_LINE				80
+# define	PORT_FIELD				5
+# define	SERVICE_FIELD			SERVICE_NAME_MAXLEN
+# define	SCAN_FIELD				5
+# define	STATE_FIELD				6
 
 /*
 ** Scans
@@ -114,6 +118,7 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 ** hosts_file: file containing a list of hosts
 ** scans: scans to perform as an array of booleans
 ** nscans: number of scans to perform on each port
+** scan_strings: store selected scan names
 ** hosts_fd: file descriptor for the hosts_file
 ** jobs: list of active jobs
 ** empty_jobs: store allocated and zeroed out jobs
@@ -130,11 +135,17 @@ typedef struct	s_nmap_config
 	const char		*hosts_file;
 	uint8_t			scans[NB_SCANS];
 	uint8_t			nscans;
+	const char		*scan_strings[NB_SCANS];
 	int				hosts_fd;
 	t_list			*jobs;
 	t_list			*empty_jobs;
 	pthread_mutex_t	mutex;
 }					t_nmap_config;
+
+# define	CONFIG_DEF				{\
+	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
+	0, { 0 }, -1, NULL, NULL, {{ 0 }}\
+}
 
 /*
 ** Scan structure: structure given to worker
@@ -168,9 +179,12 @@ const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 char		*ports_option(t_nmap_config *cfg, t_optdata *optd);
 char		*scan_option(t_nmap_config *cfg, t_optdata *optd);
+void		ft_nmap_exit(t_nmap_config *cfg, char *err, int ret);
 t_scan		*next_scan(t_scan *scan);
 void		*worker(void *ptr);
 t_list		*init_new_job(t_scan *scan);
 void		update_job(t_scan *scan);
+void		print_config(t_nmap_config *cfg);
+void		print_job(t_job *job, t_nmap_config *cfg);
 
 #endif

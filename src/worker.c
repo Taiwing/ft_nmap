@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 02:10:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 15:08:45 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,19 @@
 static void	exec_scan(t_scan *scan)
 {
 	//TEMP
-	uint64_t	randval;
+	uint64_t	randval = 0;
 
-	if (!ft_rand_uint64(&randval, 0, (uint64_t)scan->cfg->speedup - 1))
-		ft_exit("ft_rand_uint64: error\n", EXIT_FAILURE);
+	if (scan->cfg->speedup
+		&& !ft_rand_uint64(&randval, 0, (uint64_t)scan->cfg->speedup - 1))
+		ft_nmap_exit(scan->cfg, "ft_rand_uint64: error\n", EXIT_FAILURE);
 	ft_printf("Thread number %hhu (randval: %u)\n", scan->id, randval);
-	if (scan->id == randval)
-		ft_exit("WOOOOW!!!!", 123);
+	/*
+	if (scan->cfg->speedup && scan->id == randval)
+		ft_nmap_exit(scan->cfg, "WOOOOW!!!!", 123);
+	*/
 	sleep(randval);
 	if (!ft_rand_uint64(&randval, 0, 4))
-		ft_exit("ft_rand_uint64: error\n", EXIT_FAILURE);
+		ft_nmap_exit(scan->cfg, "ft_rand_uint64: error\n", EXIT_FAILURE);
 	if (!randval)
 		scan->result = STATE_OPEN;
 	else if (randval == 1)
@@ -46,7 +49,7 @@ void		*worker(void *ptr)
 	do
 	{
 		exec_scan(scan);
-		update_job(scan); //TODO
+		update_job(scan);
 	} while (next_scan(scan));
 	return (NULL);
 }

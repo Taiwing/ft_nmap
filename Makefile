@@ -12,9 +12,14 @@ NAME		=	ft_nmap
 
 ############################## SOURCES #########################################
 
-SRCC			=	options.c\
+SRCC			=	update_job.c\
+					init_new_job.c\
+					options.c\
+					next_scan.c\
 					main.c\
+					print.c\
 					udp_services.c\
+					worker.c\
 					tcp_services.c\
 					get_options.c\
 					sctp_services.c\
@@ -37,9 +42,14 @@ $(NAME): $(SUB1D)/libft.a $(ODIR) $(OBJ)
 $(SUB1D)/libft.a:
 	make -C $(SUB1D)
 
+update_job.o: ft_nmap.h libft.h
+init_new_job.o: ft_nmap.h libft.h
 options.o: ft_nmap.h libft.h
+next_scan.o: ft_nmap.h libft.h
 main.o: ft_nmap.h libft.h
+print.o: ft_nmap.h libft.h
 udp_services.o: ft_nmap.h libft.h
+worker.o: ft_nmap.h libft.h
 tcp_services.o: ft_nmap.h libft.h
 get_options.o: ft_nmap.h libft.h
 sctp_services.o: ft_nmap.h libft.h

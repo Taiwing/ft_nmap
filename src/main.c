@@ -6,11 +6,18 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 01:32:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 15:06:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
+
+void	ft_nmap_exit(t_nmap_config *cfg, char *err, int ret)
+{
+	ft_mutex_lock(&cfg->mutex);
+	ft_exit(err, ret);
+	ft_mutex_unlock(&cfg->mutex);
+}
 
 static void	cleanup(t_nmap_config *cfg)
 {
@@ -35,32 +42,20 @@ static void	check_config(t_nmap_config *cfg)
 			cfg->scans[cfg->nscans] = 1;
 }
 
-void		print_config(t_nmap_config *cfg)
-{
-	char	buf[64] = { 0 };
-
-	for (int i = 0; i < NB_SCANS; ++i)
-		if (cfg->scans[i])
-			ft_strcat(ft_strcat(buf, " "), g_nmap_scan_strings[i]);
-	ft_printf("--- Scan Configuration ---\n"
-		"Number of ports to scan: %d\n"
-		"Scans to be performed:%s\n"
-		"Number of threads: %d\n",
-		cfg->nports, buf, cfg->speedup);
-}
-
 static void	start_workers(t_nmap_config *cfg)
 {
+	t_scan		scan[MAX_SPEEDUP] = {
+		[ 0 ... MAX_SPEEDUP - 1] = { 0, 0, 0, NULL, 0, NULL, NULL, cfg },
+	};
 	pthread_t	thread[MAX_SPEEDUP] = { 0 };
-	t_scan		scan[MAX_SPEEDUP] = { 0 };
 	char		*err = NULL;
 	int			ret;
 	uint8_t		id;
 
 	if (!cfg->speedup)
 	{
-		if (next_scan(scan + id))
-			worker((void *)(scan + id));
+		if (next_scan(scan))
+			worker((void *)(scan));
 		return;
 	}
 	for (id = 0; !err && id < cfg->speedup && next_scan(scan + id); ++id)
@@ -74,14 +69,13 @@ static void	start_workers(t_nmap_config *cfg)
 		if ((ret = pthread_join(thread[i], NULL)))
 			ft_asprintf(&err, "pthread_join: %s", strerror(ret));
 	if (err)
-		ft_exit(err, EXIT_FAILURE);
+		ft_nmap_exit(cfg, err, EXIT_FAILURE);
 }
 
 int	main(int argc, char **argv)
 {
 	int				ret;
 	char			*err;
-	const char		*target;
 	t_nmap_config	cfg = CONFIG_DEF;
 	void			cleanup_handler(void) { cleanup(&cfg); };
 
@@ -92,7 +86,7 @@ int	main(int argc, char **argv)
 	check_config(&cfg);
 	print_config(&cfg);
 	ft_printf("\nThis is %s!\n", cfg.exec);
-	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex)))
+	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
 	{
 		ft_asprintf(&err, "pthread_mutex_init: %s", strerror(ret));
 		ft_exit(err, EXIT_FAILURE);
@@ -102,6 +96,6 @@ int	main(int argc, char **argv)
 	while ((target = get_target(&cfg)))
 		ft_printf("Scanning %s ...\n", target);
 	*/
-	ft_exit(NULL, EXIT_SUCCESS);
+	ft_nmap_exit(&cfg, NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }

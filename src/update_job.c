@@ -6,23 +6,11 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 03:23:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 14:53:00 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
-
-static void	print_job(t_job *job, t_nmap_config *cfg)
-{
-	//TODO: here flush job text buffer if needed
-	ft_printf("Scan took %g seconds\n", time);
-	ft_printf("IP address: %s\n", "lol.mdr.xd.ptdr"); //TEMP
-	ft_printf("Open ports:");
-	for (int i = 0, c = 0; i < cfg->nports; ++i)
-	{
-		//TODO: finish this
-	}
-}
 
 static void	reset_job(t_job *job, t_nmap_config *cfg)
 {
@@ -46,9 +34,30 @@ static void	flush_jobs(t_nmap_config *cfg)
 		lst = ft_lst_pop(&cfg->jobs, 0);
 		print_job(next_job, cfg);
 		reset_job(next_job, cfg);
-		ft_lst_add(&cfg->empty_jobs, lst);
+		ft_lstadd(&cfg->empty_jobs, lst);
 		next_job = cfg->jobs ? (t_job *)cfg->jobs->content : NULL;
 	}
+}
+
+// Port is set as open if one of the scans returns an open status
+// TODO: this is very simple and should probably changed for something
+// a little bit more subtle in function of the type of scan
+static void	set_job_status(t_scan *scan)
+{
+	int		i;
+	uint8_t	status;
+
+	status = STATE_CLOSED;
+	scan->task->status |= STATE_DONE;
+	for (i = 0; i < NB_SCANS; ++i)
+		if ((scan->task->scans[i] & STATE_OPEN)
+			&& !(scan->task->scans[i] & STATE_FILTERED))
+			break;
+	if (i < NB_SCANS)
+		status = STATE_OPEN;
+	scan->task->status |= status;
+	if (++scan->job->done == scan->cfg->nports)
+		scan->job->status |= STATE_DONE;
 }
 
 void		update_job(t_scan *scan)
@@ -59,11 +68,7 @@ void		update_job(t_scan *scan)
 	scan->task->scans[scan->type] |= scan->result;
 	scan->result = 0;
 	if (++scan->task->done == scan->cfg->nscans)
-	{
-		scan->task->status |= STATE_DONE;
-		if (++scan->job->done == scan->cfg->nports)
-			scan->job->status |= STATE_DONE;
-	}
+		set_job_status(scan);
 	if (scan->job_ptr == scan->cfg->jobs)
 	{
 		flush_jobs(scan->cfg);
