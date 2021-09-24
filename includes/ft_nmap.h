@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 16:45:30 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 17:00:35 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,7 +179,6 @@ const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 char		*ports_option(t_nmap_config *cfg, t_optdata *optd);
 char		*scan_option(t_nmap_config *cfg, t_optdata *optd);
-void		ft_nmap_exit(t_nmap_config *cfg, char *err, int ret);
 t_scan		*next_scan(t_scan *scan);
 void		*worker(void *ptr);
 t_list		*init_new_job(t_scan *scan);

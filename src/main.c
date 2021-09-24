@@ -6,21 +6,16 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 15:06:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 17:01:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-void	ft_nmap_exit(t_nmap_config *cfg, char *err, int ret)
-{
-	ft_mutex_lock(&cfg->mutex);
-	ft_exit(err, ret);
-	ft_mutex_unlock(&cfg->mutex);
-}
-
 static void	cleanup(t_nmap_config *cfg)
 {
+	if (cfg->speedup)
+		ft_mutex_lock(&cfg->mutex);
 	if (cfg->hosts_fd >= 0)
 		close(cfg->hosts_fd);
 }
@@ -69,7 +64,7 @@ static void	start_workers(t_nmap_config *cfg)
 		if ((ret = pthread_join(thread[i], NULL)))
 			ft_asprintf(&err, "pthread_join: %s", strerror(ret));
 	if (err)
-		ft_nmap_exit(cfg, err, EXIT_FAILURE);
+		ft_exit(err, EXIT_FAILURE);
 }
 
 int	main(int argc, char **argv)
@@ -96,6 +91,6 @@ int	main(int argc, char **argv)
 	while ((target = get_target(&cfg)))
 		ft_printf("Scanning %s ...\n", target);
 	*/
-	ft_nmap_exit(&cfg, NULL, EXIT_SUCCESS);
+	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }
