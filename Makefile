@@ -7,7 +7,7 @@ HDIR		=	includes
 SRCDIR		=	src
 SUB1D		=	libft
 HFLAGS		=	-I $(HDIR) -I $(SUB1D)/$(HDIR)
-LIBS		=	$(SUB1D)/libft.a
+LIBS		=	$(SUB1D)/libft.a -lpthread
 NAME		=	ft_nmap
 
 ############################## SOURCES #########################################
