@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/23 21:22:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 01:32:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,32 +49,38 @@ void		print_config(t_nmap_config *cfg)
 		cfg->nports, buf, cfg->speedup);
 }
 
-static const char	*get_target(t_nmap_config *cfg)
+static void	start_workers(t_nmap_config *cfg)
 {
-	char				*err = NULL;
-	static const char	*ret = NULL;
+	pthread_t	thread[MAX_SPEEDUP] = { 0 };
+	t_scan		scan[MAX_SPEEDUP] = { 0 };
+	char		*err = NULL;
+	int			ret;
+	uint8_t		id;
 
-	if (cfg->hosts && !(ret = parse_comma_list(cfg->hosts)))
-		ft_asprintf(&err, "invalid list argument: '%s'", cfg->hosts);
-	else if (cfg->hosts && !*ret)
-		cfg->hosts = ret = NULL;
-	if (!err && !cfg->hosts && cfg->hosts_file && cfg->hosts_fd < 0
-		&& (cfg->hosts_fd = open(cfg->hosts_file, O_RDONLY)) < 0)
-		ft_asprintf(&err, "open: %s", strerror(errno));
-	else if (!err && !cfg->hosts && cfg->hosts_fd >= 0)
+	if (!cfg->speedup)
 	{
-		if (ret)
-			ft_memdel((void *)&ret);
-		if (get_next_line(cfg->hosts_fd, (char **)&ret) < 0)
-			ft_asprintf(&err, "get_next_line: unknown error");
+		if (next_scan(scan + id))
+			worker((void *)(scan + id));
+		return;
 	}
+	for (id = 0; !err && id < cfg->speedup && next_scan(scan + id); ++id)
+	{
+		scan[id].id = id; //TEMP (maybe)
+		if ((ret = pthread_create(thread + id, NULL,
+			worker, (void *)(scan + id))))
+			ft_asprintf(&err, "pthread_create: %s", strerror(ret));
+	}
+	for (uint8_t i = 0; !err && i < id; ++i)
+		if ((ret = pthread_join(thread[i], NULL)))
+			ft_asprintf(&err, "pthread_join: %s", strerror(ret));
 	if (err)
 		ft_exit(err, EXIT_FAILURE);
-	return (ret);
 }
 
 int	main(int argc, char **argv)
 {
+	int				ret;
+	char			*err;
 	const char		*target;
 	t_nmap_config	cfg = CONFIG_DEF;
 	void			cleanup_handler(void) { cleanup(&cfg); };
@@ -86,58 +92,16 @@ int	main(int argc, char **argv)
 	check_config(&cfg);
 	print_config(&cfg);
 	ft_printf("\nThis is %s!\n", cfg.exec);
+	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex)))
+	{
+		ft_asprintf(&err, "pthread_mutex_init: %s", strerror(ret));
+		ft_exit(err, EXIT_FAILURE);
+	}
+	start_workers(&cfg);
+	/*
 	while ((target = get_target(&cfg)))
 		ft_printf("Scanning %s ...\n", target);
-	//TEST
-	pthread_t	thread[MAX_SPEEDUP];
-	int			arg[MAX_SPEEDUP];
-	uint64_t	exit_value[MAX_SPEEDUP] = { 0 };
-	uint64_t	test = 0;
-	int			ret = 0;
-	pthread_mutex_t	local_mutex;
-	char		*err = NULL;
-	void		*retval = NULL;
-	void		*thread_function(void *ptr) {
-		int	id = *(int *)ptr;
-		ft_mutex_lock(&local_mutex);
-		if (!ft_rand_uint64(exit_value + id, 0, (uint64_t)cfg.speedup - 1))
-			ft_exit("ft_rand_uint64: error\n", EXIT_FAILURE);
-		ft_printf("Thread number %d (exit_value: %u)\n", id, exit_value[id]);
-		if ((uint64_t)id == exit_value[id])
-			ft_exit("WOOOOW!!!!", 123);
-		ft_mutex_unlock(&local_mutex);
-		sleep(exit_value[id]);
-		pthread_exit((void *)(exit_value + id));
-	};
-
-	pthread_mutex_init(&local_mutex, NULL);
-	for (int i = 0; i < cfg.speedup; ++i)
-	{
-		arg[i] = i;
-		if ((ret = pthread_create(thread + i, NULL, thread_function, (void *)(arg + i))))
-		{
-			ft_asprintf(&err, "pthread_create: %s", strerror(ret));
-			ft_exit(err, EXIT_FAILURE);
-		}
-	}
-	for (int i = 0; i < cfg.speedup; ++i)
-	{
-		if ((ret = pthread_join(thread[i], &retval)))
-		{
-			ft_asprintf(&err, "pthread_join: %s", strerror(ret));
-			ft_exit(err, EXIT_FAILURE);
-		}
-		if (retval == PTHREAD_CANCELED)
-			ft_printf("Thread %d (%lu) canceled.\n", i, thread[i]);
-		else
-		{
-			test = *(uint64_t *)retval;
-			ft_mutex_lock(&local_mutex);
-			ft_printf("Thread %d (%lu) exit_value: %d\n", i, thread[i], test);
-			ft_mutex_unlock(&local_mutex);
-		}
-	}
-	//TEST
+	*/
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }

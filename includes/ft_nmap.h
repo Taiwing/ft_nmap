@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/23 21:05:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 02:32:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,8 @@
 # define	STATE_UNFILTERED		0x40
 
 # define	CONFIG_DEF				{\
-	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 }, 0, -1, NULL, NULL\
+	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
+	0, -1, NULL, NULL, { 0 }\
 }
 
 /*
@@ -59,11 +60,15 @@ enum e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, S_UDP };
 ** Task structure: this is the status of each scan on a given port
 **
 ** status: task status
+** ongoing: counter of started scans
+** done: counter of finished scans
 ** scans: status of each scan
 */
 typedef struct	s_task
 {
 	uint8_t		status;
+	uint8_t		ongoing;
+	uint8_t		done;
 	uint8_t		scans[NB_SCANS];
 }				t_task;
 
@@ -72,6 +77,8 @@ typedef struct	s_task
 **
 ** host: host string
 ** status: job status
+** ongoing: counter of full tasks
+** done: counter of finished tasks
 ** start_ts: ts at start of job
 ** end_ts: ts at end of job
 ** tasks: status of each task
@@ -80,6 +87,8 @@ typedef struct		s_job
 {
 	char			*host;
 	uint8_t			status;
+	uint8_t			ongoing;
+	uint8_t			done;
 	struct timeval	start_ts;
 	struct timeval	end_ts;
 	t_task			*tasks;
@@ -103,27 +112,53 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 ** nports: number of ports to scan in ports array
 ** hosts: hosts list given by cmd argument
 ** hosts_file: file containing a list of hosts
-** scans: scans to perform as an or'ed integer
+** scans: scans to perform as an array of booleans
 ** nscans: number of scans to perform on each port
 ** hosts_fd: file descriptor for the hosts_file
 ** jobs: list of active jobs
 ** empty_jobs: store allocated and zeroed out jobs
+** mutex: global mutex
 */
 typedef struct	s_nmap_config
 {
-	const char	*exec;
-	int			speedup;
-	uint8_t		ports_to_scan[PORTS_COUNT];
-	uint16_t	ports[MAX_PORTS + 1];
-	uint16_t	nports;
-	const char	*hosts;
-	const char	*hosts_file;
-	uint8_t		scans[NB_SCANS];
-	uint8_t		nscans;
-	int			hosts_fd;
-	t_list		*jobs;
-	t_list		*empty_jobs;
-}				t_nmap_config;
+	const char		*exec;
+	int				speedup;
+	uint8_t			ports_to_scan[PORTS_COUNT];
+	uint16_t		ports[MAX_PORTS + 1];
+	uint16_t		nports;
+	const char		*hosts;
+	const char		*hosts_file;
+	uint8_t			scans[NB_SCANS];
+	uint8_t			nscans;
+	int				hosts_fd;
+	t_list			*jobs;
+	t_list			*empty_jobs;
+	pthread_mutex_t	mutex;
+}					t_nmap_config;
+
+/*
+** Scan structure: structure given to worker
+**
+** id: thread index if any
+** type: type of scan to perform
+** result: return status of the scan
+** task: pointer to the task of this scan
+** task_id: index of the task in the job's tasks array
+** job: pointer to the job of this task
+** job_ptr: this job's list pointer
+** cfg: config pointer
+*/
+typedef struct		s_scan
+{
+	uint8_t			id;		//TEMP (maybe)
+	enum e_scans	type;
+	uint8_t			result;
+	t_task			*task;
+	uint16_t		task_id;
+	t_job			*job;
+	t_list			*job_ptr;
+	t_nmap_config	*cfg;
+}					t_scan;
 
 /*
 ** ft_nmap functions
@@ -133,5 +168,9 @@ const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 char		*ports_option(t_nmap_config *cfg, t_optdata *optd);
 char		*scan_option(t_nmap_config *cfg, t_optdata *optd);
+t_scan		*next_scan(t_scan *scan);
+void		*worker(void *ptr);
+t_list		*init_new_job(t_scan *scan);
+void		update_job(t_scan *scan);
 
 #endif
