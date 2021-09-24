@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 14:53:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 21:00:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ static void	set_job_status(t_scan *scan)
 	scan->task->status |= status;
 	if (++scan->job->done == scan->cfg->nports)
 		scan->job->status |= STATE_DONE;
+	ft_putchar('.');
 }
 
 void		update_job(t_scan *scan)

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 17:10:20 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 20:59:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ static void	exec_scan(t_scan *scan)
 		scan->result = STATE_UNFILTERED;
 	else
 		scan->result = STATE_OPEN | STATE_FILTERED;
-	ft_putchar('.');
 	//TEMP
 }
 

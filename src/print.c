@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 16:09:29 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 21:09:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ const char	*g_scan_results[STATE_CLOSED | STATE_UNFILTERED | 0x01] = {
 static void	print_port(t_task *task, uint16_t task_id,
 		uint16_t c, t_nmap_config *cfg)
 {
+	int			line;
 	//char		***services;
 	const char	*service;
 	const char	*results[NB_SCANS] = { 0 };
@@ -41,9 +42,13 @@ static void	print_port(t_task *task, uint16_t task_id,
 			results[j++] = g_scan_results[task->scans[i] & SCAN_MASK];
 	//services = (char ***)g_tcp_services; //TEMP: pretend it's always TCP for now
 	if (!c)
-		ft_printf("\n%-*s | %-*s |%#*t %-"TO_STR(SCAN_FIELD)"s| %-*s\n%s\n",
+	{
+		line = ft_printf("\n%-*s | %-*s |%#*t %-"TO_STR(SCAN_FIELD)"s| %-*s",
 			PORT_FIELD, "Port", SERVICE_FIELD, "Service", cfg->nscans,
-			cfg->scan_strings, STATE_FIELD, "State", g_sep_line);
+			cfg->scan_strings, STATE_FIELD, "State");
+		if (line > 1)
+			ft_printf("\n%.*s\n", line - 1, g_sep_line);
+	}
 	if (!(service = g_tcp_services[cfg->ports[task_id]][0]))
 		service = "(unknown)";
 	ft_printf("%-*hu | %-*s |%#*t %-"TO_STR(SCAN_FIELD)"s| %-*s\n",
@@ -58,7 +63,7 @@ void	print_job(t_job *job, t_nmap_config *cfg)
 	double		scan_time = 3.666; //TEMP (TODO: compute actual time with job ts)
 
 	//TODO: here flush job text buffer if needed
-	ft_printf("\nScan took %g seconds\n", scan_time);
+	ft_printf("\n\nScan took %g seconds\n", scan_time);
 	ft_printf("host: %s\n", job->host);
 	ft_printf("IP address: %s\n", "lol.mdr.xd.ptdr"); //TEMP
 	ft_printf("Open ports:");

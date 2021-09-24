@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 15:01:20 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/24 21:58:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,14 @@ char	*g_nmap_usage[] = {
 	NULL,
 };
 
+char	*g_description =
+"\tEach scan type given in scan list is a column in the final host report\n"
+"\tand a series of letters is used to describe the result of a port scan:\n\n"
+"\tO --> Open\n"
+"\tC --> Closed\n"
+"\tF --> Filtered\n"
+"\tU --> Unfiltered\n";
+
 static void	usage(const char *exec, int exit_value)
 {
 	t_opt	*opts = g_nmap_opt;
@@ -65,6 +73,7 @@ static void	usage(const char *exec, int exit_value)
 		++opts;
 		++help;
 	}
+	ft_printf("\nDescription:\n%s", g_description);
 	ft_exit(NULL, exit_value);
 }
 
