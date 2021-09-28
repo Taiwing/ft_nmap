@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 22:28:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/28 08:14:55 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,12 @@ static void	flush_jobs(t_nmap_config *cfg)
 	t_list	*lst;
 	t_job	*next_job;
 
+	lst = NULL;
 	next_job = (t_job *)cfg->jobs->content;
 	while (next_job && (next_job->status & STATE_DONE))
 	{
+		if (lst)
+			ft_printf("\n\n");
 		lst = ft_lst_pop(&cfg->jobs, 0);
 		print_job(next_job, cfg);
 		reset_job(next_job, cfg);
@@ -67,12 +70,13 @@ static int	set_job_status(t_scan *scan)
 		}
 		ret = 1;
 	}
-	ft_putchar('.');
 	return (ret);
 }
 
 void		update_job(t_scan *scan)
 {
+	static int	point_status = 0;
+
 	if (scan->cfg->speedup)
 		ft_mutex_lock(&(scan->cfg->mutex));
 	scan->task->scans[scan->type] |= STATE_DONE;
@@ -80,8 +84,11 @@ void		update_job(t_scan *scan)
 	scan->result = 0;
 	if (++scan->task->done == scan->cfg->nscans)
 	{
+		ft_printf("%s.", point_status++ ? "" : "\n\n" );
 		if (set_job_status(scan) && scan->job_ptr == scan->cfg->jobs)
 		{
+			point_status = 0;
+			ft_putchar('\n');
 			flush_jobs(scan->cfg);
 			scan->job = NULL;
 			scan->job_ptr = NULL;

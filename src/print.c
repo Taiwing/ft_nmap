@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 22:07:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/28 08:16:49 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,10 +74,9 @@ void	print_job(t_job *job, t_nmap_config *cfg)
 	uint16_t	i, c;
 	double		scan_time = ts_msdiff(&job->end_ts, &job->start_ts);
 
-	//TODO: here flush job text buffer if needed
-	ft_printf("\n\nScan took %g seconds\n", scan_time / 1000.0);
-	ft_printf("host: %s\n", job->host);
-	ft_printf("IP address: %s\n", "lol.mdr.xd.ptdr"); //TEMP
+	ft_printf("Host: %s\n", job->host);
+	ft_printf("Scan took %g seconds\n", scan_time / 1000.0);
+	ft_printf("IP address: %s\n\n", "lol.mdr.xd.ptdr"); //TEMP
 	ft_printf("Open ports:");
 	for (i = 0, c = 0; i < cfg->nports; ++i)
 		if (job->tasks[i].status & STATE_OPEN)

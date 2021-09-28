@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 17:01:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/28 08:14:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,17 +80,12 @@ int	main(int argc, char **argv)
 	get_options(&cfg, argc, argv);
 	check_config(&cfg);
 	print_config(&cfg);
-	ft_printf("\nThis is %s!\n", cfg.exec);
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
 	{
 		ft_asprintf(&err, "pthread_mutex_init: %s", strerror(ret));
 		ft_exit(err, EXIT_FAILURE);
 	}
 	start_workers(&cfg);
-	/*
-	while ((target = get_target(&cfg)))
-		ft_printf("Scanning %s ...\n", target);
-	*/
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }
