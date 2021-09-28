@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 21:58:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/28 09:15:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ static void	usage(const char *exec, int exit_value)
 		++help;
 	}
 	ft_printf("\nDescription:\n%s", g_description);
-	ft_exit(NULL, exit_value);
+	ft_exit(NULL, 0, exit_value);
 }
 
 // This is largely big enough to detect overflow from integer string
@@ -155,5 +155,5 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 		}
 	ft_memdel((void **)&args);
 	if (err)
-		ft_exit(err, EXIT_FAILURE);
+		ft_exit(err, 0, EXIT_FAILURE);
 }

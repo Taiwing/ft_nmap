@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/28 08:14:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/28 09:18:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ static void	cleanup(t_nmap_config *cfg)
 static void	check_config(t_nmap_config *cfg)
 {
 	if (!cfg->hosts && !cfg->hosts_file)
-		ft_exit("target host missing (use --help for more info)", EXIT_FAILURE);
+		ft_exit("target host missing (use --help for more info)",
+			0, EXIT_FAILURE);
 	if (!cfg->nports)
 	{
 		cfg->nports = MAX_PORTS;
@@ -43,7 +44,6 @@ static void	start_workers(t_nmap_config *cfg)
 		[ 0 ... MAX_SPEEDUP - 1] = { 0, 0, 0, NULL, 0, NULL, NULL, cfg },
 	};
 	pthread_t	thread[MAX_SPEEDUP] = { 0 };
-	char		*err = NULL;
 	int			ret;
 	uint8_t		id;
 
@@ -53,24 +53,21 @@ static void	start_workers(t_nmap_config *cfg)
 			worker((void *)(scan));
 		return;
 	}
-	for (id = 0; !err && id < cfg->speedup && next_scan(scan + id); ++id)
+	for (id = 0; id < cfg->speedup && next_scan(scan + id); ++id)
 	{
 		scan[id].id = id; //TEMP (maybe)
 		if ((ret = pthread_create(thread + id, NULL,
 			worker, (void *)(scan + id))))
-			ft_asprintf(&err, "pthread_create: %s", strerror(ret));
+			ft_exit("pthread_create", ret, EXIT_FAILURE);
 	}
-	for (uint8_t i = 0; !err && i < id; ++i)
+	for (uint8_t i = 0; i < id; ++i)
 		if ((ret = pthread_join(thread[i], NULL)))
-			ft_asprintf(&err, "pthread_join: %s", strerror(ret));
-	if (err)
-		ft_exit(err, EXIT_FAILURE);
+			ft_exit("pthread_join", ret, EXIT_FAILURE);
 }
 
 int	main(int argc, char **argv)
 {
 	int				ret;
-	char			*err;
 	t_nmap_config	cfg = CONFIG_DEF;
 	void			cleanup_handler(void) { cleanup(&cfg); };
 
@@ -81,11 +78,8 @@ int	main(int argc, char **argv)
 	check_config(&cfg);
 	print_config(&cfg);
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
-	{
-		ft_asprintf(&err, "pthread_mutex_init: %s", strerror(ret));
-		ft_exit(err, EXIT_FAILURE);
-	}
+		ft_exit("pthread_mutex_init", ret, EXIT_FAILURE);
 	start_workers(&cfg);
-	ft_exit(NULL, EXIT_SUCCESS);
+	ft_exit(NULL, 0, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }

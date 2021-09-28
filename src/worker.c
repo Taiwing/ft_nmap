@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 20:59:29 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/28 09:24:00 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,11 +19,11 @@ static void	exec_scan(t_scan *scan)
 
 	if (scan->cfg->speedup
 		&& !ft_rand_uint64(&randval, 0, (uint64_t)scan->cfg->speedup - 1))
-		ft_exit("ft_rand_uint64: error\n", EXIT_FAILURE);
+		ft_exit("ft_rand_uint64: error", 0, EXIT_FAILURE);
 	//ft_printf("Thread number %hhu (randval: %u)\n", scan->id, randval);
 	/*
 	if (scan->cfg->speedup && scan->id == randval)
-		ft_exit("WOOOOW!!!!", 123);
+		ft_exit("WOOOOW!!!!", 0, 123);
 	*/
 	if (scan->cfg->speedup < 10)
 		sleep(randval);
@@ -32,7 +32,7 @@ static void	exec_scan(t_scan *scan)
 	else
 		sleep(randval / 25);
 	if (!ft_rand_uint64(&randval, 0, 4))
-		ft_exit("ft_rand_uint64: error\n", EXIT_FAILURE);
+		ft_exit("ft_rand_uint64: error", 0, EXIT_FAILURE);
 	if (!randval)
 		scan->result = STATE_OPEN;
 	else if (randval == 1)

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/28 08:14:55 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/28 09:16:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,6 @@ static int	set_job_status(t_scan *scan)
 {
 	int		i;
 	int		ret = 0;
-	char	*err = NULL;
 	uint8_t	status = STATE_CLOSED;
 
 	scan->task->status |= STATE_DONE;
@@ -64,10 +63,7 @@ static int	set_job_status(t_scan *scan)
 	{
 		scan->job->status |= STATE_DONE;
 		if (gettimeofday(&scan->job->end_ts, NULL) < 0)
-		{
-			ft_asprintf(&err, "gettimeofday: %s", strerror(errno));
-			ft_exit(err, EXIT_FAILURE);
-		}
+			ft_exit("gettimeofday", errno, EXIT_FAILURE);
 		ret = 1;
 	}
 	return (ret);
