@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 01:22:52 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 15:14:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/02 22:35:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ t_scan		*next_scan(t_scan *scan)
 	t_nmap_config	*cfg = scan->cfg;
 
 	if (cfg->speedup)
-		ft_mutex_lock(&(cfg->mutex));
+		nmap_mutex_lock(&(cfg->mutex));
 	if (scan->task && !(scan->task->status & STATE_FULL))
 		scan = get_a_scan(scan);
 	else if (scan->job && !(scan->job->status & STATE_FULL))
@@ -81,6 +81,6 @@ t_scan		*next_scan(t_scan *scan)
 	else
 		scan = get_a_job(scan);
 	if (cfg->speedup)
-		ft_mutex_unlock(&(cfg->mutex));
+		nmap_mutex_unlock(&(cfg->mutex));
 	return (scan);
 }

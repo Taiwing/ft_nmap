@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/24 17:00:35 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/02 22:48:36 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,6 +123,7 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 ** jobs: list of active jobs
 ** empty_jobs: store allocated and zeroed out jobs
 ** mutex: global mutex
+** thread: threads array
 */
 typedef struct	s_nmap_config
 {
@@ -140,17 +141,22 @@ typedef struct	s_nmap_config
 	t_list			*jobs;
 	t_list			*empty_jobs;
 	pthread_mutex_t	mutex;
+	t_ft_thread		thread[MAX_SPEEDUP];
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
 	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
-	0, { 0 }, -1, NULL, NULL, {{ 0 }}\
+	0, { 0 }, -1, NULL, NULL, {{ 0 }}, {{ 0 }}\
 }
+
+/*
+** Global instance of nmap configuration (for atexit and signal handlers)
+*/
+extern t_nmap_config	*g_cfg;
 
 /*
 ** Scan structure: structure given to worker
 **
-** id: thread index if any
 ** type: type of scan to perform
 ** result: return status of the scan
 ** task: pointer to the task of this scan
@@ -161,7 +167,6 @@ typedef struct	s_nmap_config
 */
 typedef struct		s_scan
 {
-	uint8_t			id;		//TEMP (maybe)
 	enum e_scans	type;
 	uint8_t			result;
 	t_task			*task;
@@ -179,6 +184,8 @@ const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 char		*ports_option(t_nmap_config *cfg, t_optdata *optd);
 char		*scan_option(t_nmap_config *cfg, t_optdata *optd);
+void		nmap_mutex_lock(pthread_mutex_t *mutex);
+void		nmap_mutex_unlock(pthread_mutex_t *mutex);
 t_scan		*next_scan(t_scan *scan);
 void		*worker(void *ptr);
 t_list		*init_new_job(t_scan *scan);

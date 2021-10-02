@@ -16,6 +16,7 @@ SRCC			=	update_job.c\
 					init_new_job.c\
 					options.c\
 					next_scan.c\
+					mutex.c\
 					main.c\
 					print.c\
 					udp_services.c\
@@ -46,6 +47,7 @@ update_job.o: ft_nmap.h libft.h
 init_new_job.o: ft_nmap.h libft.h
 options.o: ft_nmap.h libft.h
 next_scan.o: ft_nmap.h libft.h
+mutex.o: ft_nmap.h libft.h
 main.o: ft_nmap.h libft.h
 print.o: ft_nmap.h libft.h
 udp_services.o: ft_nmap.h libft.h

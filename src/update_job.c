@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/28 09:16:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/02 22:35:47 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ void		update_job(t_scan *scan)
 	static int	point_status = 0;
 
 	if (scan->cfg->speedup)
-		ft_mutex_lock(&(scan->cfg->mutex));
+		nmap_mutex_lock(&(scan->cfg->mutex));
 	scan->task->scans[scan->type] |= STATE_DONE;
 	scan->task->scans[scan->type] |= scan->result;
 	scan->result = 0;
@@ -93,5 +93,5 @@ void		update_job(t_scan *scan)
 		scan->task_id = 0;
 	}
 	if (scan->cfg->speedup)
-		ft_mutex_unlock(&(scan->cfg->mutex));
+		nmap_mutex_unlock(&(scan->cfg->mutex));
 }

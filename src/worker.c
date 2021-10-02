@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/28 09:24:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/02 23:19:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,15 +16,17 @@ static void	exec_scan(t_scan *scan)
 {
 	//TEMP
 	uint64_t	randval = 0;
+	char		buf[64] = { 0 };
 
 	if (scan->cfg->speedup
-		&& !ft_rand_uint64(&randval, 0, (uint64_t)scan->cfg->speedup - 1))
+		&& !ft_rand_uint64(&randval, 0, (uint64_t)scan->cfg->speedup))
 		ft_exit("ft_rand_uint64: error", 0, EXIT_FAILURE);
-	//ft_printf("Thread number %hhu (randval: %u)\n", scan->id, randval);
-	/*
-	if (scan->cfg->speedup && scan->id == randval)
-		ft_exit("WOOOOW!!!!", 0, 123);
-	*/
+	if (scan->cfg->speedup && ft_thread_self() == randval)
+	{
+		ft_snprintf(buf, 64, "WOOOOW!!! exiting worker %llu (%llx)!\n",
+			ft_thread_self(), pthread_self());
+		ft_exit(buf, 0, 123);
+	}
 	if (scan->cfg->speedup < 10)
 		sleep(randval);
 	else if (scan->cfg->speedup < 100)
@@ -46,15 +48,23 @@ static void	exec_scan(t_scan *scan)
 	//TEMP
 }
 
+static void	worker_exit(void)
+{
+	nmap_mutex_unlock(&g_cfg->mutex);
+	ft_thread_exit();
+}
+
 void		*worker(void *ptr)
 {
 	t_scan			*scan;
 
+	if (ft_thread_self())
+		ft_thread_atexit(worker_exit);
 	scan = (t_scan *)ptr;
 	do
 	{
 		exec_scan(scan);
 		update_job(scan);
-	} while (next_scan(scan));
+	} while (next_scan(scan) && !ft_thread_error());
 	return (NULL);
 }

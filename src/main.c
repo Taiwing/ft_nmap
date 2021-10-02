@@ -6,18 +6,28 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/28 09:18:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/02 23:03:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static void	cleanup(t_nmap_config *cfg)
+static void	cleanup(void)
 {
-	if (cfg->speedup)
-		ft_mutex_lock(&cfg->mutex);
-	if (cfg->hosts_fd >= 0)
-		close(cfg->hosts_fd);
+	uint64_t	nthreads;
+
+	if (g_cfg->speedup && (nthreads = ft_thread_count()))
+	{
+		nmap_mutex_unlock(&g_cfg->mutex);
+		//TODO: probably send a signal to end threads (through ft_exit of course)
+		// or just set g_thread_error to a non-zero value (if it is not already
+		// the case)
+		ft_set_thread_error(EXIT_FAILURE);//TEMP
+		for (uint8_t i = 0; i < nthreads; ++i)
+			ft_thread_join(g_cfg->thread + i, NULL);
+	}
+	if (g_cfg->hosts_fd >= 0)
+		close(g_cfg->hosts_fd);
 }
 
 static void	check_config(t_nmap_config *cfg)
@@ -41,11 +51,9 @@ static void	check_config(t_nmap_config *cfg)
 static void	start_workers(t_nmap_config *cfg)
 {
 	t_scan		scan[MAX_SPEEDUP] = {
-		[ 0 ... MAX_SPEEDUP - 1] = { 0, 0, 0, NULL, 0, NULL, NULL, cfg },
+		[ 0 ... MAX_SPEEDUP - 1] = { 0, 0, NULL, 0, NULL, NULL, cfg },
 	};
-	pthread_t	thread[MAX_SPEEDUP] = { 0 };
 	int			ret;
-	uint8_t		id;
 
 	if (!cfg->speedup)
 	{
@@ -53,33 +61,33 @@ static void	start_workers(t_nmap_config *cfg)
 			worker((void *)(scan));
 		return;
 	}
-	for (id = 0; id < cfg->speedup && next_scan(scan + id); ++id)
+	for (uint8_t i = 0; i < cfg->speedup && next_scan(&scan[i])
+		&& !ft_thread_error(); ++i)
 	{
-		scan[id].id = id; //TEMP (maybe)
-		if ((ret = pthread_create(thread + id, NULL,
-			worker, (void *)(scan + id))))
+		if ((ret = ft_thread_create(&cfg->thread[i], NULL,
+			worker, (void *)(&scan[i]))))
 			ft_exit("pthread_create", ret, EXIT_FAILURE);
 	}
-	for (uint8_t i = 0; i < id; ++i)
-		if ((ret = pthread_join(thread[i], NULL)))
-			ft_exit("pthread_join", ret, EXIT_FAILURE);
 }
+
+t_nmap_config	*g_cfg = NULL;
 
 int	main(int argc, char **argv)
 {
 	int				ret;
 	t_nmap_config	cfg = CONFIG_DEF;
-	void			cleanup_handler(void) { cleanup(&cfg); };
 
 	(void)argc;
+	g_cfg = &cfg;
 	ft_exitmsg((char *)cfg.exec);
-	ft_atexit(cleanup_handler);
+	ft_atexit(cleanup);
 	get_options(&cfg, argc, argv);
 	check_config(&cfg);
 	print_config(&cfg);
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
 		ft_exit("pthread_mutex_init", ret, EXIT_FAILURE);
 	start_workers(&cfg);
-	ft_exit(NULL, 0, EXIT_SUCCESS);
+	ft_atexit(NULL);
+	ft_exit(NULL, 0, ft_thread_error());
 	return (EXIT_SUCCESS);
 }
