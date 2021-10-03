@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/03 14:53:35 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/03 16:06:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,7 @@ static void	exec_scan(t_scan *scan)
 	{
 		ft_snprintf(buf, 64, "WOOOOW!!! exiting worker %llu (%llx)!\n",
 			ft_thread_self(), pthread_self());
-		ft_putstr_fd(buf, STDERR_FILENO);
-		ft_exit(NULL, 0, 123);
+		ft_exit(buf, 0, 123);
 	}
 	if (scan->cfg->speedup < 10)
 		sleep(randval);

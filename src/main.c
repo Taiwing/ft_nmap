@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/03 14:54:53 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/03 16:05:53 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,7 @@ int	main(int argc, char **argv)
 	g_cfg = &cfg;
 	ft_exitmsg((char *)cfg.exec);
 	ft_atexit(cleanup);
+	ft_first_exit();
 	get_options(&cfg, argc, argv);
 	check_config(&cfg);
 	print_config(&cfg);
