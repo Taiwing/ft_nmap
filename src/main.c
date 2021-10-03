@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/03 16:05:53 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/03 16:28:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,10 @@ static void	cleanup(void)
 	uint64_t	nthreads;
 
 	//TEMP
+	/*
 	ft_printf("cleanup - worker %llu (%llx)!\n",
 		ft_thread_self(), pthread_self());
+	*/
 	//TEMP
 	if (g_cfg->speedup && (nthreads = ft_thread_count()))
 	{
