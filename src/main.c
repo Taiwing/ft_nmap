@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/03 16:28:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/03 17:46:40 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,11 +54,8 @@ static void	check_config(t_nmap_config *cfg)
 			cfg->scans[cfg->nscans] = 1;
 }
 
-static void	start_workers(t_nmap_config *cfg)
+static void	start_workers(t_nmap_config *cfg, t_scan *scan)
 {
-	t_scan		scan[MAX_SPEEDUP] = {
-		[ 0 ... MAX_SPEEDUP - 1] = { 0, 0, NULL, 0, NULL, NULL, cfg },
-	};
 	int			ret;
 
 	if (!cfg->speedup)
@@ -67,15 +64,13 @@ static void	start_workers(t_nmap_config *cfg)
 			worker((void *)(scan));
 		return;
 	}
-	for (uint8_t i = 0; i < cfg->speedup && next_scan(&scan[i])
+	for (uint8_t i = 0; i < cfg->speedup && next_scan(scan + i)
 		&& !ft_thread_error(); ++i)
 	{
-		if ((ret = ft_thread_create(&cfg->thread[i], NULL,
-			worker, (void *)(&scan[i]))))
+		if ((ret = ft_thread_create(cfg->thread + i, NULL,
+			worker, (void *)(scan + i))))
 			ft_exit("pthread_create", ret, EXIT_FAILURE);
 	}
-	ft_atexit(NULL);
-	ft_exit(NULL, 0, ft_thread_error());
 }
 
 t_nmap_config	*g_cfg = NULL;
@@ -84,6 +79,9 @@ int	main(int argc, char **argv)
 {
 	int				ret;
 	t_nmap_config	cfg = CONFIG_DEF;
+	t_scan			scan[MAX_SPEEDUP] = {
+		[ 0 ... MAX_SPEEDUP - 1] = { 0, 0, NULL, 0, NULL, NULL, &cfg },
+	};
 
 	(void)argc;
 	g_cfg = &cfg;
@@ -95,6 +93,8 @@ int	main(int argc, char **argv)
 	print_config(&cfg);
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
 		ft_exit("pthread_mutex_init", ret, EXIT_FAILURE);
-	start_workers(&cfg);
+	start_workers(&cfg, scan);
+	ft_atexit(NULL);
+	ft_exit(NULL, 0, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }
