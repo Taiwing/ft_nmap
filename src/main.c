@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/02 23:03:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/03 14:54:53 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,10 @@ static void	cleanup(void)
 {
 	uint64_t	nthreads;
 
+	//TEMP
+	ft_printf("cleanup - worker %llu (%llx)!\n",
+		ft_thread_self(), pthread_self());
+	//TEMP
 	if (g_cfg->speedup && (nthreads = ft_thread_count()))
 	{
 		nmap_mutex_unlock(&g_cfg->mutex);
@@ -68,6 +72,8 @@ static void	start_workers(t_nmap_config *cfg)
 			worker, (void *)(&scan[i]))))
 			ft_exit("pthread_create", ret, EXIT_FAILURE);
 	}
+	ft_atexit(NULL);
+	ft_exit(NULL, 0, ft_thread_error());
 }
 
 t_nmap_config	*g_cfg = NULL;
@@ -87,7 +93,5 @@ int	main(int argc, char **argv)
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
 		ft_exit("pthread_mutex_init", ret, EXIT_FAILURE);
 	start_workers(&cfg);
-	ft_atexit(NULL);
-	ft_exit(NULL, 0, ft_thread_error());
 	return (EXIT_SUCCESS);
 }

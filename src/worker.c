@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/02 23:19:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/03 14:53:35 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,8 @@
 static void	exec_scan(t_scan *scan)
 {
 	//TEMP
-	uint64_t	randval = 0;
 	char		buf[64] = { 0 };
+	uint64_t	randval = 0;
 
 	if (scan->cfg->speedup
 		&& !ft_rand_uint64(&randval, 0, (uint64_t)scan->cfg->speedup))
@@ -25,7 +25,8 @@ static void	exec_scan(t_scan *scan)
 	{
 		ft_snprintf(buf, 64, "WOOOOW!!! exiting worker %llu (%llx)!\n",
 			ft_thread_self(), pthread_self());
-		ft_exit(buf, 0, 123);
+		ft_putstr_fd(buf, STDERR_FILENO);
+		ft_exit(NULL, 0, 123);
 	}
 	if (scan->cfg->speedup < 10)
 		sleep(randval);
@@ -51,6 +52,10 @@ static void	exec_scan(t_scan *scan)
 static void	worker_exit(void)
 {
 	nmap_mutex_unlock(&g_cfg->mutex);
+	//TEMP
+	ft_printf("worker_exit - worker %llu (%llx)!\n",
+		ft_thread_self(), pthread_self());
+	//TEMP
 	ft_thread_exit();
 }
 
@@ -59,7 +64,7 @@ void		*worker(void *ptr)
 	t_scan			*scan;
 
 	if (ft_thread_self())
-		ft_thread_atexit(worker_exit);
+		ft_atexit(worker_exit);
 	scan = (t_scan *)ptr;
 	do
 	{
