@@ -1,6 +1,0 @@
-- check potentially nested ft_exit calls (via ft_mutex functions for example)
-- Maybe store the exit arguments in a global when exiting from a thread so
-  that the error message is printed at the end of the program. This would
-  require a modification of the ft_exit function so that it executes atexit
-  thread handlers before printing the message. This is a very specific
-  behavior though. It would be probably best to somehow make it an option.
