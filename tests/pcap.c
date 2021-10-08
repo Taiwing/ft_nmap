@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/08 07:56:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/08 21:49:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,22 +63,38 @@ static pcap_t		*open_device(char *prog, char *dev)
 	return (descr);
 }
 
-static const u_char	*grab_packet(char *prog, pcap_t *descr)
+static void	phandler(u_char *user, const struct pcap_pkthdr *h,
+	const u_char *bytes)
 {
-	struct pcap_pkthdr		hdr;
-	struct ether_header		*eptr;
-	const u_char			*packet;
+	memcpy((void *)user, (void *)h, sizeof(struct pcap_pkthdr));
+	memcpy((void *)(user + sizeof(struct pcap_pkthdr)), (void *)bytes, h->len);
+}
+
+#define PACKET_SIZE_MAX	(sizeof(struct pcap_pkthdr) + 1024)
+
+static int			grab_packet(char *prog, pcap_t *descr, u_char *packet)
+{
+	int						ret;
+	struct pcap_pkthdr		*h;
+	u_char					buf[PACKET_SIZE_MAX];
 	char					errbuf[PCAP_ERRBUF_SIZE];
 
-	if (!(packet = pcap_next(descr, &hdr)))
+	if ((ret = pcap_dispatch(descr, 1, phandler, buf)) == PCAP_ERROR)
 	{
-		dprintf(2, "%s: pcap_next: did not grab packet :(\n", prog);
-		return (NULL);
+		dprintf(2, "%s: pcap_dispatch: did not grab packet :(\n", prog);
+		return (1);
 	}
-	printf("Grabbed packet of length %d\n", hdr.len);
-	printf("Received at .... %s\n", ctime((const time_t *)&hdr.ts.tv_sec));
+	else if (ret == PCAP_ERROR_BREAK)
+	{
+		dprintf(2, "%s: pcap_dispatch: loop has been broken\n", prog);
+		return (1);
+	}
+	h = (struct pcap_pkthdr *)buf;
+	memcpy((void *)packet, (void *)(buf + sizeof(struct pcap_pkthdr)), h->len);
+	printf("Grabbed packet of length %d\n", h->len);
+	printf("Received at .... %s\n", ctime((const time_t *)&h->ts.tv_sec));
 	printf("Ethernet address length is %d\n", ETHER_HDR_LEN);
-	return (packet);
+	return (0);
 }
 
 static void			print_mac(u_char *ptr)
@@ -87,7 +103,7 @@ static void			print_mac(u_char *ptr)
 		printf("%02x%c", *ptr++, i < ETHER_ADDR_LEN - 1 ? ':' : '\n');
 }
 
-static int			print_ether_type(const u_char *packet)
+static int			print_ether_type(u_char *packet)
 {
 	struct ether_header	*eptr = (struct ether_header *)packet;
 	int type = ntohs(eptr->ether_type);
@@ -108,7 +124,7 @@ int					main(int argc, char **argv)
 {
 	int				ret;
 	pcap_t			*descr;
-	const u_char	*packet;
+	u_char			packet[PACKET_SIZE_MAX];
 	char			*dev, net[INET6_ADDRSTRLEN], mask[INET6_ADDRSTRLEN];
 
 	if ((ret = get_network(argv[0], &dev, net, mask)))
@@ -119,7 +135,7 @@ int					main(int argc, char **argv)
 
 	if (!(descr = open_device(argv[0], dev)))
 		return (EXIT_FAILURE);
-	if (!(packet = grab_packet(argv[0], descr)))
+	if (grab_packet(argv[0], descr, packet))
 		return (EXIT_FAILURE);
 	if (print_ether_type(packet))
 		return (EXIT_FAILURE);
