@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/18 07:57:45 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/18 11:38:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <string.h>
 #include <netinet/if_ether.h>
 #include <netinet/ip.h>
+#include <ifaddrs.h>
 
 static int			get_network(char *prog, char **dev, char *net, char *mask)
 {
@@ -147,19 +148,71 @@ int					parse_iphdr(struct ip *iphdr, u_char *packet, char *prog)
 	return (0);
 }
 
+int					get_ips(struct sockaddr_in *ipv4, struct sockaddr_in6 *ipv6,
+	char *dev, char *prog)
+{
+	struct ifaddrs	*ifap = NULL;
+	int				v4 = 0, v6 = 0, ret = 0;
+
+	if (getifaddrs(&ifap) < 0)
+	{
+		dprintf(2, "%s: getifaddrs: %s\n", prog, strerror(errno));
+		return (-1);
+	}
+	for (; ifap && (!v4 || !v6); ifap = ifap->ifa_next)
+	{
+		if (ifap->ifa_name && !strcmp(dev, ifap->ifa_name) && ifap->ifa_addr)
+		{
+			if (!v4 && ifap->ifa_addr->sa_family == AF_INET)
+			{
+				v4 = 1;
+				memcpy((void *)ipv4, (void *)ifap->ifa_addr,
+					sizeof(struct sockaddr_in));
+			}
+			else if (!v6 && ifap->ifa_addr->sa_family == AF_INET6)
+			{
+				v6 = 2;
+				memcpy((void *)ipv6, (void *)ifap->ifa_addr,
+					sizeof(struct sockaddr_in6));
+			}
+		}
+	}
+	freeifaddrs(ifap);
+	return (v4 + v6);
+}
+
 int					main(int argc, char **argv)
 {
-	struct ip		iphdr;
-	pcap_t			*descr;
-	int				ret, type;
-	u_char			packet[PACKET_SIZE_MAX];
-	char			*dev, net[INET6_ADDRSTRLEN], mask[INET6_ADDRSTRLEN];
+	struct ip			iphdr;
+	pcap_t				*descr;
+	int					type, ip;
+	struct sockaddr_in	ipv4 = { 0 };
+	struct sockaddr_in6	ipv6 = { 0 };
+	u_char				packet[PACKET_SIZE_MAX];
+	char				*dev,
+						net[INET6_ADDRSTRLEN],
+						mask[INET6_ADDRSTRLEN],
+						ipstr[INET6_ADDRSTRLEN];
 
-	if ((ret = get_network(argv[0], &dev, net, mask)))
-		return (ret);
+	if (get_network(argv[0], &dev, net, mask))
+		return (EXIT_FAILURE);
 	printf("dev: %s\n", dev);
 	printf("net: %s\n", net);
 	printf("mask: %s\n", mask);
+
+	if ((ip = get_ips(&ipv4, &ipv6, dev, argv[0])) < 0)
+		return (EXIT_FAILURE);
+	else if (!ip)
+	{
+		dprintf(2, "%s: get_ips: no valid ip for %s interface\n", argv[0], dev);
+		return (EXIT_FAILURE);
+	}
+	if (ip & 0x01)
+		printf("ipv4: %s\n", inet_ntop(AF_INET,
+			&ipv4.sin_addr, ipstr, sizeof(ipstr)));
+	if (ip & 0x02)
+		printf("ipv6: %s\n", inet_ntop(AF_INET6,
+			&ipv6.sin6_addr, ipstr, sizeof(ipstr)));
 
 	if (!(descr = open_device(argv[0], dev)))
 		return (EXIT_FAILURE);
