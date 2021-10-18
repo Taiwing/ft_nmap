@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/02 22:48:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/18 07:01:14 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,7 +186,9 @@ char		*ports_option(t_nmap_config *cfg, t_optdata *optd);
 char		*scan_option(t_nmap_config *cfg, t_optdata *optd);
 void		nmap_mutex_lock(pthread_mutex_t *mutex);
 void		nmap_mutex_unlock(pthread_mutex_t *mutex);
-t_scan		*next_scan(t_scan *scan);
+t_scan		*next_job(t_scan *scan);
+void		wait_workers(t_nmap_config *cfg);
+void		start_workers(t_nmap_config *cfg, t_scan *scan);
 void		*worker(void *ptr);
 t_list		*init_new_job(t_scan *scan);
 void		update_job(t_scan *scan);

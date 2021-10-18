@@ -12,25 +12,34 @@ NAME		=	ft_nmap
 
 ############################## SOURCES #########################################
 
-SRCC			=	update_job.c\
-					init_new_job.c\
-					options.c\
-					next_scan.c\
-					mutex.c\
+JOBSDIR			=	jobs
+SERVICESDIR		=	services
+
+SRCC			=	options.c\
 					main.c\
 					print.c\
-					udp_services.c\
-					worker.c\
-					tcp_services.c\
 					get_options.c\
+
+JOBSC			=	update_job.c\
+					init_new_job.c\
+					mutex.c\
+					worker.c\
+					next_job.c\
+
+SERVICESC		=	udp_services.c\
+					tcp_services.c\
 					sctp_services.c\
 
 ODIR			=	obj
-OBJ				=	$(patsubst %.c,%.o,$(SRCC))
+OBJ				=	$(patsubst %.c,%.o,$(JOBSC))\
+					$(patsubst %.c,%.o,$(SERVICESC))\
+					$(patsubst %.c,%.o,$(SRCC))\
 
 vpath			%.o	$(ODIR)
 vpath			%.h	$(HDIR)
 vpath			%.h	$(SUB1D)/$(HDIR)
+vpath			%.c	$(SRCDIR)/$(JOBSDIR)
+vpath			%.c	$(SRCDIR)/$(SERVICESDIR)
 vpath			%.c	$(SRCDIR)
 
 ############################## BUILD ###########################################
@@ -43,18 +52,18 @@ $(NAME): $(SUB1D)/libft.a $(ODIR) $(OBJ)
 $(SUB1D)/libft.a:
 	make -C $(SUB1D)
 
+options.o: ft_nmap.h libft.h
+main.o: ft_nmap.h libft.h
 update_job.o: ft_nmap.h libft.h
 init_new_job.o: ft_nmap.h libft.h
-options.o: ft_nmap.h libft.h
-next_scan.o: ft_nmap.h libft.h
 mutex.o: ft_nmap.h libft.h
-main.o: ft_nmap.h libft.h
+worker.o: ft_nmap.h libft.h
+next_job.o: ft_nmap.h libft.h
 print.o: ft_nmap.h libft.h
 udp_services.o: ft_nmap.h libft.h
-worker.o: ft_nmap.h libft.h
 tcp_services.o: ft_nmap.h libft.h
-get_options.o: ft_nmap.h libft.h
 sctp_services.o: ft_nmap.h libft.h
+get_options.o: ft_nmap.h libft.h
 %.o: %.c
 	@mkdir -p $(ODIR)
 	$(CC) -c $(CFLAGS) $< $(HFLAGS) -o $(ODIR)/$@

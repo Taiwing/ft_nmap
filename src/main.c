@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/03 17:46:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/18 06:57:57 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,24 +14,7 @@
 
 static void	cleanup(void)
 {
-	uint64_t	nthreads;
-
-	//TEMP
-	/*
-	ft_printf("cleanup - worker %llu (%llx)!\n",
-		ft_thread_self(), pthread_self());
-	*/
-	//TEMP
-	if (g_cfg->speedup && (nthreads = ft_thread_count()))
-	{
-		nmap_mutex_unlock(&g_cfg->mutex);
-		//TODO: probably send a signal to end threads (through ft_exit of course)
-		// or just set g_thread_error to a non-zero value (if it is not already
-		// the case)
-		ft_set_thread_error(EXIT_FAILURE);//TEMP
-		for (uint8_t i = 0; i < nthreads; ++i)
-			ft_thread_join(g_cfg->thread + i, NULL);
-	}
+	wait_workers(g_cfg);
 	if (g_cfg->hosts_fd >= 0)
 		close(g_cfg->hosts_fd);
 }
@@ -52,25 +35,6 @@ static void	check_config(t_nmap_config *cfg)
 	if (!cfg->nscans)
 		for (; cfg->nscans < NB_SCANS; ++cfg->nscans)
 			cfg->scans[cfg->nscans] = 1;
-}
-
-static void	start_workers(t_nmap_config *cfg, t_scan *scan)
-{
-	int			ret;
-
-	if (!cfg->speedup)
-	{
-		if (next_scan(scan))
-			worker((void *)(scan));
-		return;
-	}
-	for (uint8_t i = 0; i < cfg->speedup && next_scan(scan + i)
-		&& !ft_thread_error(); ++i)
-	{
-		if ((ret = ft_thread_create(cfg->thread + i, NULL,
-			worker, (void *)(scan + i))))
-			ft_exit("pthread_create", ret, EXIT_FAILURE);
-	}
 }
 
 t_nmap_config	*g_cfg = NULL;
@@ -94,7 +58,7 @@ int	main(int argc, char **argv)
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
 		ft_exit("pthread_mutex_init", ret, EXIT_FAILURE);
 	start_workers(&cfg, scan);
-	ft_atexit(NULL);
+	wait_workers(&cfg);
 	ft_exit(NULL, 0, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }

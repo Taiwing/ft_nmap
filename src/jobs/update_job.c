@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/02 22:35:47 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/18 06:45:52 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,19 +26,19 @@ static void	reset_job(t_job *job, t_nmap_config *cfg)
 static void	flush_jobs(t_nmap_config *cfg)
 {
 	t_list	*lst;
-	t_job	*next_job;
+	t_job	*next;
 
 	lst = NULL;
-	next_job = (t_job *)cfg->jobs->content;
-	while (next_job && (next_job->status & STATE_DONE))
+	next = (t_job *)cfg->jobs->content;
+	while (next && (next->status & STATE_DONE))
 	{
 		if (lst)
 			ft_printf("\n\n");
 		lst = ft_lst_pop(&cfg->jobs, 0);
-		print_job(next_job, cfg);
-		reset_job(next_job, cfg);
+		print_job(next, cfg);
+		reset_job(next, cfg);
 		ft_lstadd(&cfg->empty_jobs, lst);
-		next_job = cfg->jobs ? (t_job *)cfg->jobs->content : NULL;
+		next = cfg->jobs ? (t_job *)cfg->jobs->content : NULL;
 	}
 }
 

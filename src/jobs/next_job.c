@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   next_scan.c                                        :+:      :+:    :+:   */
+/*   next_job.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/09/24 01:22:52 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/02 22:35:34 by yforeau          ###   ########.fr       */
+/*   Created: 2021/10/18 06:46:10 by yforeau           #+#    #+#             */
+/*   Updated: 2021/10/18 06:47:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ static t_scan	*get_a_job(t_scan *scan)
 	return (get_a_task(scan));
 }
 
-t_scan		*next_scan(t_scan *scan)
+t_scan		*next_job(t_scan *scan)
 {
 	t_nmap_config	*cfg = scan->cfg;
 
