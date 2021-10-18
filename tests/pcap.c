@@ -6,16 +6,18 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/08 21:49:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/18 07:57:45 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <pcap.h>
 #include <time.h>
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <netinet/if_ether.h>
+#include <netinet/ip.h>
 
 static int			get_network(char *prog, char **dev, char *net, char *mask)
 {
@@ -103,27 +105,53 @@ static void			print_mac(u_char *ptr)
 		printf("%02x%c", *ptr++, i < ETHER_ADDR_LEN - 1 ? ':' : '\n');
 }
 
-static int			print_ether_type(u_char *packet)
+static int			print_ether_type(int *type, u_char *packet)
 {
 	struct ether_header	*eptr = (struct ether_header *)packet;
-	int type = ntohs(eptr->ether_type);
 
-	printf("Ethernet type hex:%x dec:%d %s\n", type, type,
-		type == ETHERTYPE_IP ? "is an IP packet" :
-		type == ETHERTYPE_ARP ? "is an ARP packet" :
+	*type = ntohs(eptr->ether_type);
+	printf("Ethernet type hex:%x dec:%d %s\n", *type, *type,
+		*type == ETHERTYPE_IP ? "is an IP packet" :
+		*type == ETHERTYPE_ARP ? "is an ARP packet" :
 		"not IP");
 	printf("Destination Address: ");
 	print_mac((u_char *)eptr->ether_dhost);
 	printf("Source Address: ");
 	print_mac((u_char *)eptr->ether_shost);
-	return (type == ETHERTYPE_IP || type == ETHERTYPE_ARP);
+	return (*type != ETHERTYPE_IP && *type != ETHERTYPE_ARP);
 }
 
+int					parse_iphdr(struct ip *iphdr, u_char *packet, char *prog)
+{
+	int		type;
+	char	ipsrc[INET6_ADDRSTRLEN + 1] = { 0 };
+	char	ipdst[INET6_ADDRSTRLEN + 1] = { 0 };
+
+	memcpy((void *)iphdr, (void *)(packet + sizeof(struct ether_header)),
+		sizeof(struct ip));
+	type = iphdr->ip_v == 4 ? AF_INET : AF_INET6;
+	if (!inet_ntop(type, (void *)&iphdr->ip_src.s_addr, ipsrc, INET6_ADDRSTRLEN))
+	{
+		dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno));
+		return (1);
+	}
+	if (!inet_ntop(type, (void *)&iphdr->ip_dst.s_addr, ipdst, INET6_ADDRSTRLEN))
+	{
+		dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno));
+		return (1);
+	}
+	printf("IP packet: (len = %hu, iphdr_size = %zu)\n", ntohs(iphdr->ip_len),
+		sizeof(struct ip));
+	printf("source ip: %s\n", ipsrc);
+	printf("destination ip: %s\n", ipdst);
+	return (0);
+}
 
 int					main(int argc, char **argv)
 {
-	int				ret;
+	struct ip		iphdr;
 	pcap_t			*descr;
+	int				ret, type;
 	u_char			packet[PACKET_SIZE_MAX];
 	char			*dev, net[INET6_ADDRSTRLEN], mask[INET6_ADDRSTRLEN];
 
@@ -137,7 +165,9 @@ int					main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	if (grab_packet(argv[0], descr, packet))
 		return (EXIT_FAILURE);
-	if (print_ether_type(packet))
+	if (print_ether_type(&type, packet))
 		return (EXIT_FAILURE);
+	if (type == ETHERTYPE_IP)
+		parse_iphdr(&iphdr, packet, argv[0]);
 	return (EXIT_SUCCESS);
 }
