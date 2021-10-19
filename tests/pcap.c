@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/18 19:49:18 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/19 13:44:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -292,6 +292,79 @@ int					set_filter(pcap_t *descr, int ip, char *ip4, char *ip6,
 	return (0);
 }
 
+
+int	init_socket(int domain, int protocol, char *prog)
+{
+	int	sfd, one, ret;
+
+	one = 1;
+	if ((sfd = socket(domain, SOCK_RAW, protocol)) < 0)
+	{
+		dprintf(2, "%s: socket: %s\n", prog, strerror(errno));
+		return (-1);
+	}
+	ret = -2;
+	if (domain == AF_INET)
+		ret = setsockopt(sfd, IPPROTO_IP, IP_HDRINCL, &one, sizeof(int));
+	else if (domain == AF_INET6)
+		ret = setsockopt(sfd, IPPROTO_IPV6, IPV6_HDRINCL, &one, sizeof(int));
+	if (ret == -2)
+		dprintf(2, "%s: init_socket: domain must be AF_INET or AF_INET6\n",
+			prog);
+	else if (ret < 0)
+		dprintf(2, "%s: setsockopt: %s\n", prog, strerror(errno));
+	if (ret < 0)
+	{
+		close(sfd);
+		return (ret);
+	}
+	return (sfd);
+}
+
+# define IP_HEADER_ICMP	0x01
+# define IP_HEADER_TCP	0x06
+# define IP_HEADER_UDP	0x11
+
+void	init_ipv4_header(struct iphdr *ip, struct sockaddr_in *dstip,
+	struct sockaddr_in *srcip, int protocol)
+{
+	bzero((void *)ip, sizeof(struct iphdr));
+	ip->ihl = 5;
+	ip->version = 4;
+	ip->ttl = 255;
+	memcpy((void *)&ip->saddr,
+		(void *)&srcip->sin_addr, sizeof(struct in_addr));
+	memcpy((void *)&ip->daddr,
+		(void *)&dstip->sin_addr, sizeof(struct in_addr));
+	ip->tot_len = sizeof(struct iphdr);
+	ip->protocol = protocol;
+	if (ip->protocol == IP_HEADER_ICMP)
+		ip->tot_len += sizeof(struct icmphdr);
+	else if (ip->protocol == IP_HEADER_TCP)
+		ip->tot_len += sizeof(struct tcphdr);
+	else if (ip->protocol == IP_HEADER_UDP)
+		ip->tot_len += sizeof(struct udphdr);
+}
+
+void	init_ipv6_header(struct ipv6hdr *ip, struct sockaddr_in6 *dstip,
+	struct sockaddr_in6 *srcip, int protocol)
+{
+	bzero((void *)ip, sizeof(struct ipv6hdr));
+	ip->version = 6;
+	ip->hop_limit = 255;
+	memcpy((void *)&ip->saddr,
+		(void *)&srcip->sin6_addr, sizeof(struct in6_addr));
+	memcpy((void *)&ip->daddr,
+		(void *)&dstip->sin6_addr, sizeof(struct in6_addr));
+	ip->nexthdr = protocol;
+	if (ip->nexthdr == IP_HEADER_ICMP)
+		ip->payload_len = sizeof(struct icmp6hdr);
+	else if (ip->nexthdr == IP_HEADER_TCP)
+		ip->payload_len = sizeof(struct tcphdr);
+	else if (ip->nexthdr == IP_HEADER_UDP)
+		ip->payload_len = sizeof(struct udphdr);
+}
+
 int					main(int argc, char **argv)
 {
 	struct iphdr		iphdr;
@@ -314,14 +387,15 @@ int					main(int argc, char **argv)
 	printf("icmp6hdr: %zu\n", sizeof(struct icmp6hdr));
 	printf("tcphdr: %zu\n", sizeof(struct tcphdr));
 	printf("udphdr: %zu\n", sizeof(struct udphdr));
-	printf("MAX_HEADER_SIZE: %zu\n", MAX_HEADER_SIZE);
+	printf("MAX_HEADER_SIZE: %zu\n\n", MAX_HEADER_SIZE);
 
 	if (get_network(argv[0], &dev, net, mask, &netp))
 		return (EXIT_FAILURE);
 	printf("dev: %s\n", dev);
 	printf("net: %s\n", net);
-	printf("mask: %s\n", mask);
+	printf("mask: %s\n\n", mask);
 
+	printf("---- Receive packet ----\n");
 	if ((ip = get_ips(&ipv4, &ipv6, dev, argv[0])) < 0)
 		return (EXIT_FAILURE);
 	if (print_ips(ip, ip4, ip6, &ipv4, &ipv6, argv[0], dev))
@@ -339,5 +413,32 @@ int					main(int argc, char **argv)
 		parse_iphdr(&iphdr, packet, argv[0]);
 	else if (type == ETHERTYPE_IPV6)
 		parse_ipv6hdr(&ipv6hdr, packet, argv[0]);
+	printf("\n");
+
+	if (ip != 3)
+	{
+		dprintf(2, "%s: ipv4 and ipv6 are not both available\n", argv[0]);
+		return (EXIT_FAILURE);
+	}
+	struct iphdr	ip4h = { 0 };
+	struct ipv6hdr	ip6h = { 0 };
+	struct tcphdr	tcph = { 0 };
+	struct udphdr	udph = { 0 };
+	int				ip4tcp_socket, ip4udp_socket, ip6tcp_socket, ip6udp_socket;
+	printf("---- Send packet ----\n");
+	if ((ip4tcp_socket = init_socket(AF_INET, IPPROTO_TCP, argv[0])) < 0)
+		return (EXIT_FAILURE);
+	if ((ip4udp_socket = init_socket(AF_INET, IPPROTO_UDP, argv[0])) < 0)
+		return (EXIT_FAILURE);
+	if ((ip6tcp_socket = init_socket(AF_INET6, IPPROTO_TCP, argv[0])) < 0)
+		return (EXIT_FAILURE);
+	if ((ip6udp_socket = init_socket(AF_INET6, IPPROTO_UDP, argv[0])) < 0)
+		return (EXIT_FAILURE);
+	init_ipv4_header(&ip4h, &ipv4, &ipv4, IP_HEADER_UDP);
+	init_ipv6_header(&ip6h, &ipv6, &ipv6, IP_HEADER_UDP);
+	close(ip4tcp_socket);
+	close(ip4udp_socket);
+	close(ip6tcp_socket);
+	close(ip6udp_socket);
 	return (EXIT_SUCCESS);
 }
