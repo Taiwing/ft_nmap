@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/19 13:44:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/19 15:45:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -344,6 +344,7 @@ void	init_ipv4_header(struct iphdr *ip, struct sockaddr_in *dstip,
 		ip->tot_len += sizeof(struct tcphdr);
 	else if (ip->protocol == IP_HEADER_UDP)
 		ip->tot_len += sizeof(struct udphdr);
+	ip->tot_len = htons(ip->tot_len);
 }
 
 void	init_ipv6_header(struct ipv6hdr *ip, struct sockaddr_in6 *dstip,
@@ -363,6 +364,84 @@ void	init_ipv6_header(struct ipv6hdr *ip, struct sockaddr_in6 *dstip,
 		ip->payload_len = sizeof(struct tcphdr);
 	else if (ip->nexthdr == IP_HEADER_UDP)
 		ip->payload_len = sizeof(struct udphdr);
+	ip->payload_len = htons(ip->payload_len);
+}
+
+uint32_t	sum_bit16(uint16_t *data, size_t sz)
+{
+	uint32_t		sum;
+
+	for (sum = 0; sz >= sizeof(uint16_t); sz -= sizeof(uint16_t))
+		sum += *data++;
+	if (sz)
+		sum += *((uint8_t *)data);
+	return (sum);
+}
+
+uint16_t	checksum(uint16_t *data, size_t sz)
+{
+	uint32_t	sum;
+
+	sum = sum_bit16(data, sz);
+	sum = (sum >> 16) + (sum & 0xFFFF);
+	sum += (sum >> 16);
+	return ((uint16_t)~sum);
+}
+
+/*
+** udp_checksum: sets length and computes and sets udp checksum
+*/
+int			udp_checksum(int version, void *iphdr,
+	uint8_t *udp_packet, uint16_t len)
+{
+	uint64_t		sum = 0;
+	struct udphdr	*udph = (struct udphdr *)udp_packet;
+	struct iphdr	*ip4h = version == 4 ? iphdr : NULL;
+	struct ipv6hdr	*ip6h = version == 6 ? iphdr : NULL;
+
+	if (len < sizeof(struct udphdr) || (!ip4h && !ip6h))
+		return (-1);
+	if (ip4h)
+		sum += sum_bit16((uint16_t *)&ip4h->saddr, sizeof(struct in_addr) * 2);
+	else if (ip6h)
+		sum += sum_bit16((uint16_t *)&ip6h->saddr, sizeof(struct in6_addr) * 2);
+	udph->uh_sum = 0;
+	udph->uh_ulen = htons(len);
+	sum += udph->uh_ulen + htons(IP_HEADER_UDP)
+		+ sum_bit16((uint16_t *)udp_packet, len);
+	udph->uh_sum = checksum((uint16_t *)&sum, sizeof(uint64_t));
+	return (0);
+}
+
+/*
+** init_udp_header:
+**
+** Writes entire udp header from scatch. Needs an ip header with version
+** byte, total or payload length, source address and destination address.
+**
+** The udp header is written on the first sizeof(struct udphdr) bytes of
+** udp_packet, which is supposed to be followed by the udp payload data
+** if it has any. The length of the udp_packet is given by the ip header
+** length field.
+*/
+int			init_udp_header(uint8_t *udp_packet, void *iphdr,
+	uint16_t srcp, uint16_t dstp)
+{
+	struct udphdr	*udph = (struct udphdr *)udp_packet;
+	uint8_t			version = *(uint8_t *)iphdr;
+	struct iphdr	*ip4h = version == 4 ? iphdr : NULL;
+	struct ipv6hdr	*ip6h = version == 6 ? iphdr : NULL;
+	uint16_t		udplen = 0;
+
+	if (ip4h && ip4h->tot_len > sizeof(struct iphdr))
+		udplen = ip4h->tot_len - sizeof(struct iphdr);
+	else if (ip6h)
+		udplen = ip6h->payload_len;
+	if ((!ip4h && !ip6h) || udplen < sizeof(struct udphdr))
+		return (-1);
+	udph->uh_sport = htons(srcp);
+	udph->uh_dport = htons(dstp);
+	return (udp_checksum(version, iphdr, udp_packet, udplen));
 }
 
 int					main(int argc, char **argv)
@@ -420,6 +499,7 @@ int					main(int argc, char **argv)
 		dprintf(2, "%s: ipv4 and ipv6 are not both available\n", argv[0]);
 		return (EXIT_FAILURE);
 	}
+	uint16_t		port = 45654;
 	struct iphdr	ip4h = { 0 };
 	struct ipv6hdr	ip6h = { 0 };
 	struct tcphdr	tcph = { 0 };
@@ -436,6 +516,7 @@ int					main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	init_ipv4_header(&ip4h, &ipv4, &ipv4, IP_HEADER_UDP);
 	init_ipv6_header(&ip6h, &ipv6, &ipv6, IP_HEADER_UDP);
+	init_udp_header((uint8_t *)&udph, &ipv4, port, port);
 	close(ip4tcp_socket);
 	close(ip4udp_socket);
 	close(ip6tcp_socket);
