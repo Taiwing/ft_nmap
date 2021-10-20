@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 10:58:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/20 11:40:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -715,7 +715,7 @@ int					main(int argc, char **argv)
 		.version = 4,
 		.srcp = sport,
 		.dstp = dport,
-		.seq = 12345,
+		.seq = 0x12344321,
 		.ack = 0,
 		.flags = TH_SYN,
 		.win = 0xffff,
@@ -729,6 +729,24 @@ int					main(int argc, char **argv)
 	memcpy(packet + sizeof(ip4h), &tcph, sizeof(tcph));
 	if (sendto(ip4tcp_socket, packet, ntohs(ip4h.tot_len), 0,
 			(struct sockaddr *)&dstip_v4, sizeof(dstip_v4)) < 0)
+		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
+	else
+		printf("Status: Package Sent\n");
+
+	printf("\n---- Send IPv6 TCP packet ----\n");
+	ipv6args.protocol = IP_HEADER_TCP;
+	init_ip_header(&ip6h, &ipv6args);
+	print_iphdr(&ip6h, AF_INET6, prog);
+	tcpargs.iphdr = &ip6h;
+	tcpargs.version = 6;
+	bzero(packet, sizeof(packet));
+	if (init_tcp_header((uint8_t *)&tcph, &tcpargs) < 0)
+		dprintf(2, "%s: init_tcp_header: failure\n", prog);
+	print_tcphdr(&tcph);
+	memcpy(packet, &ip6h, sizeof(ip6h));
+	memcpy(packet + sizeof(ip6h), &tcph, sizeof(tcph));
+	if (sendto(ip6tcp_socket, packet, ntohs(ip6h.payload_len) + sizeof(ip6h),
+			0, (struct sockaddr *)&dstip_v6, sizeof(dstip_v6)) < 0)
 		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
 	else
 		printf("Status: Package Sent\n");
