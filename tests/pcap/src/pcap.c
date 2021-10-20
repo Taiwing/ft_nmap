@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 09:24:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/20 10:42:13 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -398,28 +398,22 @@ uint16_t	checksum(uint16_t *data, size_t sz)
 }
 
 /*
-** udp_checksum: sets length and computes and sets udp checksum
+** transport_checksum: computes udp/tcp checksum
 */
-int			udp_checksum(int version, void *iphdr,
-	uint8_t *udp_packet, uint16_t len)
+int			transport_checksum(int version, void *iphdr,
+	uint8_t *packet, uint16_t len)
 {
 	uint64_t		sum = 0;
-	struct udphdr	*udph = (struct udphdr *)udp_packet;
 	struct iphdr	*ip4h = version == 4 ? iphdr : NULL;
 	struct ipv6hdr	*ip6h = version == 6 ? iphdr : NULL;
 
-	if (len < sizeof(struct udphdr) || (!ip4h && !ip6h))
-		return (-1);
 	if (ip4h)
 		sum += sum_bit16((uint16_t *)&ip4h->saddr, sizeof(struct in_addr) * 2);
 	else if (ip6h)
 		sum += sum_bit16((uint16_t *)&ip6h->saddr, sizeof(struct in6_addr) * 2);
-	udph->uh_sum = 0;
-	udph->uh_ulen = htons(len);
-	sum += udph->uh_ulen + htons(IP_HEADER_UDP)
-		+ sum_bit16((uint16_t *)udp_packet, len);
-	udph->uh_sum = checksum((uint16_t *)&sum, sizeof(uint64_t));
-	return (0);
+	sum += htons(len) + htons(ip4h ? ip4h->protocol : ip6h->nexthdr)
+		+ sum_bit16((uint16_t *)packet, len);
+	return (checksum((uint16_t *)&sum, sizeof(uint64_t)));
 }
 
 /*
@@ -448,10 +442,26 @@ int			init_udp_header(uint8_t *udp_packet, void *iphdr,
 			? udplen - sizeof(struct iphdr) : 0;
 	if ((!ip4h && !ip6h) || udplen < sizeof(struct udphdr))
 		return (-1);
+	bzero(udp_packet, sizeof(struct udphdr));
 	udph->uh_sport = htons(srcp);
 	udph->uh_dport = htons(dstp);
-	return (udp_checksum(version, iphdr, udp_packet, udplen));
+	udph->uh_ulen = htons(udplen);
+	udph->uh_sum = transport_checksum(version, iphdr, udp_packet, udplen);
+	return (0);
 }
+
+typedef struct	s_tcph_args
+{
+	void		*iphdr;
+	uint8_t		version;
+	uint16_t	srcp;
+	uint16_t	dstp;
+	uint32_t	seq;
+	uint32_t	ack;
+	uint8_t		flags;
+	uint16_t	win;
+	uint16_t	urp;
+}				t_tcph_args;
 
 /*
 ** init_tcp_header:
@@ -464,13 +474,11 @@ int			init_udp_header(uint8_t *udp_packet, void *iphdr,
 ** if it has any. The length of the tcp_packet is given by the ip header
 ** length field.
 */
-int			init_tcp_header(uint8_t *tcp_packet, void *iphdr,
-	uint16_t srcp, uint16_t dstp)
+int			init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args)
 {
 	struct tcphdr	*tcph = (struct tcphdr *)tcp_packet;
-	uint8_t			version = (*(uint8_t *)iphdr) >> 4;
-	struct iphdr	*ip4h = version == 4 ? iphdr : NULL;
-	struct ipv6hdr	*ip6h = version == 6 ? iphdr : NULL;
+	struct iphdr	*ip4h = args->version == 4 ? args->iphdr : NULL;
+	struct ipv6hdr	*ip6h = args->version == 6 ? args->iphdr : NULL;
 	uint16_t		tcplen = ip6h ? ntohs(ip6h->payload_len)
 						: ip4h ? ntohs(ip4h->tot_len) : 0;
 
@@ -479,10 +487,46 @@ int			init_tcp_header(uint8_t *tcp_packet, void *iphdr,
 			? tcplen - sizeof(struct iphdr) : 0;
 	if ((!ip4h && !ip6h) || tcplen < sizeof(struct tcphdr))
 		return (-1);
-	tcph->th_sport = htons(srcp);
-	tcph->th_dport = htons(dstp);
-	//return (tcp_checksum(version, iphdr, tcp_packet, tcplen));
+	bzero(tcp_packet, sizeof(struct tcphdr));
+	tcph->th_sport = htons(args->srcp);
+	tcph->th_dport = htons(args->dstp);
+	tcph->th_seq = htonl(args->seq);
+	tcph->th_ack = htonl(args->ack);
+	tcph->th_off = sizeof(struct tcphdr) / sizeof(uint32_t);
+	tcph->th_flags = args->flags;
+	tcph->th_win = htons(args->win);
+	tcph->th_urp = htons(args->urp);
+	tcph->th_sum = transport_checksum(args->version, args->iphdr,
+		tcp_packet, tcplen);
 	return (0);
+}
+
+void			print_tcphdr(struct tcphdr *tcph)
+{
+	printf("TCP header: (size = %zu)\n", sizeof(struct tcphdr));
+	printf("source port: %d\n", ntohs(tcph->th_sport));
+	printf("destination port: %d\n", ntohs(tcph->th_dport));
+	printf("sequence: %d\n", ntohl(tcph->th_seq));
+	printf("acknowledgment: %d\n", ntohl(tcph->th_ack));
+	printf("data offset: %d\n", ntohs(tcph->th_off));
+	printf("flags:");
+	if (!tcph->th_flags)
+		printf(" 0");
+	if (tcph->th_flags & TH_FIN)
+		printf(" FIN");
+	if (tcph->th_flags & TH_SYN)
+		printf(" SYN");
+	if (tcph->th_flags & TH_RST)
+		printf(" RST");
+	if (tcph->th_flags & TH_PUSH)
+		printf(" PSH");
+	if (tcph->th_flags & TH_ACK)
+		printf(" ACK");
+	if (tcph->th_flags & TH_URG)
+		printf(" URG");
+	printf("\nwindow: %d\n", ntohs(tcph->th_win));
+	printf("urgent pointer: %d\n", ntohs(tcph->th_urp));
+	printf("sum: %#hx\n", tcph->th_sum);
 }
 
 #define PORT_DEF	45654
@@ -590,7 +634,7 @@ int					main(int argc, char **argv)
 	uint16_t		sport = PORT_DEF, dport = PORT_DEF;
 	struct iphdr	ip4h = { 0 };
 	struct ipv6hdr	ip6h = { 0 };
-	//struct tcphdr	tcph = { 0 };
+	struct tcphdr	tcph = { 0 };
 	struct udphdr	udph = { 0 };
 	int				ip4tcp_socket, ip4udp_socket, ip6tcp_socket, ip6udp_socket;
 	unsigned char	ipbuf[sizeof(struct in6_addr)];
@@ -661,6 +705,27 @@ int					main(int argc, char **argv)
 		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
 	else
 		printf("Status: Package Sent\n");
+
+	printf("\n---- Send IPv4 TCP packet ----\n");
+	ipv4args.protocol = IP_HEADER_TCP;
+	init_ip_header(&ip4h, &ipv4args);
+	print_iphdr(&ip4h, AF_INET, prog);
+	t_tcph_args	tcpargs = {
+		.iphdr = &ip4h,
+		.version = 4,
+		.srcp = sport,
+		.dstp = dport,
+		.seq = 0,
+		.ack = 0,
+		.flags = TH_SYN,
+		.win = 0xffff,
+		.urp = 0,
+	};
+	bzero(packet, sizeof(packet));
+	if (init_tcp_header((uint8_t *)&tcph, &tcpargs) < 0)
+		dprintf(2, "%s: init_tcp_header: failure\n", prog);
+	print_tcphdr(&tcph);
+
 	//TODO: put in clean ft_atexit handler
 	close(ip4tcp_socket);
 	close(ip4udp_socket);
