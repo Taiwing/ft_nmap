@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 10:42:13 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/20 10:58:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -715,7 +715,7 @@ int					main(int argc, char **argv)
 		.version = 4,
 		.srcp = sport,
 		.dstp = dport,
-		.seq = 0,
+		.seq = 12345,
 		.ack = 0,
 		.flags = TH_SYN,
 		.win = 0xffff,
@@ -725,6 +725,13 @@ int					main(int argc, char **argv)
 	if (init_tcp_header((uint8_t *)&tcph, &tcpargs) < 0)
 		dprintf(2, "%s: init_tcp_header: failure\n", prog);
 	print_tcphdr(&tcph);
+	memcpy(packet, &ip4h, sizeof(ip4h));
+	memcpy(packet + sizeof(ip4h), &tcph, sizeof(tcph));
+	if (sendto(ip4tcp_socket, packet, ntohs(ip4h.tot_len), 0,
+			(struct sockaddr *)&dstip_v4, sizeof(dstip_v4)) < 0)
+		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
+	else
+		printf("Status: Package Sent\n");
 
 	//TODO: put in clean ft_atexit handler
 	close(ip4tcp_socket);
