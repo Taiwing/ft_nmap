@@ -11,7 +11,13 @@ NAME		=	exec
 
 ############################## SOURCES #########################################
 
-SRCC			=	pcap.c\
+SRCC			=	init_network.c\
+					grab_packet.c\
+					ip_headers.c\
+					print.c\
+					pcap.c\
+					socket.c\
+					layer4_headers.c\
 
 ODIR			=	obj
 OBJ				=	$(patsubst %.c,%.o,$(SRCC))
@@ -27,6 +33,13 @@ all: $(NAME)
 $(NAME): $(ODIR) $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(patsubst %.o,$(ODIR)/%.o,$(OBJ)) $(LIBS)
 
+init_network.o: test_pcap.h
+grab_packet.o: test_pcap.h
+ip_headers.o: test_pcap.h
+print.o: test_pcap.h
+pcap.o: test_pcap.h
+socket.o: test_pcap.h
+layer4_headers.o: test_pcap.h
 %.o: %.c
 	@mkdir -p $(ODIR)
 	$(CC) -c $(CFLAGS) $< $(HFLAGS) -o $(ODIR)/$@
