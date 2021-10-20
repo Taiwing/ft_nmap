@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 05:21:20 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/20 05:50:13 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,25 +151,21 @@ int					print_iphdr(void *iphdr, int domain, char *prog)
 	struct ipv6hdr	*ip6h = domain == AF_INET6 ? iphdr : NULL;
 
 	if (!ip4h && !ip6h)
-		return (1);
+		return (!!dprintf(2, "%s: %s: invalid domain '%d'\n",
+			prog, __func__, domain));
 	sptr = ip4h ? (void *)&ip4h->saddr : (void *)&ip6h->saddr;
 	dptr = ip4h ? (void *)&ip4h->daddr : (void *)&ip6h->daddr;
 	if (!inet_ntop(domain, sptr, ipsrc, INET6_ADDRSTRLEN))
-	{
-		dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno));
-		return (1);
-	}
+		return (!!dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno)));
 	if (!inet_ntop(domain, dptr, ipdst, INET6_ADDRSTRLEN))
-	{
-		dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno));
-		return (1);
-	}
-	printf("IP packet: (%s = %hu, iphdr_size = %zu)\n",
-		ip4h ? "tot_len" : "payload_len",
-		ip4h ? ntohs(ip4h->tot_len) : ntohs(ip6h->payload_len),
-		ip4h ? sizeof(struct iphdr): sizeof(struct ipv6hdr));
-	printf("source ip: %s\n", ipsrc);
-	printf("destination ip: %s\n", ipdst);
+		return (!!dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno)));
+	printf("IPv%d packet: (size = %zu)\n%s: %d\n%s: %hhu\n%s: %hhu\n", ip4h ?
+		4 : 6, ip4h ? sizeof(struct iphdr): sizeof(struct ipv6hdr), ip4h ?
+		"tot_len" : "payload_len", ip4h ? ntohs(ip4h->tot_len) :
+		ntohs(ip6h->payload_len), ip4h ? "ttl" : "hop_limit", ip4h ? ip4h->ttl
+		: ip6h->hop_limit, ip4h ? "protocol" : "nexthdr", ip4h ? ip4h->protocol
+		: ip6h->nexthdr);
+	printf("source ip: %s\ndestination ip: %s\n", ipsrc, ipdst);
 	return (0);
 }
 
@@ -288,8 +284,8 @@ int	init_socket(int domain, int protocol, char *prog)
 	else if (domain == AF_INET6)
 		ret = setsockopt(sfd, IPPROTO_IPV6, IPV6_HDRINCL, &one, sizeof(int));
 	if (ret == -2)
-		dprintf(2, "%s: init_socket: domain must be AF_INET or AF_INET6\n",
-			prog);
+		dprintf(2, "%s: %s: domain must be AF_INET or AF_INET6\n",
+			prog, __func__);
 	else if (ret < 0)
 		dprintf(2, "%s: setsockopt: %s\n", prog, strerror(errno));
 	if (ret < 0)
