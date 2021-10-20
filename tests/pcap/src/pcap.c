@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 05:50:13 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/20 06:21:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,7 +159,7 @@ int					print_iphdr(void *iphdr, int domain, char *prog)
 		return (!!dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno)));
 	if (!inet_ntop(domain, dptr, ipdst, INET6_ADDRSTRLEN))
 		return (!!dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno)));
-	printf("IPv%d packet: (size = %zu)\n%s: %d\n%s: %hhu\n%s: %hhu\n", ip4h ?
+	printf("IPv%d header: (size = %zu)\n%s: %d\n%s: %hhu\n%s: %hhu\n", ip4h ?
 		4 : 6, ip4h ? sizeof(struct iphdr): sizeof(struct ipv6hdr), ip4h ?
 		"tot_len" : "payload_len", ip4h ? ntohs(ip4h->tot_len) :
 		ntohs(ip6h->payload_len), ip4h ? "ttl" : "hop_limit", ip4h ? ip4h->ttl
@@ -167,6 +167,15 @@ int					print_iphdr(void *iphdr, int domain, char *prog)
 		: ip6h->nexthdr);
 	printf("source ip: %s\ndestination ip: %s\n", ipsrc, ipdst);
 	return (0);
+}
+
+void			print_udphdr(struct udphdr *udph)
+{
+	printf("UDP header: (size = %zu)\n", sizeof(struct udphdr));
+	printf("source port: %d\n", ntohs(udph->uh_sport));
+	printf("destination port: %d\n", ntohs(udph->uh_dport));
+	printf("len: %d\n", ntohs(udph->uh_ulen));
+	printf("sum: %#hx\n", udph->uh_sum);
 }
 
 int					get_ips(struct sockaddr_in *ipv4, struct sockaddr_in6 *ipv6,
@@ -423,7 +432,7 @@ int					main(int argc, char **argv)
 	int					type, ip;
 	struct sockaddr_in	ipv4 = { 0 };
 	struct sockaddr_in6	ipv6 = { 0 };
-	u_char				packet[PACKET_SIZE_MAX];
+	u_char				packet[PACKET_SIZE_MAX] = { 0 };
 	char				*dev, net[INET6_ADDRSTRLEN], mask[INET6_ADDRSTRLEN];
 	char				ip4[INET6_ADDRSTRLEN] = { 0 },
 						ip6[INET6_ADDRSTRLEN] = { 0 };
@@ -486,7 +495,6 @@ int					main(int argc, char **argv)
 	//struct tcphdr	tcph = { 0 };
 	struct udphdr	udph = { 0 };
 	int				ip4tcp_socket, ip4udp_socket, ip6tcp_socket, ip6udp_socket;
-	printf("---- Send packet ----\n");
 	if ((ip4tcp_socket = init_socket(AF_INET, IPPROTO_TCP, argv[0])) < 0)
 		return (EXIT_FAILURE);
 	if ((ip4udp_socket = init_socket(AF_INET, IPPROTO_UDP, argv[0])) < 0)
@@ -495,15 +503,37 @@ int					main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	if ((ip6udp_socket = init_socket(AF_INET6, IPPROTO_UDP, argv[0])) < 0)
 		return (EXIT_FAILURE);
+
+	printf("---- Send IPv4 UDP packet ----\n");
 	init_ipv4_header(&ip4h, &ipv4, &ipv4, IP_HEADER_UDP);
 	print_iphdr(&ip4h, AF_INET, argv[0]);
-	init_ipv6_header(&ip6h, &ipv6, &ipv6, IP_HEADER_UDP);
-	print_iphdr(&ip6h, AF_INET6, argv[0]);
+	bzero(packet, sizeof(packet));
 	if (init_udp_header((uint8_t *)&udph, &ip4h, port, port) < 0)
 		dprintf(2, "%s: init_udp_header: failure\n", argv[0]);
+	print_udphdr(&udph);
+	memcpy(packet, &ip4h, sizeof(ip4h));
+	memcpy(packet + sizeof(ip4h), &udph, sizeof(udph));
+	if (sendto(ip4udp_socket, packet, ntohs(ip4h.tot_len), 0,
+			(struct sockaddr *)&ipv4, sizeof(ipv4)) < 0)
+		dprintf(2, "%s: sendto: %s\n", argv[0], strerror(errno));
+	else
+		printf("Status: Package Sent\n");
+
+	printf("\n---- Send IPv6 UDP packet ----\n");
+	init_ipv6_header(&ip6h, &ipv6, &ipv6, IP_HEADER_UDP);
+	print_iphdr(&ip6h, AF_INET6, argv[0]);
+	bzero(packet, sizeof(packet));
 	bzero(&udph, sizeof(struct udphdr));
 	if (init_udp_header((uint8_t *)&udph, &ip6h, port, port) < 0)
 		dprintf(2, "%s: init_udp_header: failure\n", argv[0]);
+	print_udphdr(&udph);
+	memcpy(packet, &ip6h, sizeof(ip6h));
+	memcpy(packet + sizeof(ip6h), &udph, sizeof(udph));
+	if (sendto(ip6udp_socket, packet, ntohs(ip6h.payload_len) + sizeof(ip6h), 0,
+			(struct sockaddr *)&ipv6, sizeof(ipv6)) < 0)
+		dprintf(2, "%s: sendto: %s\n", argv[0], strerror(errno));
+	else
+		printf("Status: Package Sent\n");
 	//TODO: put in clean ft_atexit handler
 	close(ip4tcp_socket);
 	close(ip4udp_socket);
