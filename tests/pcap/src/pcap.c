@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 06:53:22 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/20 07:43:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -424,6 +424,8 @@ int			init_udp_header(uint8_t *udp_packet, void *iphdr,
 	return (udp_checksum(version, iphdr, udp_packet, udplen));
 }
 
+#define PORT_DEF	45654
+
 int					main(int argc, char **argv)
 {
 	struct iphdr		iphdr;
@@ -440,7 +442,33 @@ int					main(int argc, char **argv)
 						ip6[INET6_ADDRSTRLEN] = { 0 };
 	bpf_u_int32			netp;
 
-	(void)argc;
+	char				*prog = argv[0];
+	char				*user_filter = NULL;
+	char				*user_dstip_v4 = NULL;
+	char				*user_dstip_v6 = NULL;
+	char				*user_srcip_v4 = NULL;
+	char				*user_srcip_v6 = NULL;
+	char				*user_sport = NULL;
+	char				*user_dport = NULL;
+	for (int i = 1; i < argc; ++i)
+	{
+		if (!strcmp(argv[i], "--filter"))
+			user_filter = argv[++i];
+		else if (!strcmp(argv[i], "--dstip_v4"))
+			user_dstip_v4 = argv[++i];
+		else if (!strcmp(argv[i], "--dstip_v6"))
+			user_dstip_v6 = argv[++i];
+		else if (!strcmp(argv[i], "--srcip_v4"))
+			user_srcip_v4 = argv[++i];
+		else if (!strcmp(argv[i], "--srcip_v6"))
+			user_srcip_v6 = argv[++i];
+		else if (!strcmp(argv[i], "--sport"))
+			user_sport = argv[++i];
+		else if (!strcmp(argv[i], "--dport"))
+			user_dport = argv[++i];
+	}
+
+	/*
 	printf("sizes:\n");
 	printf("ether_header: %zu\n", sizeof(struct ether_header));
 	printf("iphdr: %zu\n", sizeof(struct iphdr));
@@ -450,26 +478,27 @@ int					main(int argc, char **argv)
 	printf("tcphdr: %zu\n", sizeof(struct tcphdr));
 	printf("udphdr: %zu\n", sizeof(struct udphdr));
 	printf("MAX_HEADER_SIZE: %zu\n\n", MAX_HEADER_SIZE);
+	*/
 
-	if (get_network(argv[0], &dev, net, mask, &netp))
+	printf("---- Network ----\n");
+	if (get_network(prog, &dev, net, mask, &netp))
 		return (EXIT_FAILURE);
 	printf("dev: %s\n", dev);
 	printf("net: %s\n", net);
-	printf("mask: %s\n\n", mask);
-
-	printf("---- Receive packet ----\n");
-	if ((ip = get_ips(&srcip_v4, &srcip_v6, dev, argv[0])) < 0)
+	printf("mask: %s\n", mask);
+	if ((ip = get_ips(&srcip_v4, &srcip_v6, dev, prog)) < 0)
 		return (EXIT_FAILURE);
-	if (print_ips(ip, ip4, ip6, &srcip_v4, &srcip_v6, argv[0], dev))
+	if (print_ips(ip, ip4, ip6, &srcip_v4, &srcip_v6, prog, dev))
 		return (EXIT_FAILURE);
 	memcpy(&dstip_v4, &srcip_v4, sizeof(dstip_v4));
 	memcpy(&dstip_v6, &srcip_v6, sizeof(dstip_v6));
 
-	if (!(descr = open_device(argv[0], dev)))
+	printf("\n---- Receive packet ----\n");
+	if (!(descr = open_device(prog, dev)))
 		return (EXIT_FAILURE);
-	if (set_filter(descr, ip, ip4, ip6, argv[1], argv[0], netp))
+	if (set_filter(descr, ip, ip4, ip6, user_filter, prog, netp))
 		return (EXIT_FAILURE);
-	if (grab_packet(argv[0], descr, packet))
+	if (grab_packet(prog, descr, packet))
 		return (EXIT_FAILURE);
 	if (print_ether_type(&type, packet))
 		return (EXIT_FAILURE);
@@ -477,67 +506,82 @@ int					main(int argc, char **argv)
 	{
 		memcpy(&iphdr, packet + sizeof(struct ether_header),
 			sizeof(struct iphdr));
-		print_iphdr(&iphdr, AF_INET, argv[0]);
-		memcpy(&dstip_v4.sin_addr, &iphdr.saddr, sizeof(dstip_v4.sin_addr));
+		print_iphdr(&iphdr, AF_INET, prog);
+		if (!user_dstip_v4)
+			memcpy(&dstip_v4.sin_addr, &iphdr.saddr, sizeof(dstip_v4.sin_addr));
 	}
 	else if (type == ETHERTYPE_IPV6)
 	{
 		memcpy(&ipv6hdr, packet + sizeof(struct ether_header),
 			sizeof(struct ipv6hdr));
-		print_iphdr(&ipv6hdr, AF_INET6, argv[0]);
-		memcpy(&dstip_v6.sin6_addr, &ipv6hdr.saddr, sizeof(dstip_v6.sin6_addr));
+		print_iphdr(&ipv6hdr, AF_INET6, prog);
+		if (!user_dstip_v6)
+			memcpy(&dstip_v6.sin6_addr, &ipv6hdr.saddr, sizeof(dstip_v6.sin6_addr));
 	}
 	pcap_close(descr);
 	printf("\n");
 
 	if (ip != 3)
 	{
-		dprintf(2, "%s: ipv4 and ipv6 are not both available\n", argv[0]);
+		dprintf(2, "%s: ipv4 and ipv6 are not both available\n", prog);
 		return (EXIT_FAILURE);
 	}
-	uint16_t		port = 45654;
+	uint16_t		sport = PORT_DEF, dport = PORT_DEF;
 	struct iphdr	ip4h = { 0 };
 	struct ipv6hdr	ip6h = { 0 };
 	//struct tcphdr	tcph = { 0 };
 	struct udphdr	udph = { 0 };
 	int				ip4tcp_socket, ip4udp_socket, ip6tcp_socket, ip6udp_socket;
-	if ((ip4tcp_socket = init_socket(AF_INET, IPPROTO_TCP, argv[0])) < 0)
+	unsigned char	ipbuf[sizeof(struct in6_addr)];
+	if ((ip4tcp_socket = init_socket(AF_INET, IPPROTO_TCP, prog)) < 0)
 		return (EXIT_FAILURE);
-	if ((ip4udp_socket = init_socket(AF_INET, IPPROTO_UDP, argv[0])) < 0)
+	if ((ip4udp_socket = init_socket(AF_INET, IPPROTO_UDP, prog)) < 0)
 		return (EXIT_FAILURE);
-	if ((ip6tcp_socket = init_socket(AF_INET6, IPPROTO_TCP, argv[0])) < 0)
+	if ((ip6tcp_socket = init_socket(AF_INET6, IPPROTO_TCP, prog)) < 0)
 		return (EXIT_FAILURE);
-	if ((ip6udp_socket = init_socket(AF_INET6, IPPROTO_UDP, argv[0])) < 0)
+	if ((ip6udp_socket = init_socket(AF_INET6, IPPROTO_UDP, prog)) < 0)
 		return (EXIT_FAILURE);
+	if (user_srcip_v4 && inet_pton(AF_INET, user_srcip_v4, ipbuf) > 0)
+		memcpy(&srcip_v4.sin_addr, ipbuf, sizeof(srcip_v4.sin_addr));
+	if (user_srcip_v6 && inet_pton(AF_INET6, user_srcip_v6, ipbuf) > 0)
+		memcpy(&srcip_v6.sin6_addr, ipbuf, sizeof(srcip_v6.sin6_addr));
+	if (user_dstip_v4 && inet_pton(AF_INET, user_dstip_v4, ipbuf) > 0)
+		memcpy(&dstip_v4.sin_addr, ipbuf, sizeof(dstip_v4.sin_addr));
+	if (user_dstip_v6 && inet_pton(AF_INET6, user_dstip_v6, ipbuf) > 0)
+		memcpy(&dstip_v6.sin6_addr, ipbuf, sizeof(dstip_v6.sin6_addr));
+	if (user_sport)
+		sport = atoi(user_sport);
+	if (user_dport)
+		dport = atoi(user_dport);
 
 	printf("---- Send IPv4 UDP packet ----\n");
 	init_ipv4_header(&ip4h, &dstip_v4, &srcip_v4, IP_HEADER_UDP);
-	print_iphdr(&ip4h, AF_INET, argv[0]);
+	print_iphdr(&ip4h, AF_INET, prog);
 	bzero(packet, sizeof(packet));
-	if (init_udp_header((uint8_t *)&udph, &ip4h, port, port) < 0)
-		dprintf(2, "%s: init_udp_header: failure\n", argv[0]);
+	if (init_udp_header((uint8_t *)&udph, &ip4h, sport, dport) < 0)
+		dprintf(2, "%s: init_udp_header: failure\n", prog);
 	print_udphdr(&udph);
 	memcpy(packet, &ip4h, sizeof(ip4h));
 	memcpy(packet + sizeof(ip4h), &udph, sizeof(udph));
 	if (sendto(ip4udp_socket, packet, ntohs(ip4h.tot_len), 0,
 			(struct sockaddr *)&dstip_v4, sizeof(dstip_v4)) < 0)
-		dprintf(2, "%s: sendto: %s\n", argv[0], strerror(errno));
+		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
 	else
 		printf("Status: Package Sent\n");
 
 	printf("\n---- Send IPv6 UDP packet ----\n");
 	init_ipv6_header(&ip6h, &dstip_v6, &srcip_v6, IP_HEADER_UDP);
-	print_iphdr(&ip6h, AF_INET6, argv[0]);
+	print_iphdr(&ip6h, AF_INET6, prog);
 	bzero(packet, sizeof(packet));
 	bzero(&udph, sizeof(struct udphdr));
-	if (init_udp_header((uint8_t *)&udph, &ip6h, port, port) < 0)
-		dprintf(2, "%s: init_udp_header: failure\n", argv[0]);
+	if (init_udp_header((uint8_t *)&udph, &ip6h, sport, dport) < 0)
+		dprintf(2, "%s: init_udp_header: failure\n", prog);
 	print_udphdr(&udph);
 	memcpy(packet, &ip6h, sizeof(ip6h));
 	memcpy(packet + sizeof(ip6h), &udph, sizeof(udph));
 	if (sendto(ip6udp_socket, packet, ntohs(ip6h.payload_len) + sizeof(ip6h), 0,
 			(struct sockaddr *)&dstip_v6, sizeof(dstip_v6)) < 0)
-		dprintf(2, "%s: sendto: %s\n", argv[0], strerror(errno));
+		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
 	else
 		printf("Status: Package Sent\n");
 	//TODO: put in clean ft_atexit handler
