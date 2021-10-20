@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 06:21:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/20 06:53:22 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -430,8 +430,10 @@ int					main(int argc, char **argv)
 	struct ipv6hdr		ipv6hdr;
 	pcap_t				*descr;
 	int					type, ip;
-	struct sockaddr_in	ipv4 = { 0 };
-	struct sockaddr_in6	ipv6 = { 0 };
+	struct sockaddr_in	srcip_v4 = { 0 };
+	struct sockaddr_in6	srcip_v6 = { 0 };
+	struct sockaddr_in	dstip_v4 = { 0 };
+	struct sockaddr_in6	dstip_v6 = { 0 };
 	u_char				packet[PACKET_SIZE_MAX] = { 0 };
 	char				*dev, net[INET6_ADDRSTRLEN], mask[INET6_ADDRSTRLEN];
 	char				ip4[INET6_ADDRSTRLEN] = { 0 },
@@ -456,10 +458,12 @@ int					main(int argc, char **argv)
 	printf("mask: %s\n\n", mask);
 
 	printf("---- Receive packet ----\n");
-	if ((ip = get_ips(&ipv4, &ipv6, dev, argv[0])) < 0)
+	if ((ip = get_ips(&srcip_v4, &srcip_v6, dev, argv[0])) < 0)
 		return (EXIT_FAILURE);
-	if (print_ips(ip, ip4, ip6, &ipv4, &ipv6, argv[0], dev))
+	if (print_ips(ip, ip4, ip6, &srcip_v4, &srcip_v6, argv[0], dev))
 		return (EXIT_FAILURE);
+	memcpy(&dstip_v4, &srcip_v4, sizeof(dstip_v4));
+	memcpy(&dstip_v6, &srcip_v6, sizeof(dstip_v6));
 
 	if (!(descr = open_device(argv[0], dev)))
 		return (EXIT_FAILURE);
@@ -474,12 +478,14 @@ int					main(int argc, char **argv)
 		memcpy(&iphdr, packet + sizeof(struct ether_header),
 			sizeof(struct iphdr));
 		print_iphdr(&iphdr, AF_INET, argv[0]);
+		memcpy(&dstip_v4.sin_addr, &iphdr.saddr, sizeof(dstip_v4.sin_addr));
 	}
 	else if (type == ETHERTYPE_IPV6)
 	{
 		memcpy(&ipv6hdr, packet + sizeof(struct ether_header),
 			sizeof(struct ipv6hdr));
 		print_iphdr(&ipv6hdr, AF_INET6, argv[0]);
+		memcpy(&dstip_v6.sin6_addr, &ipv6hdr.saddr, sizeof(dstip_v6.sin6_addr));
 	}
 	pcap_close(descr);
 	printf("\n");
@@ -505,7 +511,7 @@ int					main(int argc, char **argv)
 		return (EXIT_FAILURE);
 
 	printf("---- Send IPv4 UDP packet ----\n");
-	init_ipv4_header(&ip4h, &ipv4, &ipv4, IP_HEADER_UDP);
+	init_ipv4_header(&ip4h, &dstip_v4, &srcip_v4, IP_HEADER_UDP);
 	print_iphdr(&ip4h, AF_INET, argv[0]);
 	bzero(packet, sizeof(packet));
 	if (init_udp_header((uint8_t *)&udph, &ip4h, port, port) < 0)
@@ -514,13 +520,13 @@ int					main(int argc, char **argv)
 	memcpy(packet, &ip4h, sizeof(ip4h));
 	memcpy(packet + sizeof(ip4h), &udph, sizeof(udph));
 	if (sendto(ip4udp_socket, packet, ntohs(ip4h.tot_len), 0,
-			(struct sockaddr *)&ipv4, sizeof(ipv4)) < 0)
+			(struct sockaddr *)&dstip_v4, sizeof(dstip_v4)) < 0)
 		dprintf(2, "%s: sendto: %s\n", argv[0], strerror(errno));
 	else
 		printf("Status: Package Sent\n");
 
 	printf("\n---- Send IPv6 UDP packet ----\n");
-	init_ipv6_header(&ip6h, &ipv6, &ipv6, IP_HEADER_UDP);
+	init_ipv6_header(&ip6h, &dstip_v6, &srcip_v6, IP_HEADER_UDP);
 	print_iphdr(&ip6h, AF_INET6, argv[0]);
 	bzero(packet, sizeof(packet));
 	bzero(&udph, sizeof(struct udphdr));
@@ -530,7 +536,7 @@ int					main(int argc, char **argv)
 	memcpy(packet, &ip6h, sizeof(ip6h));
 	memcpy(packet + sizeof(ip6h), &udph, sizeof(udph));
 	if (sendto(ip6udp_socket, packet, ntohs(ip6h.payload_len) + sizeof(ip6h), 0,
-			(struct sockaddr *)&ipv6, sizeof(ipv6)) < 0)
+			(struct sockaddr *)&dstip_v6, sizeof(dstip_v6)) < 0)
 		dprintf(2, "%s: sendto: %s\n", argv[0], strerror(errno));
 	else
 		printf("Status: Package Sent\n");
