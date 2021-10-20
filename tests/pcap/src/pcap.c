@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 07:43:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/20 09:24:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,17 +309,30 @@ int	init_socket(int domain, int protocol, char *prog)
 # define IP_HEADER_TCP	0x06
 # define IP_HEADER_UDP	0x11
 
-void	init_ipv4_header(struct iphdr *ip, struct sockaddr_in *dstip,
-	struct sockaddr_in *srcip, int protocol)
+typedef struct		s_iph_args
 {
+	uint8_t			version;
+	struct sockaddr	*dstip;
+	struct sockaddr	*srcip;
+	uint16_t		protocol;
+	uint8_t			hop_limit;
+	uint16_t		layer5_len;
+}					t_iph_args;
+
+static void	init_ipv4_header(struct iphdr *ip, t_iph_args *args)
+{
+	struct sockaddr_in	*ptr;
+
 	bzero(ip, sizeof(struct iphdr));
 	ip->ihl = 5;
-	ip->version = 4;
-	ip->ttl = 255;
-	memcpy(&ip->saddr, &srcip->sin_addr, sizeof(struct in_addr));
-	memcpy(&ip->daddr, &dstip->sin_addr, sizeof(struct in_addr));
-	ip->tot_len = sizeof(struct iphdr);
-	ip->protocol = protocol;
+	ip->version = args->version;
+	ip->ttl = args->hop_limit;
+	ptr = (struct sockaddr_in *)args->srcip;
+	memcpy(&ip->saddr, &ptr->sin_addr, sizeof(struct in_addr));
+	ptr = (struct sockaddr_in *)args->dstip;
+	memcpy(&ip->daddr, &ptr->sin_addr, sizeof(struct in_addr));
+	ip->tot_len = args->layer5_len + sizeof(struct iphdr);
+	ip->protocol = args->protocol;
 	if (ip->protocol == IP_HEADER_ICMP)
 		ip->tot_len += sizeof(struct icmphdr);
 	else if (ip->protocol == IP_HEADER_TCP)
@@ -329,22 +342,38 @@ void	init_ipv4_header(struct iphdr *ip, struct sockaddr_in *dstip,
 	ip->tot_len = htons(ip->tot_len);
 }
 
-void	init_ipv6_header(struct ipv6hdr *ip, struct sockaddr_in6 *dstip,
-	struct sockaddr_in6 *srcip, int protocol)
+static void	init_ipv6_header(struct ipv6hdr *ip, t_iph_args *args)
 {
+	struct sockaddr_in6	*ptr;
+
 	bzero(ip, sizeof(struct ipv6hdr));
-	ip->version = 6;
-	ip->hop_limit = 255;
-	memcpy(&ip->saddr, &srcip->sin6_addr, sizeof(struct in6_addr));
-	memcpy(&ip->daddr, &dstip->sin6_addr, sizeof(struct in6_addr));
-	ip->nexthdr = protocol;
+	ip->version = args->version;
+	ip->hop_limit = args->hop_limit;
+	ptr = (struct sockaddr_in6 *)args->srcip;
+	memcpy(&ip->saddr, &ptr->sin6_addr, sizeof(struct in6_addr));
+	ptr = (struct sockaddr_in6 *)args->dstip;
+	memcpy(&ip->daddr, &ptr->sin6_addr, sizeof(struct in6_addr));
+	ip->payload_len = args->layer5_len;
+	ip->nexthdr = args->protocol;
 	if (ip->nexthdr == IP_HEADER_ICMP)
-		ip->payload_len = sizeof(struct icmp6hdr);
+		ip->payload_len += sizeof(struct icmp6hdr);
 	else if (ip->nexthdr == IP_HEADER_TCP)
-		ip->payload_len = sizeof(struct tcphdr);
+		ip->payload_len += sizeof(struct tcphdr);
 	else if (ip->nexthdr == IP_HEADER_UDP)
-		ip->payload_len = sizeof(struct udphdr);
+		ip->payload_len += sizeof(struct udphdr);
 	ip->payload_len = htons(ip->payload_len);
+}
+
+int		init_ip_header(void *ipptr, t_iph_args *args)
+{
+	if ((args->version != 4 && args->version != 6)
+		|| !args->dstip || !args->srcip)
+		return (1);
+	if (args->version == 4)
+		init_ipv4_header((struct iphdr *)ipptr, args);
+	else
+		init_ipv6_header((struct ipv6hdr *)ipptr, args);
+	return (0);
 }
 
 uint32_t	sum_bit16(uint16_t *data, size_t sz)
@@ -422,6 +451,38 @@ int			init_udp_header(uint8_t *udp_packet, void *iphdr,
 	udph->uh_sport = htons(srcp);
 	udph->uh_dport = htons(dstp);
 	return (udp_checksum(version, iphdr, udp_packet, udplen));
+}
+
+/*
+** init_tcp_header:
+**
+** Writes entire tcp header from scatch. Needs an ip header with version
+** byte, total or payload length, source address and destination address.
+**
+** The tcp header is written on the first sizeof(struct tcphdr) bytes of
+** tcp_packet, which is supposed to be followed by the tcp payload data
+** if it has any. The length of the tcp_packet is given by the ip header
+** length field.
+*/
+int			init_tcp_header(uint8_t *tcp_packet, void *iphdr,
+	uint16_t srcp, uint16_t dstp)
+{
+	struct tcphdr	*tcph = (struct tcphdr *)tcp_packet;
+	uint8_t			version = (*(uint8_t *)iphdr) >> 4;
+	struct iphdr	*ip4h = version == 4 ? iphdr : NULL;
+	struct ipv6hdr	*ip6h = version == 6 ? iphdr : NULL;
+	uint16_t		tcplen = ip6h ? ntohs(ip6h->payload_len)
+						: ip4h ? ntohs(ip4h->tot_len) : 0;
+
+	if (ip4h)
+		tcplen = tcplen > sizeof(struct iphdr)
+			? tcplen - sizeof(struct iphdr) : 0;
+	if ((!ip4h && !ip6h) || tcplen < sizeof(struct tcphdr))
+		return (-1);
+	tcph->th_sport = htons(srcp);
+	tcph->th_dport = htons(dstp);
+	//return (tcp_checksum(version, iphdr, tcp_packet, tcplen));
+	return (0);
 }
 
 #define PORT_DEF	45654
@@ -555,7 +616,15 @@ int					main(int argc, char **argv)
 		dport = atoi(user_dport);
 
 	printf("---- Send IPv4 UDP packet ----\n");
-	init_ipv4_header(&ip4h, &dstip_v4, &srcip_v4, IP_HEADER_UDP);
+	t_iph_args	ipv4args = {
+		.version = 4,
+		.dstip = (struct sockaddr *)&dstip_v4,
+		.srcip = (struct sockaddr *)&srcip_v4,
+		.protocol = IP_HEADER_UDP,
+		.hop_limit = 255,
+		.layer5_len = 0,
+	};
+	init_ip_header(&ip4h, &ipv4args);
 	print_iphdr(&ip4h, AF_INET, prog);
 	bzero(packet, sizeof(packet));
 	if (init_udp_header((uint8_t *)&udph, &ip4h, sport, dport) < 0)
@@ -570,7 +639,15 @@ int					main(int argc, char **argv)
 		printf("Status: Package Sent\n");
 
 	printf("\n---- Send IPv6 UDP packet ----\n");
-	init_ipv6_header(&ip6h, &dstip_v6, &srcip_v6, IP_HEADER_UDP);
+	t_iph_args	ipv6args = {
+		.version = 6,
+		.dstip = (struct sockaddr *)&dstip_v6,
+		.srcip = (struct sockaddr *)&srcip_v6,
+		.protocol = IP_HEADER_UDP,
+		.hop_limit = 255,
+		.layer5_len = 0,
+	};
+	init_ip_header(&ip6h, &ipv6args);
 	print_iphdr(&ip6h, AF_INET6, prog);
 	bzero(packet, sizeof(packet));
 	bzero(&udph, sizeof(struct udphdr));
