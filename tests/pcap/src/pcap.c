@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/19 15:45:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/20 05:21:20 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,8 +86,8 @@ static void	phandler(u_char *user, const struct pcap_pkthdr *h,
 	//TEMP
 	write(1, ".", 1);
 	//TEMP
-	memcpy((void *)user, (void *)h, sizeof(struct pcap_pkthdr));
-	memcpy((void *)(user + sizeof(struct pcap_pkthdr)), (void *)bytes, h->len);
+	memcpy(user, h, sizeof(struct pcap_pkthdr));
+	memcpy(user + sizeof(struct pcap_pkthdr), bytes, h->len);
 }
 
 #define PACKET_SIZE_MAX	(sizeof(struct pcap_pkthdr) + 1024)
@@ -97,7 +97,6 @@ static int			grab_packet(char *prog, pcap_t *descr, u_char *packet)
 	int						ret;
 	struct pcap_pkthdr		*h;
 	u_char					buf[PACKET_SIZE_MAX];
-	char					errbuf[PCAP_ERRBUF_SIZE];
 
 	//if ((ret = pcap_dispatch(descr, 1, phandler, buf)) == PCAP_ERROR)
 	if ((ret = pcap_dispatch(descr, 0, phandler, buf)) == PCAP_ERROR)
@@ -111,7 +110,7 @@ static int			grab_packet(char *prog, pcap_t *descr, u_char *packet)
 		return (1);
 	}
 	h = (struct pcap_pkthdr *)buf;
-	memcpy((void *)packet, (void *)(buf + sizeof(struct pcap_pkthdr)), h->len);
+	memcpy(packet, buf + sizeof(struct pcap_pkthdr), h->len);
 	printf("\nGrabbed packet of length %d\n", h->len);
 	printf("Received at .... %s\n", ctime((const time_t *)&h->ts.tv_sec));
 	printf("Ethernet address length is %d\n", ETHER_HDR_LEN);
@@ -143,52 +142,32 @@ static int			print_ether_type(int *type, u_char *packet)
 			&& *type != ETHERTYPE_ARP);
 }
 
-int					parse_iphdr(struct iphdr *iphdr, u_char *packet, char *prog)
+int					print_iphdr(void *iphdr, int domain, char *prog)
 {
-	int		type;
-	char	ipsrc[INET6_ADDRSTRLEN + 1] = { 0 };
-	char	ipdst[INET6_ADDRSTRLEN + 1] = { 0 };
+	void			*sptr, *dptr;
+	char			ipsrc[INET6_ADDRSTRLEN + 1] = { 0 };
+	char			ipdst[INET6_ADDRSTRLEN + 1] = { 0 };
+	struct iphdr	*ip4h = domain == AF_INET ? iphdr : NULL;
+	struct ipv6hdr	*ip6h = domain == AF_INET6 ? iphdr : NULL;
 
-	memcpy((void *)iphdr, (void *)(packet + sizeof(struct ether_header)),
-		sizeof(struct iphdr));
-	if (!inet_ntop(AF_INET, (void *)&iphdr->saddr, ipsrc, INET6_ADDRSTRLEN))
+	if (!ip4h && !ip6h)
+		return (1);
+	sptr = ip4h ? (void *)&ip4h->saddr : (void *)&ip6h->saddr;
+	dptr = ip4h ? (void *)&ip4h->daddr : (void *)&ip6h->daddr;
+	if (!inet_ntop(domain, sptr, ipsrc, INET6_ADDRSTRLEN))
 	{
 		dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno));
 		return (1);
 	}
-	if (!inet_ntop(AF_INET, (void *)&iphdr->daddr, ipdst, INET6_ADDRSTRLEN))
+	if (!inet_ntop(domain, dptr, ipdst, INET6_ADDRSTRLEN))
 	{
 		dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno));
 		return (1);
 	}
-	printf("IP packet: (len = %hu, iphdr_size = %zu)\n", ntohs(iphdr->tot_len),
-		sizeof(struct iphdr));
-	printf("source ip: %s\n", ipsrc);
-	printf("destination ip: %s\n", ipdst);
-	return (0);
-}
-
-int					parse_ipv6hdr(struct ipv6hdr *iphdr, u_char *packet, char *prog)
-{
-	int		type;
-	char	ipsrc[INET6_ADDRSTRLEN + 1] = { 0 };
-	char	ipdst[INET6_ADDRSTRLEN + 1] = { 0 };
-
-	memcpy((void *)iphdr, (void *)(packet + sizeof(struct ether_header)),
-		sizeof(struct ipv6hdr));
-	if (!inet_ntop(AF_INET6, (void *)&iphdr->saddr, ipsrc, INET6_ADDRSTRLEN))
-	{
-		dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno));
-		return (1);
-	}
-	if (!inet_ntop(AF_INET6, (void *)&iphdr->daddr, ipdst, INET6_ADDRSTRLEN))
-	{
-		dprintf(2, "%s: inet_ntop: %s\n", prog, strerror(errno));
-		return (1);
-	}
-	printf("IP packet: (len = %lu, iphdr_size = %zu)\n",
-		ntohs(iphdr->payload_len) + sizeof(struct ipv6hdr),
-		sizeof(struct ipv6hdr));
+	printf("IP packet: (%s = %hu, iphdr_size = %zu)\n",
+		ip4h ? "tot_len" : "payload_len",
+		ip4h ? ntohs(ip4h->tot_len) : ntohs(ip6h->payload_len),
+		ip4h ? sizeof(struct iphdr): sizeof(struct ipv6hdr));
 	printf("source ip: %s\n", ipsrc);
 	printf("destination ip: %s\n", ipdst);
 	return (0);
@@ -197,14 +176,15 @@ int					parse_ipv6hdr(struct ipv6hdr *iphdr, u_char *packet, char *prog)
 int					get_ips(struct sockaddr_in *ipv4, struct sockaddr_in6 *ipv6,
 	char *dev, char *prog)
 {
-	struct ifaddrs	*ifap = NULL;
-	int				v4 = 0, v6 = 0, ret = 0;
+	struct ifaddrs	*ifap = NULL, *ifap_too = NULL;
+	int				v4 = 0, v6 = 0;
 
 	if (getifaddrs(&ifap) < 0)
 	{
 		dprintf(2, "%s: getifaddrs: %s\n", prog, strerror(errno));
 		return (-1);
 	}
+	ifap_too = ifap;
 	for (; ifap && (!v4 || !v6); ifap = ifap->ifa_next)
 	{
 		if (ifap->ifa_name && !strcmp(dev, ifap->ifa_name) && ifap->ifa_addr)
@@ -212,18 +192,16 @@ int					get_ips(struct sockaddr_in *ipv4, struct sockaddr_in6 *ipv6,
 			if (!v4 && ifap->ifa_addr->sa_family == AF_INET)
 			{
 				v4 = 1;
-				memcpy((void *)ipv4, (void *)ifap->ifa_addr,
-					sizeof(struct sockaddr_in));
+				memcpy(ipv4, ifap->ifa_addr, sizeof(struct sockaddr_in));
 			}
 			else if (!v6 && ifap->ifa_addr->sa_family == AF_INET6)
 			{
 				v6 = 2;
-				memcpy((void *)ipv6, (void *)ifap->ifa_addr,
-					sizeof(struct sockaddr_in6));
+				memcpy(ipv6, ifap->ifa_addr, sizeof(struct sockaddr_in6));
 			}
 		}
 	}
-	freeifaddrs(ifap);
+	freeifaddrs(ifap_too); //TODO: put in clean ft_atexit handler
 	return (v4 + v6);
 }
 
@@ -289,6 +267,7 @@ int					set_filter(pcap_t *descr, int ip, char *ip4, char *ip6,
 		dprintf(2, "%s: pcap_setfilter: %s\n", prog, pcap_geterr(descr));
 		return (1);
 	}
+	pcap_freecode(&fp); //TODO: put in clean ft_atexit handler
 	return (0);
 }
 
@@ -328,14 +307,12 @@ int	init_socket(int domain, int protocol, char *prog)
 void	init_ipv4_header(struct iphdr *ip, struct sockaddr_in *dstip,
 	struct sockaddr_in *srcip, int protocol)
 {
-	bzero((void *)ip, sizeof(struct iphdr));
+	bzero(ip, sizeof(struct iphdr));
 	ip->ihl = 5;
 	ip->version = 4;
 	ip->ttl = 255;
-	memcpy((void *)&ip->saddr,
-		(void *)&srcip->sin_addr, sizeof(struct in_addr));
-	memcpy((void *)&ip->daddr,
-		(void *)&dstip->sin_addr, sizeof(struct in_addr));
+	memcpy(&ip->saddr, &srcip->sin_addr, sizeof(struct in_addr));
+	memcpy(&ip->daddr, &dstip->sin_addr, sizeof(struct in_addr));
 	ip->tot_len = sizeof(struct iphdr);
 	ip->protocol = protocol;
 	if (ip->protocol == IP_HEADER_ICMP)
@@ -350,13 +327,11 @@ void	init_ipv4_header(struct iphdr *ip, struct sockaddr_in *dstip,
 void	init_ipv6_header(struct ipv6hdr *ip, struct sockaddr_in6 *dstip,
 	struct sockaddr_in6 *srcip, int protocol)
 {
-	bzero((void *)ip, sizeof(struct ipv6hdr));
+	bzero(ip, sizeof(struct ipv6hdr));
 	ip->version = 6;
 	ip->hop_limit = 255;
-	memcpy((void *)&ip->saddr,
-		(void *)&srcip->sin6_addr, sizeof(struct in6_addr));
-	memcpy((void *)&ip->daddr,
-		(void *)&dstip->sin6_addr, sizeof(struct in6_addr));
+	memcpy(&ip->saddr, &srcip->sin6_addr, sizeof(struct in6_addr));
+	memcpy(&ip->daddr, &dstip->sin6_addr, sizeof(struct in6_addr));
 	ip->nexthdr = protocol;
 	if (ip->nexthdr == IP_HEADER_ICMP)
 		ip->payload_len = sizeof(struct icmp6hdr);
@@ -428,15 +403,15 @@ int			init_udp_header(uint8_t *udp_packet, void *iphdr,
 	uint16_t srcp, uint16_t dstp)
 {
 	struct udphdr	*udph = (struct udphdr *)udp_packet;
-	uint8_t			version = *(uint8_t *)iphdr;
+	uint8_t			version = (*(uint8_t *)iphdr) >> 4;
 	struct iphdr	*ip4h = version == 4 ? iphdr : NULL;
 	struct ipv6hdr	*ip6h = version == 6 ? iphdr : NULL;
-	uint16_t		udplen = 0;
+	uint16_t		udplen = ip6h ? ntohs(ip6h->payload_len)
+						: ip4h ? ntohs(ip4h->tot_len) : 0;
 
-	if (ip4h && ip4h->tot_len > sizeof(struct iphdr))
-		udplen = ip4h->tot_len - sizeof(struct iphdr);
-	else if (ip6h)
-		udplen = ip6h->payload_len;
+	if (ip4h)
+		udplen = udplen > sizeof(struct iphdr)
+			? udplen - sizeof(struct iphdr) : 0;
 	if ((!ip4h && !ip6h) || udplen < sizeof(struct udphdr))
 		return (-1);
 	udph->uh_sport = htons(srcp);
@@ -458,6 +433,7 @@ int					main(int argc, char **argv)
 						ip6[INET6_ADDRSTRLEN] = { 0 };
 	bpf_u_int32			netp;
 
+	(void)argc;
 	printf("sizes:\n");
 	printf("ether_header: %zu\n", sizeof(struct ether_header));
 	printf("iphdr: %zu\n", sizeof(struct iphdr));
@@ -489,9 +465,18 @@ int					main(int argc, char **argv)
 	if (print_ether_type(&type, packet))
 		return (EXIT_FAILURE);
 	if (type == ETHERTYPE_IP)
-		parse_iphdr(&iphdr, packet, argv[0]);
+	{
+		memcpy(&iphdr, packet + sizeof(struct ether_header),
+			sizeof(struct iphdr));
+		print_iphdr(&iphdr, AF_INET, argv[0]);
+	}
 	else if (type == ETHERTYPE_IPV6)
-		parse_ipv6hdr(&ipv6hdr, packet, argv[0]);
+	{
+		memcpy(&ipv6hdr, packet + sizeof(struct ether_header),
+			sizeof(struct ipv6hdr));
+		print_iphdr(&ipv6hdr, AF_INET6, argv[0]);
+	}
+	pcap_close(descr);
 	printf("\n");
 
 	if (ip != 3)
@@ -502,7 +487,7 @@ int					main(int argc, char **argv)
 	uint16_t		port = 45654;
 	struct iphdr	ip4h = { 0 };
 	struct ipv6hdr	ip6h = { 0 };
-	struct tcphdr	tcph = { 0 };
+	//struct tcphdr	tcph = { 0 };
 	struct udphdr	udph = { 0 };
 	int				ip4tcp_socket, ip4udp_socket, ip6tcp_socket, ip6udp_socket;
 	printf("---- Send packet ----\n");
@@ -515,11 +500,19 @@ int					main(int argc, char **argv)
 	if ((ip6udp_socket = init_socket(AF_INET6, IPPROTO_UDP, argv[0])) < 0)
 		return (EXIT_FAILURE);
 	init_ipv4_header(&ip4h, &ipv4, &ipv4, IP_HEADER_UDP);
+	print_iphdr(&ip4h, AF_INET, argv[0]);
 	init_ipv6_header(&ip6h, &ipv6, &ipv6, IP_HEADER_UDP);
-	init_udp_header((uint8_t *)&udph, &ipv4, port, port);
+	print_iphdr(&ip6h, AF_INET6, argv[0]);
+	if (init_udp_header((uint8_t *)&udph, &ip4h, port, port) < 0)
+		dprintf(2, "%s: init_udp_header: failure\n", argv[0]);
+	bzero(&udph, sizeof(struct udphdr));
+	if (init_udp_header((uint8_t *)&udph, &ip6h, port, port) < 0)
+		dprintf(2, "%s: init_udp_header: failure\n", argv[0]);
+	//TODO: put in clean ft_atexit handler
 	close(ip4tcp_socket);
 	close(ip4udp_socket);
 	close(ip6tcp_socket);
 	close(ip6udp_socket);
+	//TODO
 	return (EXIT_SUCCESS);
 }
