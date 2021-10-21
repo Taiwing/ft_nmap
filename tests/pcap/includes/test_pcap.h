@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:55:56 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 14:57:31 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/21 07:31:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,13 +28,16 @@
 # include <netinet/tcp.h>
 # include <netinet/udp.h>
 # include <ifaddrs.h>
+# include <sys/wait.h> //TODO: remove with fork call and waitpid
 
-# define MAX_HEADER_SIZE	\
+# define HEADER_SIZE_MAX	\
 	(sizeof(struct ether_header) + sizeof(struct ipv6hdr)\
 	+ sizeof(struct icmp6hdr) + sizeof(struct ipv6hdr)\
 	+ sizeof(struct tcphdr))
 
-# define PACKET_SIZE_MAX	(sizeof(struct pcap_pkthdr) + 1024)
+# define PACKET_SIZE_MAX	(sizeof(struct pcap_pkthdr) + HEADER_SIZE_MAX)
+
+# define FILTER_MAXLEN	1024
 
 # define PORT_DEF	45654
 
@@ -70,6 +73,8 @@ typedef struct	s_tcph_args
 */
 int			print_ether_type(int *type, u_char *packet);
 int			print_iphdr(void *iphdr, int domain, char *prog);
+int			print_nexthdr(void *iphdr, int domain, uint16_t size, char *prog);
+int			print_icmphdr(void *icmph, int domain, uint16_t size, char *prog);
 void		print_udphdr(struct udphdr *udph);
 void		print_tcphdr(struct tcphdr *tcph);
 int			print_ips(int ip, char *ip4, char *ip6, struct sockaddr_in *ipv4,
@@ -86,10 +91,11 @@ int			get_ips(struct sockaddr_in *ipv4, struct sockaddr_in6 *ipv6,
 /*
 ** Grab Packet
 */
-pcap_t		*open_device(char *prog, char *dev);
+pcap_t		*open_device(char *dev, int maxlen, int timeout, char *prog);
 int			set_filter(pcap_t *descr, int ip, char *ip4, char *ip6,
 				char *user_filter, char *prog, bpf_u_int32 netp);
-int			grab_packet(char *prog, pcap_t *descr, u_char *packet);
+int			grab_packet(u_char *packet, pcap_t *descr,
+				pcap_handler callback, int cnt, char *prog);
 
 /*
 ** Socket
@@ -111,5 +117,11 @@ int			transport_checksum(int version, void *iphdr,
 int			init_udp_header(uint8_t *udp_packet, void *iphdr,
 				uint16_t srcp, uint16_t dstp);
 int			init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args);
+
+/*
+** Server
+*/
+int			server(pid_t sender_proc, char *dev, char *ip4, char *ip6,
+				uint16_t sport, uint16_t dport, bpf_u_int32 netp, char *prog);
 
 #endif

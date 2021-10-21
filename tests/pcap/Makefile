@@ -13,6 +13,7 @@ NAME		=	exec
 
 SRCC			=	init_network.c\
 					grab_packet.c\
+					server.c\
 					ip_headers.c\
 					print.c\
 					pcap.c\
@@ -35,6 +36,7 @@ $(NAME): $(ODIR) $(OBJ)
 
 init_network.o: test_pcap.h
 grab_packet.o: test_pcap.h
+server.o: test_pcap.h
 ip_headers.o: test_pcap.h
 print.o: test_pcap.h
 pcap.o: test_pcap.h

@@ -6,11 +6,22 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/20 14:57:43 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/21 11:00:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "test_pcap.h"
+
+static void	phandler(u_char *user, const struct pcap_pkthdr *h,
+	const u_char *bytes)
+{
+	//TEMP
+	write(1, ".", 1);
+	//TEMP
+	memcpy(user, h, sizeof(struct pcap_pkthdr));
+	memcpy(user + sizeof(struct pcap_pkthdr), bytes,
+		h->len > HEADER_SIZE_MAX ? HEADER_SIZE_MAX : h->len);
+}
 
 int					main(int argc, char **argv)
 {
@@ -63,7 +74,7 @@ int					main(int argc, char **argv)
 	printf("icmp6hdr: %zu\n", sizeof(struct icmp6hdr));
 	printf("tcphdr: %zu\n", sizeof(struct tcphdr));
 	printf("udphdr: %zu\n", sizeof(struct udphdr));
-	printf("MAX_HEADER_SIZE: %zu\n\n", MAX_HEADER_SIZE);
+	printf("HEADER_SIZE_MAX: %zu\n\n", HEADER_SIZE_MAX);
 	*/
 
 	printf("---- Network ----\n");
@@ -84,12 +95,12 @@ int					main(int argc, char **argv)
 	memcpy(&dstip_v4, &srcip_v4, sizeof(dstip_v4));
 	memcpy(&dstip_v6, &srcip_v6, sizeof(dstip_v6));
 
-	printf("\n---- Receive packet ----\n");
-	if (!(descr = open_device(prog, dev)))
+	printf("\n---- Receive one packet ----\n");
+	if (!(descr = open_device(dev, HEADER_SIZE_MAX, 1, prog)))
 		return (EXIT_FAILURE);
 	if (set_filter(descr, ip, ip4, ip6, user_filter, prog, netp))
 		return (EXIT_FAILURE);
-	if (grab_packet(prog, descr, packet))
+	if (grab_packet(packet, descr, phandler, 0, prog))
 		return (EXIT_FAILURE);
 	if (print_ether_type(&type, packet))
 		return (EXIT_FAILURE);
@@ -117,7 +128,23 @@ int					main(int argc, char **argv)
 		dprintf(2, "%s: ipv4 and ipv6 are not both available\n", prog);
 		return (EXIT_FAILURE);
 	}
+
 	uint16_t		sport = PORT_DEF, dport = PORT_DEF;
+	pid_t			p;
+	if (user_sport)
+		sport = atoi(user_sport);
+	if (user_dport)
+		dport = atoi(user_dport);
+	if ((p = fork()) < 0)
+	{
+		dprintf(2, "%s: fork: %s\n", prog, strerror(errno));
+		return (EXIT_FAILURE);
+	}
+	else if (p)
+		return (server(p, dev, ip4, ip6, sport, dport, netp, prog));
+	else
+		sleep(1);
+
 	struct iphdr	ip4h = { 0 };
 	struct ipv6hdr	ip6h = { 0 };
 	struct tcphdr	tcph = { 0 };
@@ -140,10 +167,6 @@ int					main(int argc, char **argv)
 		memcpy(&dstip_v4.sin_addr, ipbuf, sizeof(dstip_v4.sin_addr));
 	if (user_dstip_v6 && inet_pton(AF_INET6, user_dstip_v6, ipbuf) > 0)
 		memcpy(&dstip_v6.sin6_addr, ipbuf, sizeof(dstip_v6.sin6_addr));
-	if (user_sport)
-		sport = atoi(user_sport);
-	if (user_dport)
-		dport = atoi(user_dport);
 
 	printf("---- Send IPv4 UDP packet ----\n");
 	t_iph_args	ipv4args = {
