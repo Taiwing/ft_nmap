@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:35:26 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/21 10:59:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/21 18:31:40 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ int			set_filter(pcap_t *descr, int ip, char *ip4, char *ip6,
 
 	snprintf(filter, FILTER_MAXLEN, "(dst host %s%s%s)", ip & 1 ? ip4 : ip6,
 		ip == 3 ? " || dst host " : "", ip == 3 ? ip6 : "");
-	if (user_filter)
+	if (user_filter && strlen(user_filter))
 		snprintf(filter + strlen(filter), FILTER_MAXLEN - strlen(filter),
 			" && (%s)", user_filter);
 	if (pcap_compile(descr, &fp, filter, 1, netp) == PCAP_ERROR)

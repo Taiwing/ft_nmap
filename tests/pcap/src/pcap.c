@@ -6,28 +6,14 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/21 11:00:58 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/21 18:28:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "test_pcap.h"
 
-static void	phandler(u_char *user, const struct pcap_pkthdr *h,
-	const u_char *bytes)
-{
-	//TEMP
-	write(1, ".", 1);
-	//TEMP
-	memcpy(user, h, sizeof(struct pcap_pkthdr));
-	memcpy(user + sizeof(struct pcap_pkthdr), bytes,
-		h->len > HEADER_SIZE_MAX ? HEADER_SIZE_MAX : h->len);
-}
-
 int					main(int argc, char **argv)
 {
-	struct iphdr		iphdr;
-	struct ipv6hdr		ipv6hdr;
-	pcap_t				*descr;
 	int					type, ip;
 	struct sockaddr_in	srcip_v4 = { 0 };
 	struct sockaddr_in6	srcip_v6 = { 0 };
@@ -96,31 +82,17 @@ int					main(int argc, char **argv)
 	memcpy(&dstip_v6, &srcip_v6, sizeof(dstip_v6));
 
 	printf("\n---- Receive one packet ----\n");
-	if (!(descr = open_device(dev, HEADER_SIZE_MAX, 1, prog)))
-		return (EXIT_FAILURE);
-	if (set_filter(descr, ip, ip4, ip6, user_filter, prog, netp))
-		return (EXIT_FAILURE);
-	if (grab_packet(packet, descr, phandler, 0, prog))
-		return (EXIT_FAILURE);
-	if (print_ether_type(&type, packet))
-		return (EXIT_FAILURE);
-	if (type == ETHERTYPE_IP)
-	{
-		memcpy(&iphdr, packet + sizeof(struct ether_header),
-			sizeof(struct iphdr));
-		print_iphdr(&iphdr, AF_INET, prog);
-		if (!user_dstip_v4)
-			memcpy(&dstip_v4.sin_addr, &iphdr.saddr, sizeof(dstip_v4.sin_addr));
-	}
-	else if (type == ETHERTYPE_IPV6)
-	{
-		memcpy(&ipv6hdr, packet + sizeof(struct ether_header),
-			sizeof(struct ipv6hdr));
-		print_iphdr(&ipv6hdr, AF_INET6, prog);
-		if (!user_dstip_v6)
-			memcpy(&dstip_v6.sin6_addr, &ipv6hdr.saddr, sizeof(dstip_v6.sin6_addr));
-	}
-	pcap_close(descr);
+	(void)user_filter; //TEMP
+	//TODO: give user_filter back to server for custom filters
+	server(packet, 0, 1, dev, ip4, ip6, 0, 0, netp, prog);
+	type = ((struct ether_header *)packet)->ether_type;
+	void	*ip_header = packet + sizeof(struct ether_header);
+	if (type == ETHERTYPE_IP && !user_dstip_v4)
+		memcpy(&dstip_v4.sin_addr, &((struct iphdr *)ip_header)->saddr,
+			sizeof(dstip_v4.sin_addr));
+	else if (type == ETHERTYPE_IPV6 && !user_dstip_v6)
+		memcpy(&dstip_v6.sin6_addr, &((struct ipv6hdr *)ip_header)->saddr,
+			sizeof(dstip_v6.sin6_addr));
 	printf("\n");
 
 	if (ip != 3)
@@ -141,7 +113,7 @@ int					main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 	else if (p)
-		return (server(p, dev, ip4, ip6, sport, dport, netp, prog));
+		return (server(NULL, p, 5, dev, ip4, ip6, sport, dport, netp, prog));
 	else
 		sleep(1);
 
