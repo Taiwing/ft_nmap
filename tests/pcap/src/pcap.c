@@ -6,11 +6,56 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 05:03:01 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/21 18:28:16 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/22 06:40:55 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "test_pcap.h"
+
+static void	phandler(u_char *user, const struct pcap_pkthdr *h,
+	const u_char *bytes)
+{
+	static int		nb = 0;
+	int				type = 0;
+	uint16_t		size = 0;
+	struct iphdr	*ip4h = NULL;
+	struct ipv6hdr	*ip6h = NULL;
+
+	if (h->len >= ETHER_HDR_LEN)
+		size = h->len - ETHER_HDR_LEN;
+	memcpy(user, h, sizeof(struct pcap_pkthdr));
+	memcpy(user + sizeof(struct pcap_pkthdr), bytes,
+		h->len > HEADER_SIZE_MAX ? HEADER_SIZE_MAX : h->len);
+	printf("\n---- Received Packet NB %d ----\n", ++nb);
+	print_ether_type(&type, (u_char *)bytes);
+	bytes += ETHER_HDR_LEN;
+	ip4h = type == ETHERTYPE_IP ? (struct iphdr *)bytes : NULL;
+	ip6h = type == ETHERTYPE_IPV6 ? (struct ipv6hdr *)bytes : NULL;
+	if (!ip4h && !ip6h)
+		dprintf(2, "%s: %s: invalid ether type: %d\n",
+			"horsewithnoname", __func__, type);
+	else if ((ip4h && size < sizeof(struct iphdr))
+		|| (ip6h && size < sizeof(struct ipv6hdr)))
+		dprintf(2, "%s: %s: not enough data for IP%s header: %hu bytes\n",
+			"horsewithnoname", __func__, ip4h ? "" : "v6", size);
+	else
+	{
+		print_iphdr((void *)bytes, ip4h ? AF_INET : AF_INET6, "horsewithnoname");
+		size -= ip4h ? sizeof(struct iphdr) : sizeof(struct ipv6hdr);
+		print_nexthdr((void *)bytes, ip4h ? AF_INET : AF_INET6, size, "horsewithnoname");
+	}
+}
+
+pcap_t				*descr = NULL;
+
+static void	alarm_handler(int sig)
+{
+	(void)sig;
+	if (descr)
+		pcap_breakloop(descr);
+	printf("lol\n");
+	alarm(5);
+}
 
 int					main(int argc, char **argv)
 {
@@ -81,10 +126,16 @@ int					main(int argc, char **argv)
 	memcpy(&dstip_v4, &srcip_v4, sizeof(dstip_v4));
 	memcpy(&dstip_v6, &srcip_v6, sizeof(dstip_v6));
 
+	alarm(5);
+	signal(SIGALRM, alarm_handler);
+
 	printf("\n---- Receive one packet ----\n");
 	(void)user_filter; //TEMP
 	//TODO: give user_filter back to server for custom filters
-	server(packet, 0, 1, dev, ip4, ip6, 0, 0, netp, prog);
+	if (!(descr = server_init(1, dev, ip4, ip6, 0, 0, netp, prog)))
+		return (EXIT_FAILURE);
+	grab_packet(packet, descr, phandler, 0, prog);
+	pcap_close(descr);
 	type = ((struct ether_header *)packet)->ether_type;
 	void	*ip_header = packet + sizeof(struct ether_header);
 	if (type == ETHERTYPE_IP && !user_dstip_v4)
@@ -102,20 +153,10 @@ int					main(int argc, char **argv)
 	}
 
 	uint16_t		sport = PORT_DEF, dport = PORT_DEF;
-	pid_t			p;
 	if (user_sport)
 		sport = atoi(user_sport);
 	if (user_dport)
 		dport = atoi(user_dport);
-	if ((p = fork()) < 0)
-	{
-		dprintf(2, "%s: fork: %s\n", prog, strerror(errno));
-		return (EXIT_FAILURE);
-	}
-	else if (p)
-		return (server(NULL, p, 5, dev, ip4, ip6, sport, dport, netp, prog));
-	else
-		sleep(1);
 
 	struct iphdr	ip4h = { 0 };
 	struct ipv6hdr	ip6h = { 0 };
@@ -157,11 +198,13 @@ int					main(int argc, char **argv)
 	print_udphdr(&udph);
 	memcpy(packet, &ip4h, sizeof(ip4h));
 	memcpy(packet + sizeof(ip4h), &udph, sizeof(udph));
+	if (!(descr = server_init(1, dev, ip4, ip6, sport, dport, netp, prog)))
+		return (EXIT_FAILURE);
 	if (sendto(ip4udp_socket, packet, ntohs(ip4h.tot_len), 0,
 			(struct sockaddr *)&dstip_v4, sizeof(dstip_v4)) < 0)
 		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
-	else
-		printf("Status: Package Sent\n");
+	grab_packet(packet, descr, phandler, 0, prog);
+	pcap_close(descr);
 
 	printf("\n---- Send IPv6 UDP packet ----\n");
 	t_iph_args	ipv6args = {
@@ -181,11 +224,13 @@ int					main(int argc, char **argv)
 	print_udphdr(&udph);
 	memcpy(packet, &ip6h, sizeof(ip6h));
 	memcpy(packet + sizeof(ip6h), &udph, sizeof(udph));
+	if (!(descr = server_init(1, dev, ip4, ip6, sport, dport, netp, prog)))
+		return (EXIT_FAILURE);
 	if (sendto(ip6udp_socket, packet, ntohs(ip6h.payload_len) + sizeof(ip6h), 0,
 			(struct sockaddr *)&dstip_v6, sizeof(dstip_v6)) < 0)
 		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
-	else
-		printf("Status: Package Sent\n");
+	grab_packet(packet, descr, phandler, 0, prog);
+	pcap_close(descr);
 
 	printf("\n---- Send IPv4 TCP packet ----\n");
 	ipv4args.protocol = IP_HEADER_TCP;
@@ -208,11 +253,13 @@ int					main(int argc, char **argv)
 	print_tcphdr(&tcph);
 	memcpy(packet, &ip4h, sizeof(ip4h));
 	memcpy(packet + sizeof(ip4h), &tcph, sizeof(tcph));
+	if (!(descr = server_init(1, dev, ip4, ip6, sport, dport, netp, prog)))
+		return (EXIT_FAILURE);
 	if (sendto(ip4tcp_socket, packet, ntohs(ip4h.tot_len), 0,
 			(struct sockaddr *)&dstip_v4, sizeof(dstip_v4)) < 0)
 		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
-	else
-		printf("Status: Package Sent\n");
+	grab_packet(packet, descr, phandler, 0, prog);
+	pcap_close(descr);
 
 	printf("\n---- Send IPv6 TCP packet ----\n");
 	ipv6args.protocol = IP_HEADER_TCP;
@@ -226,11 +273,13 @@ int					main(int argc, char **argv)
 	print_tcphdr(&tcph);
 	memcpy(packet, &ip6h, sizeof(ip6h));
 	memcpy(packet + sizeof(ip6h), &tcph, sizeof(tcph));
+	if (!(descr = server_init(1, dev, ip4, ip6, sport, dport, netp, prog)))
+		return (EXIT_FAILURE);
 	if (sendto(ip6tcp_socket, packet, ntohs(ip6h.payload_len) + sizeof(ip6h),
 			0, (struct sockaddr *)&dstip_v6, sizeof(dstip_v6)) < 0)
 		dprintf(2, "%s: sendto: %s\n", prog, strerror(errno));
-	else
-		printf("Status: Package Sent\n");
+	grab_packet(packet, descr, phandler, 0, prog);
+	pcap_close(descr);
 
 	//TODO: put in clean ft_atexit handler
 	close(ip4tcp_socket);

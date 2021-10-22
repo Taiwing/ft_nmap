@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:55:56 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/21 18:25:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/21 18:49:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,8 +121,7 @@ int			init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args);
 /*
 ** Server
 */
-int			server(u_char *packet, pid_t sender_proc, int timeout,
-		char *dev, char *ip4, char *ip6, uint16_t sport, uint16_t dport,
-		bpf_u_int32 netp, char *prog);
+pcap_t		*server_init(int timeout, char *dev, char *ip4, char *ip6,
+				uint16_t sport, uint16_t dport, bpf_u_int32 netp, char *prog);
 
 #endif
