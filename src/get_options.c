@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 07:13:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 09:43:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"f:hi:p:S:s:"
+#define	FT_NMAP_OPT	"f:hi:p:S:s:46"
 
 t_opt	g_nmap_opt[] = {
 	{ "file",		1,	NULL,	'f'	},
@@ -21,6 +21,8 @@ t_opt	g_nmap_opt[] = {
 	{ "ports",		1,	NULL,	'p'	},
 	{ "scan",		1,	NULL,	'S'	},
 	{ "speedup",	1,	NULL,	's'	},
+	{ "ipv4",		0,	NULL,	'4'	},
+	{ "ipv6",		0,	NULL,	'6'	},
 	{ NULL,			0,	NULL,	0	},
 };
 
@@ -34,14 +36,16 @@ char	*g_nmap_help[] = {
 	"Scans to perform specified as a comma separated list. Possible values:\n"
 	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). Does them all by default.",
 	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
+	"Use only IPv4.",
+	"Use only IPv6.",
 	NULL,
 };
 
 char	*g_nmap_usage[] = {
 	"[--file path] [--help] [--ports list] [--scan list] "
-	"[--speedup number] --ip list",
+	"[--speedup number] [--ipv4 | --ipv6] --ip list",
 	"[--help] [--ip list] [--ports list] [--scan list] "
-	"[--speedup number] --file path",
+	"[--speedup number] [--ipv4 | --ipv6] --file path",
 	NULL,
 };
 
@@ -150,6 +154,8 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 's':
 				err = intopt(&cfg->speedup, optd.optarg, 0, MAX_SPEEDUP);
 																		break;
+			case '4': cfg->ip_mode = E_IPV4;							break;
+			case '6': cfg->ip_mode = E_IPV6;							break;
 			default:
 				usage(cfg->exec, opt != 'h');
 		}
