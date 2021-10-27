@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 09:43:31 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 09:51:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,10 +42,8 @@ char	*g_nmap_help[] = {
 };
 
 char	*g_nmap_usage[] = {
-	"[--file path] [--help] [--ports list] [--scan list] "
-	"[--speedup number] [--ipv4 | --ipv6] --ip list",
-	"[--help] [--ip list] [--ports list] [--scan list] "
-	"[--speedup number] [--ipv4 | --ipv6] --file path",
+	"[-h46] [-f path] [-p list] [-S list] [-s number] --ip list",
+	"[-h46] [-i list] [-p list] [-S list] [-s number] --file path",
 	NULL,
 };
 
