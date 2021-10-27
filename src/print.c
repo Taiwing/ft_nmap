@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/28 08:16:49 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 07:59:55 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,10 @@ void		print_config(t_nmap_config *cfg)
 	ft_printf("--- Scan Configuration ---\n"
 		"Number of ports to scan: %d\n"
 		"Scans to be performed:%*t %s\n"
-		"Number of threads: %d\n",
-		cfg->nports, cfg->nscans, cfg->scan_strings, cfg->speedup);
+		"Number of threads: %d\n"
+		"Default Interface: %s\n"
+		"IPv6 Status: %s\n",
+		cfg->nports, cfg->nscans, cfg->scan_strings, cfg->speedup,
+		cfg->netinf.defdev_v4->name, cfg->netinf.defdev_v6->name ?
+		"enabled" : "disabled");
 }

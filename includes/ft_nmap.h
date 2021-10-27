@@ -6,16 +6,15 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/18 07:01:14 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/22 17:17:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_NMAP_H
 # define FT_NMAP_H
 
-# include "libft.h"
+# include "network.h"
 # include <limits.h>
-# include <errno.h>
 # include <fcntl.h>
 # include <pthread.h>
 # include <sys/time.h>
@@ -99,14 +98,6 @@ typedef struct		s_job
 }					t_job;
 
 /*
-** ft_nmap constants
-*/
-extern const char		*g_nmap_scan_strings[];
-extern const char		*g_tcp_services[PORTS_COUNT][2];
-extern const char		*g_udp_services[PORTS_COUNT][2];
-extern const char		*g_sctp_services[PORTS_COUNT][2];
-
-/*
 ** t_nmap_config: nmap configuration
 **
 ** exec: executable name
@@ -124,6 +115,8 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 ** empty_jobs: store allocated and zeroed out jobs
 ** mutex: global mutex
 ** thread: threads array
+** ifap: pointer to getifaddrs output (to be freed in cleanup)
+** netinf: information about the network interfaces
 */
 typedef struct	s_nmap_config
 {
@@ -142,17 +135,14 @@ typedef struct	s_nmap_config
 	t_list			*empty_jobs;
 	pthread_mutex_t	mutex;
 	t_ft_thread		thread[MAX_SPEEDUP];
+	struct ifaddrs	*ifap;
+	t_netinfo		netinf;
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
 	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
-	0, { 0 }, -1, NULL, NULL, {{ 0 }}, {{ 0 }}\
+	0, { 0 }, -1, NULL, NULL, {{ 0 }}, {{ 0 }}, NULL, { 0 }\
 }
-
-/*
-** Global instance of nmap configuration (for atexit and signal handlers)
-*/
-extern t_nmap_config	*g_cfg;
 
 /*
 ** Scan structure: structure given to worker
@@ -194,5 +184,18 @@ t_list		*init_new_job(t_scan *scan);
 void		update_job(t_scan *scan);
 void		print_config(t_nmap_config *cfg);
 void		print_job(t_job *job, t_nmap_config *cfg);
+
+/*
+** ft_nmap constants
+*/
+extern const char		*g_nmap_scan_strings[];
+extern const char		*g_tcp_services[PORTS_COUNT][2];
+extern const char		*g_udp_services[PORTS_COUNT][2];
+extern const char		*g_sctp_services[PORTS_COUNT][2];
+
+/*
+** Global instance of nmap configuration (for atexit and signal handlers)
+*/
+extern t_nmap_config	*g_cfg;
 
 #endif

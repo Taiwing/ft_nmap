@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 07:07:31 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 07:48:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 static void	cleanup(void)
 {
+	if (g_cfg->ifap)
+		freeifaddrs(g_cfg->ifap);
 	wait_workers(g_cfg);
 	if (g_cfg->hosts_fd >= 0)
 		close(g_cfg->hosts_fd);
@@ -53,6 +55,7 @@ int	main(int argc, char **argv)
 	ft_first_exit();
 	get_options(&cfg, argc, argv);
 	check_config(&cfg);
+	get_network_info(&cfg);
 	print_config(&cfg);
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
 		ft_exit(EXIT_FAILURE, "pthread_mutex_init: %s", strerror(ret));
