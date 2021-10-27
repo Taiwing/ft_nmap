@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/18 06:45:52 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 07:14:47 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ static int	set_job_status(t_scan *scan)
 	{
 		scan->job->status |= STATE_DONE;
 		if (gettimeofday(&scan->job->end_ts, NULL) < 0)
-			ft_exit("gettimeofday", errno, EXIT_FAILURE);
+			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 		ret = 1;
 	}
 	return (ret);

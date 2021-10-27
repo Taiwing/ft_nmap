@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/18 06:57:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 07:07:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,7 @@ static void	cleanup(void)
 static void	check_config(t_nmap_config *cfg)
 {
 	if (!cfg->hosts && !cfg->hosts_file)
-		ft_exit("target host missing (use --help for more info)",
-			0, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, "target host missing (use --help for more info)");
 	if (!cfg->nports)
 	{
 		cfg->nports = MAX_PORTS;
@@ -56,9 +55,9 @@ int	main(int argc, char **argv)
 	check_config(&cfg);
 	print_config(&cfg);
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
-		ft_exit("pthread_mutex_init", ret, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, "pthread_mutex_init: %s", strerror(ret));
 	start_workers(&cfg, scan);
 	wait_workers(&cfg);
-	ft_exit(NULL, 0, EXIT_SUCCESS);
+	ft_exit(EXIT_SUCCESS, NULL);
 	return (EXIT_SUCCESS);
 }

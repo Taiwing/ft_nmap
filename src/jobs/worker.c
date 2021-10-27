@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/18 06:57:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 07:26:18 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,19 +15,15 @@
 static void	exec_scan(t_scan *scan)
 {
 	//TEMP
-	char		buf[64] = { 0 };
 	uint64_t	randval = 0;
 	uint64_t	speedup = scan->cfg->speedup ?
 		(uint64_t)scan->cfg->speedup : MAX_SPEEDUP;
 
 	if (!ft_rand_uint64(&randval, 0, speedup))
-		ft_exit("ft_rand_uint64: error", 0, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, "ft_rand_uint64: error");
 	if (speedup && ft_thread_self() == randval)
-	{
-		ft_snprintf(buf, 64, "WOOOOW!!! exiting worker %llu (%llx)!",
+		ft_exit(123, "WOOOOW!!! exiting worker %llu (%llx)!",
 			ft_thread_self(), pthread_self());
-		ft_exit(buf, 0, 123);
-	}
 	else if (speedup < 10)
 		sleep(randval);
 	else if (speedup < 100)
@@ -35,7 +31,7 @@ static void	exec_scan(t_scan *scan)
 	else
 		sleep(randval / 25);
 	if (!ft_rand_uint64(&randval, 0, 4))
-		ft_exit("ft_rand_uint64: error", 0, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, "ft_rand_uint64: error");
 	if (!randval)
 		scan->result = STATE_OPEN;
 	else if (randval == 1)
@@ -93,7 +89,7 @@ void		start_workers(t_nmap_config *cfg, t_scan *scan)
 	{
 		if ((ret = ft_thread_create(cfg->thread + i, NULL,
 			worker, (void *)(scan + i))))
-			ft_exit("pthread_create", ret, EXIT_FAILURE);
+			ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(ret));
 	}
 }
 
