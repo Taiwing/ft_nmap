@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 12:06:23 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 07:23:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 09:20:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,9 +78,12 @@ void			get_network_info(t_nmap_config *cfg)
 			break;
 	if (!netinf->defdev_v4 && !netinf->defdev_v6)
 		ft_exit(EXIT_FAILURE, "%s: did not find default interface", __func__);
-	if (!netinf->loopback_v4 && !netinf->loopback_v6)
-	{
+	else if (cfg->ip_mode == E_IPV4 && !netinf->defdev_v4)
+		ft_exit(EXIT_FAILURE, "%s: did not find an IPv4 interface", __func__);
+	else if (cfg->ip_mode == E_IPV6 && !netinf->defdev_v6)
+		ft_exit(EXIT_FAILURE, "%s: did not find an IPv6 interface", __func__);
+	if (!netinf->loopback_v4)
 		netinf->loopback_v4 = netinf->defdev_v4;
+	if (!netinf->loopback_v6)
 		netinf->loopback_v6 = netinf->defdev_v6;
-	}
 }

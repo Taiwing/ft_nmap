@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/22 17:17:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 09:14:49 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 # include <sys/time.h>
 
 /*
-** ft_nmap macros
+** ft_nmap macros and enums
 */
 
 # define	xstr(s)					str(s)	// stringify macro value
@@ -54,10 +54,11 @@
 # define	SCAN_FIELD				5
 # define	STATE_FIELD				6
 
-/*
-** Scans
-*/
+// Scans
 enum e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, S_UDP };
+
+// IP modes
+enum e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
 
 /*
 ** Task structure: this is the status of each scan on a given port
@@ -136,12 +137,13 @@ typedef struct	s_nmap_config
 	pthread_mutex_t	mutex;
 	t_ft_thread		thread[MAX_SPEEDUP];
 	struct ifaddrs	*ifap;
+	enum e_ip_modes	ip_mode;
 	t_netinfo		netinf;
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
 	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
-	0, { 0 }, -1, NULL, NULL, {{ 0 }}, {{ 0 }}, NULL, { 0 }\
+	0, { 0 }, -1, NULL, NULL, {{ 0 }}, {{ 0 }}, NULL, E_IPALL, { 0 }\
 }
 
 /*
