@@ -27,8 +27,10 @@ JOBSC			=	update_job.c\
 					worker.c\
 					next_job.c\
 
-NETWORKC		=	ip.c\
+NETWORKC		=	next_host.c\
+					ip.c\
 					interfaces.c\
+					get_destinfo.c\
 
 SERVICESC		=	udp_services.c\
 					tcp_services.c\
@@ -66,8 +68,10 @@ mutex.o: ft_nmap.h network.h libft.h
 worker.o: ft_nmap.h network.h libft.h
 next_job.o: ft_nmap.h network.h libft.h
 print.o: ft_nmap.h network.h libft.h
+next_host.o: ft_nmap.h network.h libft.h
 ip.o: ft_nmap.h network.h libft.h
 interfaces.o: ft_nmap.h network.h libft.h
+get_destinfo.o: ft_nmap.h network.h libft.h
 udp_services.o: ft_nmap.h network.h libft.h
 tcp_services.o: ft_nmap.h network.h libft.h
 sctp_services.o: ft_nmap.h network.h libft.h

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 09:34:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/27 19:20:57 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,8 +105,8 @@ void		print_config(t_nmap_config *cfg)
 		"Default Interface: %s\n\n",
 		cfg->ip_mode != E_IPV6 && cfg->netinf.defdev_v4 ? "on" : "off",
 		cfg->ip_mode != E_IPV4 && cfg->netinf.defdev_v6 ? "on" : "off",
-		cfg->ip_mode == E_IPV6 ? cfg->netinf.defdev_v6->name
-		: cfg->netinf.defdev_v4->name);
+		cfg->ip_mode == E_IPV6 || !cfg->netinf.defdev_v4 ?
+		cfg->netinf.defdev_v6->name : cfg->netinf.defdev_v4->name);
 	ft_printf("--- Scan ---\n"
 		"Number of threads: %d\n"
 		"Number of ports to scan: %d\n"

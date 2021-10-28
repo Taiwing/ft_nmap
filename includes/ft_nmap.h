@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 09:14:49 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/28 09:18:49 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ typedef struct	s_task
 ** Job structure: this is the status of each tasks on a given host
 **
 ** host: host string
+** host_ip: IP from getaddrinfo()
 ** status: job status
 ** ongoing: counter of full tasks
 ** done: counter of finished tasks
@@ -90,6 +91,7 @@ typedef struct	s_task
 typedef struct		s_job
 {
 	char			*host;
+	t_ip			host_ip;
 	uint8_t			status;
 	uint16_t		ongoing;
 	uint16_t		done;
@@ -176,6 +178,9 @@ const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 char		*ports_option(t_nmap_config *cfg, t_optdata *optd);
 char		*scan_option(t_nmap_config *cfg, t_optdata *optd);
+void		get_network_info(t_nmap_config *cfg);
+int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
+const char	*next_host(t_ip *ip, t_nmap_config *cfg);
 void		nmap_mutex_lock(pthread_mutex_t *mutex);
 void		nmap_mutex_unlock(pthread_mutex_t *mutex);
 t_scan		*next_job(t_scan *scan);
