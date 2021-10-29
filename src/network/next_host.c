@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 09:02:59 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/28 09:28:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 09:11:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,15 +35,10 @@ static const char	*get_target(t_nmap_config *cfg)
 
 const char			*next_host(t_ip *ip, t_nmap_config *cfg)
 {
-	//const char	*target = NULL;
+	const char	*target = NULL;
 
-	(void)ip;
-	//TODO: uncomment the loop and return when subnet masks are handled
-	/*
 	while ((target = get_target(cfg)))
 		if (!get_destinfo(ip, target, cfg))
 			break ;
 	return (target);
-	*/
-	return (get_target(cfg));
 }

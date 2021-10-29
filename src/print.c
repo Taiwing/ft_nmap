@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 19:20:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 09:34:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,11 +72,13 @@ static void	print_port(t_task *task, uint16_t task_id,
 void	print_job(t_job *job, t_nmap_config *cfg)
 {
 	uint16_t	i, c;
+	char		ipbuf[INET6_ADDRSTRLEN] = { 0 };
 	double		scan_time = ts_msdiff(&job->end_ts, &job->start_ts);
 
 	ft_printf("Host: %s\n", job->host);
 	ft_printf("Scan took %g seconds\n", scan_time / 1000.0);
-	ft_printf("IP address: %s\n\n", "lol.mdr.xd.ptdr"); //TEMP
+	ft_printf("IP address: %s\n\n", inet_ntop(job->host_ip.family,
+		ip_addr(&job->host_ip), ipbuf, INET6_ADDRSTRLEN));
 	ft_printf("Open ports:");
 	for (i = 0, c = 0; i < cfg->nports; ++i)
 		if (job->tasks[i].status & STATE_OPEN)
