@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 20:50:45 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 21:19:40 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ static void	exec_scan(t_scan *scan)
 			scan->cfg->exec, __func__);
 	else
 	{
+		//TODO: make packet printing an option (its pretty cool aint it ?)
 		ft_printf("\n\n");
 		print_packet(probe, scan->job->host_ip.family,
 			size, (char *)scan->cfg->exec);

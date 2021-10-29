@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 20:30:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 22:23:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,16 +171,29 @@ typedef struct		s_scan
 }					t_scan;
 
 /*
-** ft_nmap functions
+** Option functions
 */
-char		*intopt(int *dest, const char *arg, int min, int max);
+
+void		intopt(int *dest, const char *arg, int min, int max);
 const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
-char		*ports_option(t_nmap_config *cfg, t_optdata *optd);
-char		*scan_option(t_nmap_config *cfg, t_optdata *optd);
+void		ports_option(t_nmap_config *cfg, t_optdata *optd);
+void		scan_option(t_nmap_config *cfg, t_optdata *optd);
+
+/*
+** Network functions
+*/
+
 void		get_network_info(t_nmap_config *cfg);
 int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
+int			build_scan_probe(uint8_t *dest, t_scan *scan,
+				uint16_t srcp, uint16_t dstp);
+
+/*
+** Job functions
+*/
+
 void		nmap_mutex_lock(pthread_mutex_t *mutex);
 void		nmap_mutex_unlock(pthread_mutex_t *mutex);
 t_scan		*next_job(t_scan *scan);
@@ -191,12 +204,11 @@ t_list		*init_new_job(t_scan *scan);
 void		update_job(t_scan *scan);
 void		print_config(t_nmap_config *cfg);
 void		print_job(t_job *job, t_nmap_config *cfg);
-int			build_scan_probe(uint8_t *dest, t_scan *scan,
-				uint16_t srcp, uint16_t dstp);
 
 /*
 ** ft_nmap constants
 */
+
 extern const char		*g_nmap_scan_strings[];
 extern const char		*g_tcp_services[PORTS_COUNT][2];
 extern const char		*g_udp_services[PORTS_COUNT][2];
@@ -205,6 +217,7 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 /*
 ** Global instance of nmap configuration (for atexit and signal handlers)
 */
+
 extern t_nmap_config	*g_cfg;
 
 #endif

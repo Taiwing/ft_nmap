@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 09:51:25 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 22:23:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"f:hi:p:S:s:46"
+#define	FT_NMAP_OPT	"f:hi:p:S:s:v46"
 
 t_opt	g_nmap_opt[] = {
 	{ "file",		1,	NULL,	'f'	},
@@ -21,6 +21,7 @@ t_opt	g_nmap_opt[] = {
 	{ "ports",		1,	NULL,	'p'	},
 	{ "scan",		1,	NULL,	'S'	},
 	{ "speedup",	1,	NULL,	's'	},
+	{ "verbose",	0,	NULL,	'v'	},
 	{ "ipv4",		0,	NULL,	'4'	},
 	{ "ipv6",		0,	NULL,	'6'	},
 	{ NULL,			0,	NULL,	0	},
@@ -36,14 +37,15 @@ char	*g_nmap_help[] = {
 	"Scans to perform specified as a comma separated list. Possible values:\n"
 	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). Does them all by default.",
 	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
+	"Show packets content before they are sent.",
 	"Use only IPv4.",
 	"Use only IPv6.",
 	NULL,
 };
 
 char	*g_nmap_usage[] = {
-	"[-h46] [-f path] [-p list] [-S list] [-s number] --ip list",
-	"[-h46] [-i list] [-p list] [-S list] [-s number] --file path",
+	"[-hv46] [-f path] [-p list] [-S list] [-s number] --ip list",
+	"[-hv46] [-i list] [-p list] [-S list] [-s number] --file path",
 	NULL,
 };
 
@@ -82,26 +84,24 @@ static void	usage(const char *exec, int exit_value)
 // This is largely big enough to detect overflow from integer string
 #define	INTOPT_BUF	64
 
-char			*intopt(int *dest, const char *arg, int min, int max)
+void		intopt(int *dest, const char *arg, int min, int max)
 {
 	int		ret, i;
-	char	*err = NULL;
 	char	buf[INTOPT_BUF + 1] = { 0 };
 
 	ft_strncpy(buf, arg, INTOPT_BUF);
 	for (i = 0; buf[i] && ft_isdigit(buf[i]); ++i);
 	if (i == INTOPT_BUF && ft_isdigit(arg[i]))
-		ft_asprintf(&err, "invalid argument: '%s'", arg);
+		ft_exit(EXIT_FAILURE, "invalid argument: '%s'", arg);
 	buf[i] = 0;
-	if (!err && (ret = ft_secatoi(dest, min, max, buf)))
+	if ((ret = ft_secatoi(dest, min, max, buf)))
 	{
 		if (ret == FT_E_NOT_A_NUMBER)
-			ft_asprintf(&err, "invalid argument: '%s'", arg); 
+			ft_exit(EXIT_FAILURE, "invalid argument: '%s'", arg);
 		else
-			ft_asprintf(&err, "invalid argument: '%s': "
+			ft_exit(EXIT_FAILURE, "invalid argument: '%s': "
 				"out of range: %d <= value <= %d", buf, min, max);
 	}
-	return (err);
 }
 
 const char		*parse_comma_list(const char *str)
@@ -135,29 +135,23 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 {
 	int			opt;
 	char		**args;
-	char		*err = NULL;
-	t_optdata	optd = { 0 };
+	t_optdata	o = { 0 };
 
-	init_getopt(&optd, FT_NMAP_OPT, g_nmap_opt, NULL);
+	init_getopt(&o, FT_NMAP_OPT, g_nmap_opt, NULL);
 	args = ft_memalloc((argc + 1) * sizeof(char *));
 	ft_memcpy((void *)args, (void *)argv, argc * sizeof(char *));
 	*args = (char *)cfg->exec;
-	while (!err && (opt = ft_getopt_long(argc, args, &optd)) >= 0)
+	while ((opt = ft_getopt_long(argc, args, &o)) >= 0)
 		switch (opt)
 		{
-			case 'f': cfg->hosts_file = optd.optarg;					break;
-			case 'i': cfg->hosts = optd.optarg;							break;
-			case 'p': err = ports_option(cfg, &optd);					break;
-			case 'S': err = scan_option(cfg, &optd);					break;
-			case 's':
-				err = intopt(&cfg->speedup, optd.optarg, 0, MAX_SPEEDUP);
-																		break;
+			case 'f': cfg->hosts_file = o.optarg;						break;
+			case 'i': cfg->hosts = o.optarg;							break;
+			case 'p': ports_option(cfg, &o);							break;
+			case 'S': scan_option(cfg, &o);								break;
+			case 's': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
 			case '4': cfg->ip_mode = E_IPV4;							break;
 			case '6': cfg->ip_mode = E_IPV6;							break;
-			default:
-				usage(cfg->exec, opt != 'h');
+			default: usage(cfg->exec, opt != 'h');
 		}
 	ft_memdel((void **)&args);
-	if (err)
-		ft_exit(EXIT_FAILURE, err);
 }
