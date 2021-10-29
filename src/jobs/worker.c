@@ -6,12 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 07:26:18 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 19:09:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
+/*
 static void	exec_scan(t_scan *scan)
 {
 	//TEMP
@@ -43,6 +44,17 @@ static void	exec_scan(t_scan *scan)
 	else
 		scan->result = STATE_OPEN | STATE_FILTERED;
 	//TEMP
+}
+*/
+
+static void	exec_scan(t_scan *scan)
+{
+	(void)scan;
+	//buidl the packet to send
+	//setup pcap filter
+	//put packet pointer and pcap handle in shared array (for alarm handler)
+	//start listening
+	//interpret answer or non-answer and set scan result
 }
 
 static void	worker_exit(void)

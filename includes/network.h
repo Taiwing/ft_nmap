@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/22 17:13:49 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 19:03:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,33 +44,6 @@
 # define IP_HEADER_ICMP	0x01
 # define IP_HEADER_TCP	0x06
 # define IP_HEADER_UDP	0x11
-
-/*
-** Arguments for header initialization functions
-*/
-
-typedef struct		s_iph_args
-{
-	uint8_t			version;
-	struct sockaddr	*dstip;
-	struct sockaddr	*srcip;
-	uint16_t		protocol;
-	uint8_t			hop_limit;
-	uint16_t		layer5_len;
-}					t_iph_args;
-
-typedef struct		s_tcph_args
-{
-	void			*iphdr;
-	uint8_t			version;
-	uint16_t		srcp;
-	uint16_t		dstp;
-	uint32_t		seq;
-	uint32_t		ack;
-	uint8_t			flags;
-	uint16_t		win;
-	uint16_t		urp;
-}					t_tcph_args;
 
 /*
 ** IP union (better than an unIP union I guess... ROFL) for v4 and v6
@@ -115,6 +88,33 @@ typedef struct		s_netinfo
 }					t_netinfo;
 
 /*
+** Arguments for header initialization functions
+*/
+
+typedef struct		s_iph_args
+{
+	uint8_t			version;
+	t_ip			*dstip;
+	t_ip			*srcip;
+	uint16_t		protocol;
+	uint8_t			hop_limit;
+	uint16_t		layer5_len;
+}					t_iph_args;
+
+typedef struct		s_tcph_args
+{
+	void			*iphdr;
+	uint8_t			version;
+	uint16_t		srcp;
+	uint16_t		dstp;
+	uint32_t		seq;
+	uint32_t		ack;
+	uint8_t			flags;
+	uint16_t		win;
+	uint16_t		urp;
+}					t_tcph_args;
+
+/*
 ** IP utility functions
 */
 
@@ -124,5 +124,34 @@ int			ip_cmp(const t_ip *a, const t_ip *b);
 int			ip_apply_mask(t_ip *dest, const t_ip *mask);
 int			ip_same_subnet(const t_ip *a, const t_ip *b, const t_ip *mask);
 int			ip_is_local(const t_ip *ip, t_netinfo *netinf);
+
+/*
+** IP headers
+*/
+
+int			init_ip_header(void *ipptr, t_iph_args *args);
+
+/*
+** Layer 4 Headers
+*/
+
+uint32_t	sum_bit16(uint16_t *data, size_t sz);
+uint16_t	checksum(uint16_t *data, size_t sz);
+int			transport_checksum(int version, void *iphdr,
+				uint8_t *packet, uint16_t len);
+int			init_udp_header(uint8_t *udp_packet, void *iphdr,
+				uint16_t srcp, uint16_t dstp);
+int			init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args);
+
+/*
+** Print Headers
+*/
+
+int			print_ether_type(uint8_t *packet);
+int			print_iphdr(void *iphdr, int domain, char *exec);
+int			print_nexthdr(void *iphdr, int domain, uint16_t size, char *exec);
+int			print_icmphdr(void *icmph, int domain, uint16_t size, char *exec);
+void		print_udphdr(struct udphdr *udph);
+void		print_tcphdr(struct tcphdr *tcph);
 
 #endif
