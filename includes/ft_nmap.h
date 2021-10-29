@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 18:18:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 20:30:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@
 # define	STATE_FIELD				6
 
 // Scans
-enum e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, S_UDP };
+enum e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, E_UDP };
 
 // IP modes
 enum e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
@@ -191,6 +191,8 @@ t_list		*init_new_job(t_scan *scan);
 void		update_job(t_scan *scan);
 void		print_config(t_nmap_config *cfg);
 void		print_job(t_job *job, t_nmap_config *cfg);
+int			build_scan_probe(uint8_t *dest, t_scan *scan,
+				uint16_t srcp, uint16_t dstp);
 
 /*
 ** ft_nmap constants

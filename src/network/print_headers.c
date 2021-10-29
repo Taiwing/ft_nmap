@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:08:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 18:42:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 20:24:37 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,4 +156,13 @@ int					print_icmphdr(void *icmph, int domain,
 	size -= ip4h ? sizeof(struct iphdr) : sizeof(struct ipv6hdr);
 	return (print_nexthdr(ip4h ? (void *)ip4h : (void *)ip6h,
 		domain, size, "horsewithnoname"));
+}
+
+
+int					print_packet(void *packet, int domain, int size, char *exec)
+{
+	if (print_iphdr(packet, domain, exec))
+		return (1);
+	size -= domain == AF_INET ? sizeof(struct iphdr) : sizeof(struct ipv6hdr);
+	return (print_nexthdr(packet, domain, size, exec));
 }

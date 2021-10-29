@@ -31,6 +31,7 @@ NETWORKC		=	next_host.c\
 					print_headers.c\
 					ip_headers.c\
 					ip.c\
+					build_scan_probe.c\
 					interfaces.c\
 					get_destinfo.c\
 					layer4_headers.c\
@@ -75,6 +76,7 @@ next_host.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h
 ip_headers.o: network.h libft.h
 ip.o: ft_nmap.h network.h libft.h
+build_scan_probe.o: ft_nmap.h network.h libft.h
 interfaces.o: ft_nmap.h network.h libft.h
 get_destinfo.o: ft_nmap.h network.h libft.h
 layer4_headers.o: network.h libft.h

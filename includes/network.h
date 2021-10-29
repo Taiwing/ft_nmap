@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 19:03:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 20:29:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,20 +30,23 @@
 # include <ifaddrs.h>
 # include <net/if.h>
 
+# define IPHDR_MAXSIZE		(sizeof(struct ipv6hdr))
+# define LAYER4HDR_MAXSIZE	(sizeof(struct tcphdr))
+# define PROBE_MAXSIZE		(IPHDR_MAXSIZE + LAYER4HDR_MAXSIZE)
+
 # define HEADER_MAXSIZE	\
 	(sizeof(struct ether_header) + sizeof(struct ipv6hdr)\
 	+ sizeof(struct icmp6hdr) + sizeof(struct ipv6hdr)\
 	+ sizeof(struct tcphdr))
+# define REPLY_MAXSIZE		(sizeof(struct pcap_pkthdr) + HEADER_MAXSIZE)
 
-# define PACKET_MAXSIZE	(sizeof(struct pcap_pkthdr) + HEADER_MAXSIZE)
+# define FILTER_BUFSIZE		1024
 
-# define FILTER_BUFSIZE	1024
+# define PORT_DEF			45654	//TODO: TBD, not sure we will keep this one
 
-# define PORT_DEF		45654	//TODO: TBD, not sure we will keep this one
-
-# define IP_HEADER_ICMP	0x01
-# define IP_HEADER_TCP	0x06
-# define IP_HEADER_UDP	0x11
+# define IP_HEADER_ICMP		0x01
+# define IP_HEADER_TCP		0x06
+# define IP_HEADER_UDP		0x11
 
 /*
 ** IP union (better than an unIP union I guess... ROFL) for v4 and v6
@@ -153,5 +156,6 @@ int			print_nexthdr(void *iphdr, int domain, uint16_t size, char *exec);
 int			print_icmphdr(void *icmph, int domain, uint16_t size, char *exec);
 void		print_udphdr(struct udphdr *udph);
 void		print_tcphdr(struct tcphdr *tcph);
+int			print_packet(void *packet, int domain, int size, char *exec);
 
 #endif
