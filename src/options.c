@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 22:14:27 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 22:51:22 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,29 @@ static void	set_ports(t_nmap_config *cfg, int porta, int portb)
 	} while (porta <= portb);
 }
 
+// This is largely big enough to detect overflow from integer string
+#define	INTOPT_BUF	64
+
+static void	intport(int *dest, const char *arg, int min, int max)
+{
+	int		i, ret;
+	char	buf[INTOPT_BUF + 1] = { 0 };
+
+	ft_strncpy(buf, arg, INTOPT_BUF);
+	for (i = 0; buf[i] && ft_isdigit(buf[i]); ++i);
+	if (i == INTOPT_BUF && ft_isdigit(arg[i]))
+		ft_exit(EXIT_FAILURE, "invalid argument: '%s'", arg);
+	buf[i] = 0;
+	if ((ret = ft_secatoi(dest, min, max, buf)))
+	{
+		if (ret == FT_E_NOT_A_NUMBER)
+			ft_exit(EXIT_FAILURE, "invalid argument: '%s'", arg);
+		else
+			ft_exit(EXIT_FAILURE, "invalid argument: '%s': "
+				"out of range: %d <= value <= %d", buf, min, max);
+	}
+}
+
 void		ports_option(t_nmap_config *cfg, t_optdata *optd)
 {
 	const char	*arg = NULL, *p = NULL;
@@ -35,11 +58,11 @@ void		ports_option(t_nmap_config *cfg, t_optdata *optd)
 	{
 		p = arg;
 		portb = 0;
-		intopt(&porta, p, 0, USHRT_MAX);
+		intport(&porta, p, 0, USHRT_MAX);
 		for (; *p && ft_isdigit(*p); ++p);
 		if (*p && *p == '-')
 		{
-			intopt(&portb, ++p, 0, USHRT_MAX);
+			intport(&portb, ++p, 0, USHRT_MAX);
 			if (portb <= porta)
 				ft_exit(EXIT_FAILURE, "second port must be greater than first "
 					"port in range: '%s'", arg);

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 22:23:31 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/29 22:48:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,26 +81,18 @@ static void	usage(const char *exec, int exit_value)
 	ft_exit(exit_value, NULL);
 }
 
-// This is largely big enough to detect overflow from integer string
-#define	INTOPT_BUF	64
 
 void		intopt(int *dest, const char *arg, int min, int max)
 {
-	int		ret, i;
-	char	buf[INTOPT_BUF + 1] = { 0 };
+	int	ret;
 
-	ft_strncpy(buf, arg, INTOPT_BUF);
-	for (i = 0; buf[i] && ft_isdigit(buf[i]); ++i);
-	if (i == INTOPT_BUF && ft_isdigit(arg[i]))
-		ft_exit(EXIT_FAILURE, "invalid argument: '%s'", arg);
-	buf[i] = 0;
-	if ((ret = ft_secatoi(dest, min, max, buf)))
+	if ((ret = ft_secatoi(dest, min, max, arg)))
 	{
 		if (ret == FT_E_NOT_A_NUMBER)
 			ft_exit(EXIT_FAILURE, "invalid argument: '%s'", arg);
 		else
 			ft_exit(EXIT_FAILURE, "invalid argument: '%s': "
-				"out of range: %d <= value <= %d", buf, min, max);
+				"out of range: %d <= value <= %d", arg, min, max);
 	}
 }
 
