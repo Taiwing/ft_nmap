@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 11:21:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 12:55:30 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ static void	cleanup(void)
 	wait_workers(g_cfg);
 	if (g_cfg->hosts_fd >= 0)
 		close(g_cfg->hosts_fd);
+	close_sockets(g_cfg);
 }
 
 static void	check_config(t_nmap_config *cfg)
@@ -54,6 +55,7 @@ int	main(int argc, char **argv)
 	get_options(&cfg, argc, argv);
 	check_config(&cfg);
 	get_network_info(&cfg);
+	init_sockets(&cfg);
 	print_config(&cfg);
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.global_mutex, NULL)))
 		ft_exit(EXIT_FAILURE, "pthread_mutex_init: %s", strerror(ret));

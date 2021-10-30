@@ -31,6 +31,7 @@ JOBSC			=	update_job.c\
 NETWORKC		=	next_host.c\
 					print_headers.c\
 					ip_headers.c\
+					sockets.c\
 					ip.c\
 					probe.c\
 					interfaces.c\
@@ -77,6 +78,7 @@ print.o: ft_nmap.h network.h libft.h
 next_host.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h
 ip_headers.o: network.h libft.h
+sockets.o: ft_nmap.h network.h libft.h
 ip.o: ft_nmap.h network.h libft.h
 probe.o: ft_nmap.h network.h libft.h
 interfaces.o: ft_nmap.h network.h libft.h

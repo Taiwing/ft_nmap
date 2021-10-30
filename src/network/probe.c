@@ -6,26 +6,35 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 11:58:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 12:57:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
+void	send_probe(t_nmap_config *cfg, t_probe *probe)
+{
+	if (sendto(cfg->socket[probe->socket], probe->packet, probe->size, 0,
+			(struct sockaddr *)probe->ip, ip_size(probe->ip)) < 0)
+		ft_exit(EXIT_FAILURE, "sendto: %s", strerror(errno));
+}
+
 void		share_probe(t_scan *scan, size_t size)
 {
-	uint64_t	thread = ft_thread_self();
-	t_ip		*ip = &scan->job->host_ip;
-	int			is_tcp = scan->type != E_UDP;
-	t_probe		*probe = scan->cfg->probe + thread - !!thread;
+	uint64_t		thread = ft_thread_self();
+	t_ip			*ip = &scan->job->host_ip;
+	int				tcp = scan->type != E_UDP;
+	t_probe			*probe = scan->cfg->probe + thread - !!thread;
+	enum e_sockets	socket = (ip->family == AF_INET ? E_UDPV4 : E_UDPV6) + tcp;
 
 	if (scan->cfg->speedup)
 		nmap_mutex_lock(&g_cfg->probe_mutex, &g_probe_locked);
 	probe->ip = ip;
-	probe->is_tcp = is_tcp;
 	probe->size = size;
 	probe->packet = scan->probe;
+	probe->socket = socket;
 	probe->descr = scan->descr;
+	probe->retry = 0;
 	probe->is_ready = 1;
 	if (scan->cfg->speedup)
 		nmap_mutex_unlock(&g_cfg->probe_mutex, &g_probe_locked);

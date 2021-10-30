@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 11:55:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 13:00:40 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,10 @@
 # define	MAX_PORTS				1024	// maximum number of ports to scan
 # define	MAX_LST_ELM_LEN			1024	// biggest possible comma list element
 # define	PORTS_COUNT				0x10000	// Number of ports (USHRT_MAX + 1)
+# define	MAX_RETRY				4		// Number of retries for sending probe
 
 # define	NB_SCANS				6
+# define	NB_SOCKETS				4
 
 // Scan/Task/Job states
 # define	STATE_PENDING			0x00	// Not started yet
@@ -59,6 +61,9 @@ enum e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, E_UDP };
 
 // IP modes
 enum e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
+
+// Sockets
+enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 
 /*
 ** Task structure: this is the status of each scan on a given port
@@ -108,21 +113,23 @@ typedef struct		s_job
 ** t_probe: nmap probes
 **
 ** is_ready: set to true if worker is ready to listen
+** retry: counter of retries (MAX_RETRY then timeout)
 ** ip: destination IP
-** is_tcp: boolean for transport layer
 ** size: size of probe packet
 ** packet: probe packet
+** socket: socket type
 ** descr: pcap handle
 */
-typedef struct	s_probe
+typedef struct		s_probe
 {
-	int			is_ready;
-	t_ip		*ip;
-	int			is_tcp;
-	size_t		size;
-	uint8_t		*packet;
-	pcap_t		*descr;
-}				t_probe;
+	int				is_ready;
+	int				retry;
+	t_ip			*ip;
+	size_t			size;
+	uint8_t			*packet;
+	enum e_sockets	socket;
+	pcap_t			*descr;
+}					t_probe;
 
 /*
 ** t_nmap_config: nmap configuration
@@ -144,7 +151,10 @@ typedef struct	s_probe
 ** global_mutex: global mutex
 ** thread: threads array
 ** ifap: pointer to getifaddrs output (to be freed in cleanup)
+** ip_mode: ip configuration (IPv4/IPv6 enabled/disabled)
+** socket: sockets for sending probe packets
 ** netinf: information about the network interfaces
+** probe: probes built by thread workers
 */
 typedef struct	s_nmap_config
 {
@@ -167,13 +177,15 @@ typedef struct	s_nmap_config
 	t_ft_thread		thread[MAX_SPEEDUP];
 	struct ifaddrs	*ifap;
 	enum e_ip_modes	ip_mode;
+	int				socket[NB_SOCKETS];
 	t_netinfo		netinf;
 	t_probe			probe[MAX_SPEEDUP];
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 }, 0, { 0 },\
-	-1, NULL, NULL, {{ 0 }}, {{ 0 }}, {{ 0 }}, NULL, E_IPALL, { 0 }, {{ 0 }}\
+	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
+	0, { 0 }, -1, NULL, NULL, {{ 0 }}, {{ 0 }}, {{ 0 }}, NULL,\
+	E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}\
 }
 
 /*
@@ -222,6 +234,8 @@ void		verbose_listener_setup(t_scan *scan, char *filter);
 ** Network functions
 */
 
+void		init_sockets(t_nmap_config *cfg);
+void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
 int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
