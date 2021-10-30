@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 14:20:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 17:34:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ static void	exec_scan(t_scan *scan)
 		ft_exit(EXIT_FAILURE, "%s: failed to build probe packet", __func__);
 	if (scan->cfg->verbose > 0)
 		verbose_scan_setup(scan, scan->probe, size);
-	//setup listner and pcap filter
+	//setup listener and pcap filter
 	if (!(scan->descr = setup_listener(scan, srcp, dstp)))
 		ft_exit(EXIT_FAILURE, "%s: failed to setup listener", __func__);
 	//put packet pointer and pcap handle in shared array (for alarm handler)
@@ -64,17 +64,28 @@ static void	exec_scan(t_scan *scan)
 	//start listening
 	//interpret answer or non-answer and set scan result
 
-	pcap_close(scan->descr); //TODO: decide if closing it here of in alarm handler
-
+	//cleanup
+	if (scan->descr)
+	{
+		pcap_close(scan->descr);
+		scan->descr = NULL;
+	}
 	//TEST
 	lol_wait(scan);
 	//TEST
 }
 
+__thread t_scan	*g_scan = NULL;
+
 static void	worker_exit(void)
 {
 	nmap_mutex_unlock(&g_cfg->global_mutex, &g_global_locked);
 	nmap_mutex_unlock(&g_cfg->probe_mutex, &g_probe_locked);
+	if (g_scan && g_scan->descr)
+	{
+		pcap_close(g_scan->descr);
+		g_scan->descr = NULL;
+	}
 	//TEMP
 	/*
 	ft_printf("worker_exit - worker %llu (%llx)!\n",
@@ -127,6 +138,7 @@ void		*worker(void *ptr)
 	if (ft_thread_self())
 		ft_atexit(worker_exit);
 	scan = (t_scan *)ptr;
+	g_scan = scan;
 	do
 	{
 		exec_scan(scan);

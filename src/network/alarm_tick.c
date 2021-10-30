@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 14:37:03 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 15:18:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 17:28:08 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ static void	alarm_tick(int sig)
 			send_probe(g_cfg, probe + i);
 		else if (probe[i].is_ready)
 		{
-			//pcap_breakloop(probe[i].descr); //TODO: when we actually loop
+			pcap_breakloop(probe[i].descr);
 			ft_bzero(probe + i, sizeof(t_probe));
 		}
 	} while (++i < g_cfg->speedup);
