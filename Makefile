@@ -35,6 +35,7 @@ NETWORKC		=	next_host.c\
 					ip.c\
 					probe.c\
 					interfaces.c\
+					alarm_tick.c\
 					listen.c\
 					get_destinfo.c\
 					layer4_headers.c\
@@ -82,6 +83,7 @@ sockets.o: ft_nmap.h network.h libft.h
 ip.o: ft_nmap.h network.h libft.h
 probe.o: ft_nmap.h network.h libft.h
 interfaces.o: ft_nmap.h network.h libft.h
+alarm_tick.o: ft_nmap.h network.h libft.h
 listen.o: ft_nmap.h network.h libft.h
 get_destinfo.o: ft_nmap.h network.h libft.h
 layer4_headers.o: network.h libft.h

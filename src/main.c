@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 12:55:30 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 14:56:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 static void	cleanup(void)
 {
+	//TODO: close every current probe pcap handle (descr)
+	alarm(0); //TODO: then stop alarms
 	if (g_cfg->ifap)
 		freeifaddrs(g_cfg->ifap);
 	wait_workers(g_cfg);
@@ -56,6 +58,7 @@ int	main(int argc, char **argv)
 	check_config(&cfg);
 	get_network_info(&cfg);
 	init_sockets(&cfg);
+	set_alarm_tick();
 	print_config(&cfg);
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.global_mutex, NULL)))
 		ft_exit(EXIT_FAILURE, "pthread_mutex_init: %s", strerror(ret));
