@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 21:19:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 06:37:08 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,15 +53,9 @@ static void	exec_scan(t_scan *scan)
 	//buidl the packet to send
 	if ((size = build_scan_probe(probe, scan, PORT_DEF + ft_thread_self(),
 		scan->cfg->ports[scan->task_id])) < 0)
-		ft_dprintf(2, "%s: %s: failed to build probe packet\n",
-			scan->cfg->exec, __func__);
-	else
-	{
-		//TODO: make packet printing an option (its pretty cool aint it ?)
-		ft_printf("\n\n");
-		print_packet(probe, scan->job->host_ip.family,
-			size, (char *)scan->cfg->exec);
-	}
+		ft_exit(EXIT_FAILURE, "%s: failed to build probe packet\n", __func__);
+	if (scan->cfg->verbose > 0)
+		verbose_scan_setup(scan, probe, size);
 	//setup pcap filter
 	//put packet pointer and pcap handle in shared array (for alarm handler)
 	//start listening

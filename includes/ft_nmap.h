@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 22:23:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 06:38:45 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,7 @@ typedef struct		s_job
 **
 ** exec: executable name
 ** speedup: number of parallel threads to use
+** verbose: additional printing option
 ** ports_to_scan: boolean array representing every port given as arguments
 ** ports: compressed list with the first MAX_PORTS ports of ports_to_scan
 ** nports: number of ports to scan in ports array
@@ -125,6 +126,7 @@ typedef struct	s_nmap_config
 {
 	const char		*exec;
 	int				speedup;
+	int				verbose;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
 	uint16_t		nports;
@@ -144,7 +146,7 @@ typedef struct	s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	ft_exec_name(*argv), 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
+	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
 	0, { 0 }, -1, NULL, NULL, {{ 0 }}, {{ 0 }}, NULL, E_IPALL, { 0 }\
 }
 
@@ -179,6 +181,7 @@ const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 void		ports_option(t_nmap_config *cfg, t_optdata *optd);
 void		scan_option(t_nmap_config *cfg, t_optdata *optd);
+void		verbose_scan_setup(t_scan *scan, uint8_t *probe, int size);
 
 /*
 ** Network functions

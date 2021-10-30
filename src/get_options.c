@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 22:48:16 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 06:00:45 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,6 +141,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'p': ports_option(cfg, &o);							break;
 			case 'S': scan_option(cfg, &o);								break;
 			case 's': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
+			case 'v': ++cfg->verbose;									break;
 			case '4': cfg->ip_mode = E_IPV4;							break;
 			case '6': cfg->ip_mode = E_IPV6;							break;
 			default: usage(cfg->exec, opt != 'h');

@@ -19,6 +19,7 @@ SERVICESDIR		=	services
 SRCC			=	options.c\
 					main.c\
 					print.c\
+					verbose.c\
 					get_options.c\
 
 JOBSC			=	update_job.c\
@@ -80,6 +81,7 @@ build_scan_probe.o: ft_nmap.h network.h libft.h
 interfaces.o: ft_nmap.h network.h libft.h
 get_destinfo.o: ft_nmap.h network.h libft.h
 layer4_headers.o: network.h libft.h
+verbose.o: ft_nmap.h network.h libft.h
 udp_services.o: ft_nmap.h network.h libft.h
 tcp_services.o: ft_nmap.h network.h libft.h
 sctp_services.o: ft_nmap.h network.h libft.h
