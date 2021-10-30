@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/27 07:48:03 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 11:21:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,7 @@ int	main(int argc, char **argv)
 {
 	int				ret;
 	t_nmap_config	cfg = CONFIG_DEF;
-	t_scan			scan[MAX_SPEEDUP] = {
-		[ 0 ... MAX_SPEEDUP - 1] = { 0, 0, NULL, 0, NULL, NULL, &cfg },
-	};
+	t_scan			scan[MAX_SPEEDUP] = { [ 0 ... MAX_SPEEDUP - 1] = SCAN_DEF };
 
 	(void)argc;
 	g_cfg = &cfg;
@@ -57,7 +55,7 @@ int	main(int argc, char **argv)
 	check_config(&cfg);
 	get_network_info(&cfg);
 	print_config(&cfg);
-	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.mutex, NULL)))
+	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.global_mutex, NULL)))
 		ft_exit(EXIT_FAILURE, "pthread_mutex_init: %s", strerror(ret));
 	start_workers(&cfg, scan);
 	wait_workers(&cfg);

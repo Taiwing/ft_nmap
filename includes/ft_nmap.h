@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 09:18:08 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 11:55:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,26 @@ typedef struct		s_job
 }					t_job;
 
 /*
+** t_probe: nmap probes
+**
+** is_ready: set to true if worker is ready to listen
+** ip: destination IP
+** is_tcp: boolean for transport layer
+** size: size of probe packet
+** packet: probe packet
+** descr: pcap handle
+*/
+typedef struct	s_probe
+{
+	int			is_ready;
+	t_ip		*ip;
+	int			is_tcp;
+	size_t		size;
+	uint8_t		*packet;
+	pcap_t		*descr;
+}				t_probe;
+
+/*
 ** t_nmap_config: nmap configuration
 **
 ** exec: executable name
@@ -121,7 +141,7 @@ typedef struct		s_job
 ** hosts_fd: file descriptor for the hosts_file
 ** jobs: list of active jobs
 ** empty_jobs: store allocated and zeroed out jobs
-** mutex: global mutex
+** global_mutex: global mutex
 ** thread: threads array
 ** ifap: pointer to getifaddrs output (to be freed in cleanup)
 ** netinf: information about the network interfaces
@@ -142,16 +162,18 @@ typedef struct	s_nmap_config
 	int				hosts_fd;
 	t_list			*jobs;
 	t_list			*empty_jobs;
-	pthread_mutex_t	mutex;
+	pthread_mutex_t	global_mutex;
+	pthread_mutex_t	probe_mutex;
 	t_ft_thread		thread[MAX_SPEEDUP];
 	struct ifaddrs	*ifap;
 	enum e_ip_modes	ip_mode;
 	t_netinfo		netinf;
+	t_probe			probe[MAX_SPEEDUP];
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 },\
-	0, { 0 }, -1, NULL, NULL, {{ 0 }}, {{ 0 }}, NULL, E_IPALL, { 0 }\
+	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 }, 0, { 0 },\
+	-1, NULL, NULL, {{ 0 }}, {{ 0 }}, {{ 0 }}, NULL, E_IPALL, { 0 }, {{ 0 }}\
 }
 
 /*
@@ -164,6 +186,8 @@ typedef struct	s_nmap_config
 ** job: pointer to the job of this task
 ** job_ptr: this job's list pointer
 ** cfg: config pointer
+** descr: pcap handle for receiving replies
+** probe: probe packet to be sent
 */
 typedef struct		s_scan
 {
@@ -174,7 +198,13 @@ typedef struct		s_scan
 	t_job			*job;
 	t_list			*job_ptr;
 	t_nmap_config	*cfg;
+	pcap_t			*descr;
+	uint8_t			probe[PROBE_MAXSIZE];
 }					t_scan;
+
+# define	SCAN_DEF			{\
+	0, 0, NULL, 0, NULL, NULL, &cfg, NULL, { 0 }\
+}
 
 /*
 ** Option functions
@@ -197,14 +227,15 @@ int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
 int			build_scan_probe(uint8_t *dest, t_scan *scan,
 				uint16_t srcp, uint16_t dstp);
+void		share_probe(t_scan *scan, size_t size);
 pcap_t		*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp);
 
 /*
 ** Job functions
 */
 
-void		nmap_mutex_lock(pthread_mutex_t *mutex);
-void		nmap_mutex_unlock(pthread_mutex_t *mutex);
+void		nmap_mutex_lock(pthread_mutex_t *mutex, int *locked);
+void		nmap_mutex_unlock(pthread_mutex_t *mutex, int *locked);
 t_scan		*next_job(t_scan *scan);
 void		wait_workers(t_nmap_config *cfg);
 void		start_workers(t_nmap_config *cfg, t_scan *scan);
@@ -224,9 +255,11 @@ extern const char		*g_udp_services[PORTS_COUNT][2];
 extern const char		*g_sctp_services[PORTS_COUNT][2];
 
 /*
-** Global instance of nmap configuration (for atexit and signal handlers)
+** ft_nmap globals
 */
 
+extern __thread int		g_global_locked;
+extern __thread int		g_probe_locked;
 extern t_nmap_config	*g_cfg;
 
 #endif

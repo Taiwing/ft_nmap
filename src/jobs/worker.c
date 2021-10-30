@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 09:18:43 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 11:55:12 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,24 +47,24 @@ static void	lol_wait(t_scan *scan)
 
 static void	exec_scan(t_scan *scan)
 {
-	pcap_t		*descr;
 	int			size;
-	uint8_t		probe[PROBE_MAXSIZE];
 	uint16_t	srcp = PORT_DEF + ft_thread_self();
 	uint16_t	dstp = scan->cfg->ports[scan->task_id];
 
 	//buidl the packet to send
-	if ((size = build_scan_probe(probe, scan, srcp, dstp)) < 0)
+	if ((size = build_scan_probe(scan->probe, scan, srcp, dstp)) < 0)
 		ft_exit(EXIT_FAILURE, "%s: failed to build probe packet\n", __func__);
 	if (scan->cfg->verbose > 0)
-		verbose_scan_setup(scan, probe, size);
+		verbose_scan_setup(scan, scan->probe, size);
 	//setup listner and pcap filter
-	if (!(descr = setup_listener(scan, srcp, dstp)))
+	if (!(scan->descr = setup_listener(scan, srcp, dstp)))
 		ft_exit(EXIT_FAILURE, "%s: failed to setup listener\n", __func__);
-	pcap_close(descr);
 	//put packet pointer and pcap handle in shared array (for alarm handler)
+	share_probe(scan, (size_t)size);
 	//start listening
 	//interpret answer or non-answer and set scan result
+
+	pcap_close(scan->descr); //TODO: decide if closing it here of in alarm handler
 
 	//TEST
 	lol_wait(scan);
@@ -73,7 +73,8 @@ static void	exec_scan(t_scan *scan)
 
 static void	worker_exit(void)
 {
-	nmap_mutex_unlock(&g_cfg->mutex);
+	nmap_mutex_unlock(&g_cfg->global_mutex, &g_global_locked);
+	nmap_mutex_unlock(&g_cfg->probe_mutex, &g_probe_locked);
 	//TEMP
 	/*
 	ft_printf("worker_exit - worker %llu (%llx)!\n",
@@ -89,7 +90,7 @@ void		wait_workers(t_nmap_config *cfg)
 
 	if (cfg->speedup && (nthreads = ft_thread_count()))
 	{
-		nmap_mutex_unlock(&cfg->mutex);
+		nmap_mutex_unlock(&cfg->global_mutex, &g_global_locked);
 		//TODO: probably send a signal to end threads (through ft_exit of course)
 		// or just set g_thread_error to a non-zero value (if it is not already
 		// the case)
