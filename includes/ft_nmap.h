@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 15:11:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 19:00:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,8 +227,9 @@ const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 void		ports_option(t_nmap_config *cfg, t_optdata *optd);
 void		scan_option(t_nmap_config *cfg, t_optdata *optd);
-void		verbose_scan_setup(t_scan *scan, uint8_t *probe, int size);
 void		verbose_listener_setup(t_scan *scan, char *filter);
+void		verbose_scan(t_scan *scan, uint8_t *probe,
+				int size, const char *action);
 
 /*
 ** Network functions
@@ -244,7 +245,10 @@ int			build_scan_probe(uint8_t *dest, t_scan *scan,
 				uint16_t srcp, uint16_t dstp);
 void		share_probe(t_scan *scan, size_t size);
 void		send_probe(t_nmap_config *cfg, t_probe *probe);
+void		grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
+				const uint8_t *bytes);
 pcap_t		*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp);
+int			ft_listen(uint8_t *packet, pcap_t *descr, pcap_handler callback);
 
 /*
 ** Job functions
