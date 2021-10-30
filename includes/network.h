@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 09:21:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 15:22:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,6 +123,7 @@ typedef struct		s_tcph_args
 ** IP utility functions
 */
 
+size_t		ip_sock_size(const t_ip *ip);
 size_t		ip_size(const t_ip *ip);
 uint8_t		*ip_addr(const t_ip *ip);
 int			ip_cmp(const t_ip *a, const t_ip *b);

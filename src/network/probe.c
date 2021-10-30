@@ -6,16 +6,16 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 12:57:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 15:22:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-void	send_probe(t_nmap_config *cfg, t_probe *probe)
+void		send_probe(t_nmap_config *cfg, t_probe *probe)
 {
 	if (sendto(cfg->socket[probe->socket], probe->packet, probe->size, 0,
-			(struct sockaddr *)probe->ip, ip_size(probe->ip)) < 0)
+			(struct sockaddr *)probe->ip, ip_sock_size(probe->ip)) < 0)
 		ft_exit(EXIT_FAILURE, "sendto: %s", strerror(errno));
 }
 

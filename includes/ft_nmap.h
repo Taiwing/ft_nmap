@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 14:53:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 15:11:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,6 +243,7 @@ const char	*next_host(t_ip *ip, t_nmap_config *cfg);
 int			build_scan_probe(uint8_t *dest, t_scan *scan,
 				uint16_t srcp, uint16_t dstp);
 void		share_probe(t_scan *scan, size_t size);
+void		send_probe(t_nmap_config *cfg, t_probe *probe);
 pcap_t		*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp);
 
 /*

@@ -6,11 +6,17 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 15:58:23 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/22 17:09:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 15:21:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
+
+size_t		ip_sock_size(const t_ip *ip)
+{
+	return (ip->family == AF_INET ? sizeof(struct sockaddr_in)
+		: ip->family == AF_INET6 ? sizeof(struct sockaddr_in6) : 0);
+}
 
 size_t		ip_size(const t_ip *ip)
 {
