@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 06:37:08 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 09:18:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,16 +47,21 @@ static void	lol_wait(t_scan *scan)
 
 static void	exec_scan(t_scan *scan)
 {
-	uint8_t	probe[PROBE_MAXSIZE];
-	int		size;
+	pcap_t		*descr;
+	int			size;
+	uint8_t		probe[PROBE_MAXSIZE];
+	uint16_t	srcp = PORT_DEF + ft_thread_self();
+	uint16_t	dstp = scan->cfg->ports[scan->task_id];
 
 	//buidl the packet to send
-	if ((size = build_scan_probe(probe, scan, PORT_DEF + ft_thread_self(),
-		scan->cfg->ports[scan->task_id])) < 0)
+	if ((size = build_scan_probe(probe, scan, srcp, dstp)) < 0)
 		ft_exit(EXIT_FAILURE, "%s: failed to build probe packet\n", __func__);
 	if (scan->cfg->verbose > 0)
 		verbose_scan_setup(scan, probe, size);
-	//setup pcap filter
+	//setup listner and pcap filter
+	if (!(descr = setup_listener(scan, srcp, dstp)))
+		ft_exit(EXIT_FAILURE, "%s: failed to setup listener\n", __func__);
+	pcap_close(descr);
 	//put packet pointer and pcap handle in shared array (for alarm handler)
 	//start listening
 	//interpret answer or non-answer and set scan result

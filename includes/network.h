@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 20:29:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 09:21:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,8 @@
 # define IP_HEADER_ICMP		0x01
 # define IP_HEADER_TCP		0x06
 # define IP_HEADER_UDP		0x11
+
+# define FILTER_MAXLEN		1024
 
 /*
 ** IP union (better than an unIP union I guess... ROFL) for v4 and v6

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 06:38:45 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/30 09:18:08 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,8 @@ typedef struct	s_task
 **
 ** host: host string
 ** host_ip: IP from getaddrinfo()
+** family: IPv4 or IPv6 host and scans
+** dev: interface to scan from
 ** status: job status
 ** ongoing: counter of full tasks
 ** done: counter of finished tasks
@@ -92,6 +94,8 @@ typedef struct		s_job
 {
 	char			*host;
 	t_ip			host_ip;
+	uint16_t		family;
+	t_ifinfo		*dev;
 	uint8_t			status;
 	uint16_t		ongoing;
 	uint16_t		done;
@@ -182,6 +186,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv);
 void		ports_option(t_nmap_config *cfg, t_optdata *optd);
 void		scan_option(t_nmap_config *cfg, t_optdata *optd);
 void		verbose_scan_setup(t_scan *scan, uint8_t *probe, int size);
+void		verbose_listener_setup(t_scan *scan, char *filter);
 
 /*
 ** Network functions
@@ -192,6 +197,7 @@ int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
 int			build_scan_probe(uint8_t *dest, t_scan *scan,
 				uint16_t srcp, uint16_t dstp);
+pcap_t		*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp);
 
 /*
 ** Job functions
