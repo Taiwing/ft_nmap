@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 14:15:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 21:05:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -248,6 +248,7 @@ void		grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
 pcap_t		*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp);
 int			ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback);
+void		set_scan_result(t_scan *scan, t_packet *reply);
 
 /*
 ** Job functions

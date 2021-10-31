@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 15:40:37 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 21:06:47 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ static void	exec_scan(t_scan *scan)
 		verbose_scan(scan, &reply,
 			reply.size > 0 ? "Received reply!" : "Probe timed out...");
 	//interpret answer or non-answer and set scan result
-	//set_scan_result(scan, reply);
+	set_scan_result(scan, &reply);
 
 	//cleanup
 	if (scan->descr)

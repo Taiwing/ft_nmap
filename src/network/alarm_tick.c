@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 14:37:03 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 17:28:08 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 21:12:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ static void	alarm_tick(int sig)
 	t_probe	*probe = g_cfg->probe;
 
 	(void)sig;
-	ft_printf("-----> Hello! <-----\n"); //TEMP
 	if (g_cfg->speedup)
 		nmap_mutex_lock(&g_cfg->probe_mutex, &g_probe_locked);
 	do {
