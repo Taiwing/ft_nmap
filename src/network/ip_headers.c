@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:43:09 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 19:07:14 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 11:54:44 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,14 +50,10 @@ static void	init_ipv6_header(struct ipv6hdr *ip, t_iph_args *args)
 	ip->payload_len = htons(ip->payload_len);
 }
 
-int			init_ip_header(void *ipptr, t_iph_args *args)
+void		init_ip_header(void *ipptr, t_iph_args *args)
 {
-	if ((args->version != 4 && args->version != 6)
-		|| !args->dstip || !args->srcip)
-		return (1);
 	if (args->version == 4)
 		init_ipv4_header((struct iphdr *)ipptr, args);
 	else
 		init_ipv6_header((struct ipv6hdr *)ipptr, args);
-	return (0);
 }

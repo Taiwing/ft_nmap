@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 19:01:45 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 15:40:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,48 +71,40 @@ pcap_t			*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp)
 void			grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 					const uint8_t *bytes)
 {
+	t_packet		*reply;
 	int				type = 0;
-	uint16_t		size = 0;
-	struct iphdr	*ip4h = NULL;
-	struct ipv6hdr	*ip6h = NULL;
+	size_t			size = 0;
 
 	if (h->len < sizeof(struct ether_header))
 		ft_exit(EXIT_FAILURE, "%s: too small for an ether header", __func__);
+	reply = (t_packet *)user;
+	if (reply->size)
+		ft_exit(EXIT_FAILURE, "%s: reply already initialized", __func__);
 	size = h->len - sizeof(struct ether_header);
-	size = size > HEADER_MAXSIZE ? HEADER_MAXSIZE : size;
+	size = size > RAW_DATA_MAXSIZE ? RAW_DATA_MAXSIZE : size;
 	type = ntohs(((struct ether_header *)bytes)->ether_type);
 	bytes += sizeof(struct ether_header);
-	ip4h = type == ETHERTYPE_IP ? (struct iphdr *)bytes : NULL;
-	ip6h = type == ETHERTYPE_IPV6 ? (struct ipv6hdr *)bytes : NULL;
-	if (!ip4h && !ip6h)
+	if (type != ETHERTYPE_IP && type != ETHERTYPE_IPV6)
 		ft_exit(EXIT_FAILURE, "%s: invalid ether type: %d", __func__, type);
-	else if ((ip4h && size < sizeof(struct iphdr))
-		|| (ip6h && size < sizeof(struct ipv6hdr)))
+	else if ((type == ETHERTYPE_IP && size < sizeof(struct iphdr))
+		|| (type == ETHERTYPE_IPV6 && size < sizeof(struct ipv6hdr)))
 		ft_exit(EXIT_FAILURE, "%s: too small for an IP%s header: %hu bytes",
-			__func__, ip4h ? "v4" : "v6", size);
-	ft_memcpy(user, h, sizeof(struct pcap_pkthdr));
-	ft_memcpy(user + sizeof(struct pcap_pkthdr), bytes, size);
+			__func__, type == ETHERTYPE_IP ? "v4" : "v6", size);
+	ft_memcpy(reply->raw_data, bytes, size);
+	init_packet(reply, type == ETHERTYPE_IP ? E_IH_V4 : E_IH_V6);
+	if (reply->size > size)
+		ft_exit(EXIT_FAILURE, "%s: computed size bigger than received data",
+			__func__);
 }
 
-int				ft_listen(uint8_t *packet, pcap_t *descr, pcap_handler callback)
+int				ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback)
 {
-	int						ret, len;
-	u_char					buf[REPLY_MAXSIZE];
+	int	ret;
 
-	if ((ret = pcap_dispatch(descr, 0, callback, buf)) == PCAP_ERROR)
+	if ((ret = pcap_dispatch(descr, 0, callback,
+			(uint8_t *)reply)) == PCAP_ERROR)
 		ft_exit(EXIT_FAILURE, "pcap_dispatch: pcap error");
 	else if (ret == PCAP_ERROR_BREAK)
 		return (-1);
-	len = ((struct pcap_pkthdr *)buf)->len - sizeof(struct ether_header);
-	if (len > (int)HEADER_MAXSIZE)
-		len = HEADER_MAXSIZE;
-	else if (len < 0)
-		ft_exit(EXIT_FAILURE, "%s: reply smaller than ether header", __func__);
-	ft_memcpy(packet, buf + sizeof(struct pcap_pkthdr), len);
-	/*
-	printf("\nGrabbed packet of length %d\n", h->len);
-	printf("Received at .... %s\n", ctime((const time_t *)&h->ts.tv_sec));
-	printf("Ethernet address length is %d\n", ETHER_HDR_LEN);
-	*/
-	return (len);
+	return (0);
 }

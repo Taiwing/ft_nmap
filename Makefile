@@ -36,9 +36,11 @@ NETWORKC		=	next_host.c\
 					probe.c\
 					interfaces.c\
 					alarm_tick.c\
+					reply.c\
 					listen.c\
 					get_destinfo.c\
 					layer4_headers.c\
+					packet.c\
 
 SERVICESC		=	udp_services.c\
 					tcp_services.c\
@@ -84,9 +86,11 @@ ip.o: ft_nmap.h network.h libft.h
 probe.o: ft_nmap.h network.h libft.h
 interfaces.o: ft_nmap.h network.h libft.h
 alarm_tick.o: ft_nmap.h network.h libft.h
+reply.o: ft_nmap.h network.h libft.h
 listen.o: ft_nmap.h network.h libft.h
 get_destinfo.o: ft_nmap.h network.h libft.h
 layer4_headers.o: network.h libft.h
+packet.o: ft_nmap.h network.h libft.h
 verbose.o: ft_nmap.h network.h libft.h
 udp_services.o: ft_nmap.h network.h libft.h
 tcp_services.o: ft_nmap.h network.h libft.h

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:47:10 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 18:52:52 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 12:03:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int			transport_checksum(int version, void *iphdr,
 
 	if (ip4h)
 		sum += sum_bit16((uint16_t *)&ip4h->saddr, sizeof(struct in_addr) * 2);
-	else if (ip6h)
+	else
 		sum += sum_bit16((uint16_t *)&ip6h->saddr, sizeof(struct in6_addr) * 2);
 	sum += htons(len) + htons(ip4h ? ip4h->protocol : ip6h->nexthdr)
 		+ sum_bit16((uint16_t *)packet, len);
@@ -63,7 +63,7 @@ int			transport_checksum(int version, void *iphdr,
 ** if it has any. The length of the udp_packet is given by the ip header
 ** length field.
 */
-int			init_udp_header(uint8_t *udp_packet, void *iphdr,
+void	init_udp_header(uint8_t *udp_packet, void *iphdr,
 	uint16_t srcp, uint16_t dstp)
 {
 	struct udphdr	*udph = (struct udphdr *)udp_packet;
@@ -71,19 +71,13 @@ int			init_udp_header(uint8_t *udp_packet, void *iphdr,
 	struct iphdr	*ip4h = version == 4 ? iphdr : NULL;
 	struct ipv6hdr	*ip6h = version == 6 ? iphdr : NULL;
 	uint16_t		udplen = ip6h ? ntohs(ip6h->payload_len)
-						: ip4h ? ntohs(ip4h->tot_len) : 0;
+		: ntohs(ip4h->tot_len) - sizeof(struct iphdr);
 
-	if (ip4h)
-		udplen = udplen > sizeof(struct iphdr)
-			? udplen - sizeof(struct iphdr) : 0;
-	if ((!ip4h && !ip6h) || udplen < sizeof(struct udphdr))
-		return (-1);
 	ft_bzero(udp_packet, sizeof(struct udphdr));
 	udph->uh_sport = htons(srcp);
 	udph->uh_dport = htons(dstp);
 	udph->uh_ulen = htons(udplen);
 	udph->uh_sum = transport_checksum(version, iphdr, udp_packet, udplen);
-	return (0);
 }
 
 /*
@@ -97,19 +91,14 @@ int			init_udp_header(uint8_t *udp_packet, void *iphdr,
 ** if it has any. The length of the tcp_packet is given by the ip header
 ** length field.
 */
-int			init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args)
+void	init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args)
 {
 	struct tcphdr	*tcph = (struct tcphdr *)tcp_packet;
 	struct iphdr	*ip4h = args->version == 4 ? args->iphdr : NULL;
 	struct ipv6hdr	*ip6h = args->version == 6 ? args->iphdr : NULL;
 	uint16_t		tcplen = ip6h ? ntohs(ip6h->payload_len)
-						: ip4h ? ntohs(ip4h->tot_len) : 0;
+		: ntohs(ip4h->tot_len) - sizeof(struct tcphdr);
 
-	if (ip4h)
-		tcplen = tcplen > sizeof(struct iphdr)
-			? tcplen - sizeof(struct iphdr) : 0;
-	if ((!ip4h && !ip6h) || tcplen < sizeof(struct tcphdr))
-		return (-1);
 	ft_bzero(tcp_packet, sizeof(struct tcphdr));
 	tcph->th_sport = htons(args->srcp);
 	tcph->th_dport = htons(args->dstp);
@@ -121,5 +110,4 @@ int			init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args)
 	tcph->th_urp = htons(args->urp);
 	tcph->th_sum = transport_checksum(args->version, args->iphdr,
 		tcp_packet, tcplen);
-	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 19:00:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 14:15:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ typedef struct		s_job
 ** retry: counter of retries (MAX_RETRY then timeout)
 ** ip: destination IP
 ** size: size of probe packet
-** packet: probe packet
+** packet: probe packet data
 ** socket: socket type
 ** descr: pcap handle
 */
@@ -211,7 +211,7 @@ typedef struct		s_scan
 	t_list			*job_ptr;
 	t_nmap_config	*cfg;
 	pcap_t			*descr;
-	uint8_t			probe[PROBE_MAXSIZE];
+	t_packet		probe;
 }					t_scan;
 
 # define	SCAN_DEF			{\
@@ -228,8 +228,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv);
 void		ports_option(t_nmap_config *cfg, t_optdata *optd);
 void		scan_option(t_nmap_config *cfg, t_optdata *optd);
 void		verbose_listener_setup(t_scan *scan, char *filter);
-void		verbose_scan(t_scan *scan, uint8_t *probe,
-				int size, const char *action);
+void		verbose_scan(t_scan *scan, t_packet *packet, const char *action);
 
 /*
 ** Network functions
@@ -241,14 +240,14 @@ void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
 int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
-int			build_scan_probe(uint8_t *dest, t_scan *scan,
+void		build_scan_probe(t_packet *probe, t_scan *scan,
 				uint16_t srcp, uint16_t dstp);
 void		share_probe(t_scan *scan, size_t size);
 void		send_probe(t_nmap_config *cfg, t_probe *probe);
 void		grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
 pcap_t		*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp);
-int			ft_listen(uint8_t *packet, pcap_t *descr, pcap_handler callback);
+int			ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback);
 
 /*
 ** Job functions

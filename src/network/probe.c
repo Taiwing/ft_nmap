@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 15:22:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 14:17:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void		share_probe(t_scan *scan, size_t size)
 		nmap_mutex_lock(&g_cfg->probe_mutex, &g_probe_locked);
 	probe->ip = ip;
 	probe->size = size;
-	probe->packet = scan->probe;
+	probe->packet = scan->probe.raw_data;
 	probe->socket = socket;
 	probe->descr = scan->descr;
 	probe->retry = 0;
@@ -40,7 +40,7 @@ void		share_probe(t_scan *scan, size_t size)
 		nmap_mutex_unlock(&g_cfg->probe_mutex, &g_probe_locked);
 }
 
-static int	set_tcpflags(t_tcph_args *args, enum e_scans scan)
+static void	set_tcpflags(t_tcph_args *args, enum e_scans scan)
 {
 	uint8_t	flags;
 
@@ -51,36 +51,30 @@ static int	set_tcpflags(t_tcph_args *args, enum e_scans scan)
 		case E_ACK: flags = TH_ACK;							break;
 		case E_FIN: flags = TH_FIN;							break;
 		case E_XMAS: flags = TH_FIN | TH_PUSH | TH_URG;		break;
-		default: return (1);
+		default: flags = 0;
 	}
 	args->flags = flags;
-	return (0);
 }
 
-int	build_scan_probe(uint8_t *dest, t_scan *scan, uint16_t srcp, uint16_t dstp)
+void	build_scan_probe(t_packet *probe, t_scan *scan,
+			uint16_t srcp, uint16_t dstp)
 {
-	uint8_t	iphdr[IPHDR_MAXSIZE] = { 0 };
-	uint8_t	layer4hdr[LAYER4HDR_MAXSIZE] = { 0 };
-	uint8_t	version = scan->job->host_ip.family == AF_INET ? 4 : 6;
-	t_tcph_args	tcpargs = { .iphdr = iphdr, .version = version, .srcp = srcp,
-		.dstp = dstp, .seq = 0x12344321, .win = 0xfff };
+	uint8_t	version = scan->job->family == AF_INET ? 4 : 6;
+	size_t	ipsz = version == 4 ? sizeof(struct iphdr) : sizeof(struct ipv6hdr);
+	t_tcph_args	tcpargs = { .iphdr = probe->raw_data, .version = version,
+		.srcp = srcp, .dstp = dstp, .seq = 0x12344321, .win = 0xfff };
 	t_iph_args	ipargs = { .version = version, .dstip = &scan->job->host_ip,
 		.srcip = version == 4 ? &scan->cfg->netinf.defdev_v4->ip : 
 		&scan->cfg->netinf.defdev_v6->ip, .protocol = scan->type == E_UDP ?
 		IP_HEADER_UDP : IP_HEADER_TCP, .hop_limit = 255, .layer5_len = 0 };
-	int		ipsz = version == 4 ? sizeof(struct iphdr) : sizeof(struct ipv6hdr);
-	int		l4sz = ipargs.protocol == IP_HEADER_UDP ?
-		sizeof(struct udphdr) : sizeof(struct tcphdr);
 
-	if (init_ip_header(iphdr, &ipargs))
-		return (-1);
-	if (ipargs.protocol == IP_HEADER_UDP
-		&& init_udp_header(layer4hdr, iphdr, srcp, dstp))
-		return (-1);
-	if (ipargs.protocol == IP_HEADER_TCP && (set_tcpflags(&tcpargs, scan->type)
-		|| init_tcp_header(layer4hdr, &tcpargs)))
-		return (-1);
-	ft_memcpy(dest, iphdr, ipsz);
-	ft_memcpy(dest + ipsz, layer4hdr, l4sz);
-	return (ipsz + l4sz);
+	init_ip_header(probe->raw_data, &ipargs);
+	if (ipargs.protocol == IP_HEADER_UDP)
+		init_udp_header(probe->raw_data + ipsz, probe->raw_data, srcp, dstp);
+	else if (ipargs.protocol == IP_HEADER_TCP)
+	{
+		set_tcpflags(&tcpargs, scan->type);
+		init_tcp_header(probe->raw_data + ipsz, &tcpargs);
+	}
+	init_packet(probe, version == 4 ? E_IH_V4 : E_IH_V6);
 }

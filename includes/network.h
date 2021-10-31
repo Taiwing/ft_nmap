@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 15:22:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 14:14:12 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,16 +29,6 @@
 # include <netinet/udp.h>
 # include <ifaddrs.h>
 # include <net/if.h>
-
-# define IPHDR_MAXSIZE		(sizeof(struct ipv6hdr))
-# define LAYER4HDR_MAXSIZE	(sizeof(struct tcphdr))
-# define PROBE_MAXSIZE		(IPHDR_MAXSIZE + LAYER4HDR_MAXSIZE)
-
-# define HEADER_MAXSIZE	\
-	(sizeof(struct ether_header) + sizeof(struct ipv6hdr)\
-	+ sizeof(struct icmp6hdr) + sizeof(struct ipv6hdr)\
-	+ sizeof(struct tcphdr))
-# define REPLY_MAXSIZE		(sizeof(struct pcap_pkthdr) + HEADER_MAXSIZE)
 
 # define FILTER_BUFSIZE		1024
 
@@ -93,6 +83,61 @@ typedef struct		s_netinfo
 }					t_netinfo;
 
 /*
+** Reply header types and unions
+*/
+
+enum e_iphdr	{ E_IH_NONE = 0, E_IH_V4, E_IH_V6 };
+enum e_nexthdr	{ E_NH_NONE = 0, E_NH_ICMP, E_NH_ICMP6, E_NH_TCP, E_NH_UDP };
+
+// The first header
+typedef union		u_iphdr
+{
+	struct iphdr	v4;
+	struct ipv6hdr	v6;
+}					t_iphdr;
+
+// The second header
+typedef union		u_nexthdr
+{
+	struct tcphdr	tcp;
+	struct udphdr	udp;
+	struct icmphdr	icmp;
+	struct icmp6hdr	icmp6;
+}					t_nexthdr;
+
+# define RAW_DATA_MAXSIZE	((sizeof(t_iphdr) + sizeof(t_nexthdr)) * 2)
+# define HEADER_MAXSIZE		(sizeof(struct ether_header) + RAW_DATA_MAXSIZE)
+
+/*
+** t_packet:
+**
+** iphdr: type of the first ip header
+** nexthdr: type of the next header
+** nextiphdr: type of the second ip header
+** lasthdr: type of nextiphdr's next header
+** ip: pointer to ip header if not NONE
+** next: pointer to next header
+** nextip: pointer to second ip header if not NONE
+** last: pointer to next header if any
+** size: size of raw data (every headers)
+** raw_data: where every header is stored
+*/
+
+typedef struct		s_packet
+{
+	enum e_iphdr	iphdr;
+	enum e_nexthdr	nexthdr;
+	enum e_iphdr	nextiphdr;
+	enum e_nexthdr	lasthdr;
+	t_iphdr			*ip;
+	t_nexthdr		*next;
+	t_iphdr			*nextip;
+	t_nexthdr		*last;
+	size_t			size;
+	uint8_t			raw_data[RAW_DATA_MAXSIZE];
+}					t_packet;
+
+/*
 ** Arguments for header initialization functions
 */
 
@@ -135,7 +180,7 @@ int			ip_is_local(const t_ip *ip, t_netinfo *netinf);
 ** IP headers
 */
 
-int			init_ip_header(void *ipptr, t_iph_args *args);
+void		init_ip_header(void *ipptr, t_iph_args *args);
 
 /*
 ** Layer 4 Headers
@@ -145,9 +190,9 @@ uint32_t	sum_bit16(uint16_t *data, size_t sz);
 uint16_t	checksum(uint16_t *data, size_t sz);
 int			transport_checksum(int version, void *iphdr,
 				uint8_t *packet, uint16_t len);
-int			init_udp_header(uint8_t *udp_packet, void *iphdr,
+void		init_udp_header(uint8_t *udp_packet, void *iphdr,
 				uint16_t srcp, uint16_t dstp);
-int			init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args);
+void		init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args);
 
 /*
 ** Print Headers
@@ -159,6 +204,12 @@ int			print_nexthdr(void *iphdr, int domain, uint16_t size, char *exec);
 int			print_icmphdr(void *icmph, int domain, uint16_t size, char *exec);
 void		print_udphdr(struct udphdr *udph);
 void		print_tcphdr(struct tcphdr *tcph);
-int			print_packet(void *packet, int domain, int size, char *exec);
+int			print_packet(void *packet, int domain, size_t size, char *exec);
+
+/*
+** Packet
+*/
+
+void		init_packet(t_packet *packet, enum e_iphdr iph);
 
 #endif

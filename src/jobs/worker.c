@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 19:00:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 15:40:37 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,27 +47,26 @@ static void	lol_wait(t_scan *scan)
 
 static void	exec_scan(t_scan *scan)
 {
-	uint8_t		reply[HEADER_MAXSIZE];
-	int			probe_size, reply_size;
+	t_packet	reply = { 0 };
 	uint16_t	srcp = PORT_DEF + ft_thread_self();
 	uint16_t	dstp = scan->cfg->ports[scan->task_id];
 
 	//buidl the packet to send
-	if ((probe_size = build_scan_probe(scan->probe, scan, srcp, dstp)) < 0)
-		ft_exit(EXIT_FAILURE, "%s: failed to build probe packet", __func__);
+	build_scan_probe(&scan->probe, scan, srcp, dstp);
 	if (scan->cfg->verbose > 0)
-		verbose_scan(scan, scan->probe, probe_size, "Sending probe...");
+		verbose_scan(scan, &scan->probe, "Sending probe...");
 	//setup listener and pcap filter
 	if (!(scan->descr = setup_listener(scan, srcp, dstp)))
 		ft_exit(EXIT_FAILURE, "%s: failed to setup listener", __func__);
 	//put packet pointer and pcap handle in shared array (for alarm handler)
-	share_probe(scan, (size_t)probe_size);
+	share_probe(scan, scan->probe.size);
 	//start listening
-	reply_size = ft_listen(reply, scan->descr, grab_reply);
+	ft_listen(&reply, scan->descr, grab_reply);
 	if (scan->cfg->verbose > 0)
-		verbose_scan(scan, reply, reply_size,
-			reply_size > 0 ? "Received reply!" : "Probe timed out...");
+		verbose_scan(scan, &reply,
+			reply.size > 0 ? "Received reply!" : "Probe timed out...");
 	//interpret answer or non-answer and set scan result
+	//set_scan_result(scan, reply);
 
 	//cleanup
 	if (scan->descr)

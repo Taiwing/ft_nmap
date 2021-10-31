@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 06:17:13 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 18:41:30 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 15:32:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	verbose_listener_setup(t_scan *scan, char *filter)
 		nmap_mutex_unlock(&scan->cfg->global_mutex, &g_global_locked);
 }
 
-void	verbose_scan(t_scan *scan, uint8_t *probe, int size, const char *action)
+void	verbose_scan(t_scan *scan, t_packet *packet, const char *action)
 {
 	if (scan->cfg->speedup)
 		nmap_mutex_lock(&scan->cfg->global_mutex, &g_global_locked);
@@ -36,7 +36,8 @@ void	verbose_scan(t_scan *scan, uint8_t *probe, int size, const char *action)
 		ft_printf("Worker Thread %llu (%#llx)\n",
 			ft_thread_self(), pthread_self());
 	ft_printf("%s\n", action);
-	print_packet(probe, scan->job->family, size, (char *)scan->cfg->exec);
+	print_packet(packet->raw_data, scan->job->family,
+		packet->size, (char *)scan->cfg->exec);
 	if (scan->cfg->speedup)
 		nmap_mutex_unlock(&scan->cfg->global_mutex, &g_global_locked);
 }
