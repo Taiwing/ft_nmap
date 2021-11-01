@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 14:17:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/01 11:18:14 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,7 @@ void	build_scan_probe(t_packet *probe, t_scan *scan,
 	t_tcph_args	tcpargs = { .iphdr = probe->raw_data, .version = version,
 		.srcp = srcp, .dstp = dstp, .seq = 0x12344321, .win = 0xfff };
 	t_iph_args	ipargs = { .version = version, .dstip = &scan->job->host_ip,
-		.srcip = version == 4 ? &scan->cfg->netinf.defdev_v4->ip : 
-		&scan->cfg->netinf.defdev_v6->ip, .protocol = scan->type == E_UDP ?
+		.srcip = &scan->job->dev->ip, .protocol = scan->type == E_UDP ?
 		IP_HEADER_UDP : IP_HEADER_TCP, .hop_limit = 255, .layer5_len = 0 };
 
 	init_ip_header(probe->raw_data, &ipargs);

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:08:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 15:09:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/01 11:37:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,8 +109,9 @@ int					print_nexthdr(void *iphdr, int domain,
 	int				type = ip4h ? ip4h->protocol : ip6h ? ip6h->nexthdr : 0;
 	void			*nexthdr = iphdr + (ip4h ? sizeof(struct iphdr)
 		: ip6h ? sizeof(struct ipv6hdr) : 0);
-	uint16_t		nexthdr_size = type == IP_HEADER_ICMP ?
-		(ip4h ? sizeof(struct icmphdr) : sizeof (struct icmp6hdr)) :
+	uint16_t		nexthdr_size =
+		type == IP_HEADER_ICMP ? sizeof(struct icmphdr) :
+		type == IP_HEADER_ICMP6 ? sizeof(struct icmp6hdr) :
 		type == IP_HEADER_TCP ? sizeof(struct tcphdr) :
 		type == IP_HEADER_UDP ? sizeof(struct udphdr) : 0;
 
@@ -121,7 +122,7 @@ int					print_nexthdr(void *iphdr, int domain,
 		return (!!ft_dprintf(2, "%s: %s: not enough data for next header '%d'\n",
 			exec, __func__, type));
 	size -= nexthdr_size;
-	if (type == IP_HEADER_ICMP)
+	if (type == IP_HEADER_ICMP || type == IP_HEADER_ICMP6)
 		return (print_icmphdr(nexthdr, domain, size, exec));
 	else if (type == IP_HEADER_TCP)
 		print_tcphdr((struct tcphdr *)nexthdr);

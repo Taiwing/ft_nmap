@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 14:14:12 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/01 11:25:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@
 # define IP_HEADER_ICMP		0x01
 # define IP_HEADER_TCP		0x06
 # define IP_HEADER_UDP		0x11
+# define IP_HEADER_ICMP6	0x3a
 
 # define FILTER_MAXLEN		1024
 

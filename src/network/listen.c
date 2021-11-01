@@ -6,14 +6,19 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 15:40:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/01 11:44:53 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-const char	*g_filter_format = "(src host %1$s && dst host %2$s) "
-	"&& ((%3$s src port %4$hu && %3$s dst port %5$hu) || %6$s)";
+const char	*g_filter_format =
+"(src host %1$s && dst host %2$s) "
+"&& ((%4$s src port %5$hu && %4$s dst port %6$hu) || %7$s)";
+/*
+"&& ((%4$s src port %5$hu && %4$s dst port %6$hu) "
+"|| (%7$s && %7$s[%7$stype] == icmp-unreach))";
+*/
 
 static pcap_t	*open_device(t_scan *scan, int maxlen, int timeout)
 {
@@ -26,24 +31,31 @@ static pcap_t	*open_device(t_scan *scan, int maxlen, int timeout)
 	return (descr);
 }
 
+#define SET_FILTER_ERRBUF_SIZE	(PCAP_ERRBUF_SIZE + 128)
+
 static void		set_filter(pcap_t *descr, char *filter, t_scan *scan)
 {
 	int					ret;
 	struct bpf_program	fp = { 0 };
+	char				errbuf[SET_FILTER_ERRBUF_SIZE + 1] = { 0 };
 	bpf_u_int32			netp = scan->job->family == AF_INET ?
 		PCAP_NETMASK_UNKNOWN : scan->job->dev->netmask.v4.sin_addr.s_addr;
 
 	if (pcap_compile(descr, &fp, filter, 1, netp) == PCAP_ERROR)
 	{
+		ft_snprintf(errbuf, SET_FILTER_ERRBUF_SIZE,
+			"pcap_compile: %s", pcap_geterr(descr));
 		pcap_close(descr);
-		ft_exit(EXIT_FAILURE, "pcap_compile: %s\n", pcap_geterr(descr));
+		ft_exit(EXIT_FAILURE, errbuf);
 	}
 	ret = pcap_setfilter(descr, &fp);
 	pcap_freecode(&fp);
 	if (ret == PCAP_ERROR)
 	{
+		ft_snprintf(errbuf, SET_FILTER_ERRBUF_SIZE,
+			"pcap_setfilter: %s", pcap_geterr(descr));
 		pcap_close(descr);
-		ft_exit(EXIT_FAILURE, "pcap_setfilter: %s\n", pcap_geterr(descr));
+		ft_exit(EXIT_FAILURE, errbuf);
 	}
 	if (scan->cfg->verbose > 1)
 		verbose_listener_setup(scan, filter);
@@ -55,6 +67,9 @@ pcap_t			*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp)
 	t_job	*job = scan->job;
 	t_ip	*srcip = &job->dev->ip, *dstip = &job->host_ip;
 	char	filter[FILTER_MAXLEN + 1] = { 0 };
+	char	*ip = job->family == AF_INET ? "ip" : "ip6";
+	char	*layer4 = scan->type == E_UDP ? "udp" : "tcp";
+	char	*icmp = job->family == AF_INET ? "icmp" : "icmp6";
 	char	srcipbuf[INET6_ADDRSTRLEN + 1], dstipbuf[INET6_ADDRSTRLEN + 1];
 
 	if (!(descr = open_device(scan, HEADER_MAXSIZE, 1)))
@@ -62,8 +77,10 @@ pcap_t			*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp)
 	ft_snprintf(filter, FILTER_MAXLEN, g_filter_format,
 		inet_ntop(job->family, ip_addr(dstip), dstipbuf, INET6_ADDRSTRLEN),
 		inet_ntop(job->family, ip_addr(srcip), srcipbuf, INET6_ADDRSTRLEN),
-		scan->type == E_UDP ? "udp" : "tcp", dstp, srcp,
-		job->family == AF_INET ? "icmp" : "icmp6");
+		ip, layer4, dstp, srcp, icmp);
+	//TEMP
+	//ft_printf("FILTER: %s\n", filter);
+	//TEMP
 	set_filter(descr, filter, scan);
 	return (descr);
 }
@@ -78,8 +95,9 @@ void			grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 	if (h->len < sizeof(struct ether_header))
 		ft_exit(EXIT_FAILURE, "%s: too small for an ether header", __func__);
 	reply = (t_packet *)user;
-	if (reply->size)
-		ft_exit(EXIT_FAILURE, "%s: reply already initialized", __func__);
+	//TODO: uncomment and test it does not happen (or if it does why ???)
+	//if (reply->size)
+		//ft_exit(EXIT_FAILURE, "%s: reply already initialized", __func__);
 	size = h->len - sizeof(struct ether_header);
 	size = size > RAW_DATA_MAXSIZE ? RAW_DATA_MAXSIZE : size;
 	type = ntohs(((struct ether_header *)bytes)->ether_type);
@@ -95,6 +113,12 @@ void			grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 	if (reply->size > size)
 		ft_exit(EXIT_FAILURE, "%s: computed size bigger than received data",
 			__func__);
+	//TEMP
+	/*
+	ft_printf("size: %zu\n", size);
+	verbose_scan(g_scan, reply, "Debug from grab_reply:");
+	*/
+	//TEMP
 }
 
 int				ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback)

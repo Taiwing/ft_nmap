@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 21:05:29 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/10/31 21:19:57 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -280,6 +280,7 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 
 extern __thread int		g_global_locked;
 extern __thread int		g_probe_locked;
+extern __thread t_scan	*g_scan;
 extern t_nmap_config	*g_cfg;
 
 #endif
