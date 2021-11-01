@@ -6,19 +6,11 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/01 11:44:53 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/01 13:37:08 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
-
-const char	*g_filter_format =
-"(src host %1$s && dst host %2$s) "
-"&& ((%4$s src port %5$hu && %4$s dst port %6$hu) || %7$s)";
-/*
-"&& ((%4$s src port %5$hu && %4$s dst port %6$hu) "
-"|| (%7$s && %7$s[%7$stype] == icmp-unreach))";
-*/
 
 static pcap_t	*open_device(t_scan *scan, int maxlen, int timeout)
 {
@@ -61,6 +53,15 @@ static void		set_filter(pcap_t *descr, char *filter, t_scan *scan)
 		verbose_listener_setup(scan, filter);
 }
 
+const char	*g_filter_format =
+"(src host %1$s && dst host %2$s) "
+"&& ((%4$s src port %5$hu && %4$s dst port %6$hu) "
+"|| (%7$s[%8$d] == %9$d && %7$s[%10$d:2] == %6$hu && %7$s[%11$d:2] == %5$hu))";
+/*
+"&& ((%4$s src port %5$hu && %4$s dst port %6$hu) "
+"|| (%7$s && %7$s[%7$stype] == icmp-unreach))";
+*/
+
 pcap_t			*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp)
 {
 	pcap_t	*descr = NULL;
@@ -77,7 +78,8 @@ pcap_t			*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp)
 	ft_snprintf(filter, FILTER_MAXLEN, g_filter_format,
 		inet_ntop(job->family, ip_addr(dstip), dstipbuf, INET6_ADDRSTRLEN),
 		inet_ntop(job->family, ip_addr(srcip), srcipbuf, INET6_ADDRSTRLEN),
-		ip, layer4, dstp, srcp, icmp);
+		ip, layer4, dstp, srcp, icmp, 17, scan->type == E_UDP ? IP_HEADER_UDP
+		: IP_HEADER_TCP, 28, 30);
 	//TEMP
 	//ft_printf("FILTER: %s\n", filter);
 	//TEMP
