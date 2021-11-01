@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/31 21:04:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 21:08:17 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/01 11:56:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,8 @@ static uint8_t	scan_udp_res(t_packet *reply)
 		&& reply->next->icmp.code == ICMP_PORT_UNREACH))
 		result = STATE_CLOSED;
 	else if ((reply->nexthdr == E_NH_ICMP6
-		&& reply->next->icmp6.icmp6_type == ICMP_DEST_UNREACH
-		&& reply->next->icmp6.icmp6_code == ICMP_PORT_UNREACH))
+		&& reply->next->icmp6.icmp6_type == ICMPV6_DEST_UNREACH
+		&& reply->next->icmp6.icmp6_code == ICMPV6_PORT_UNREACH))
 		result = STATE_CLOSED;
 	return (result);
 }
