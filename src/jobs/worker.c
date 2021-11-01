@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 21:06:47 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/01 14:03:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,12 +90,9 @@ static void	worker_exit(void)
 		pcap_close(g_scan->descr);
 		g_scan->descr = NULL;
 	}
-	//TEMP
-	/*
-	ft_printf("worker_exit - worker %llu (%llx)!\n",
-		ft_thread_self(), pthread_self());
-	*/
-	//TEMP
+	if (g_cfg->verbose > 2)
+		ft_printf("worker_exit - worker %llu (%llx)!\n",
+			ft_thread_self(), pthread_self());
 	ft_thread_exit();
 }
 
@@ -148,5 +145,6 @@ void		*worker(void *ptr)
 		exec_scan(scan);
 		update_job(scan);
 	} while (next_job(scan) && !ft_thread_error());
+	ft_atexit(NULL);
 	return (NULL);
 }

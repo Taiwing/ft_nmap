@@ -1,0 +1,12 @@
+- close every active pcap handle in exit cleanup handler
+- search and fix the reason of the non-exiting of some
+  threads when doing a big number of scans
+- adapt the filter to ipv6 for the icmp part (also maybe
+  clean the function/divide it because it's messy)
+- uncomment the 'exit if packet->size' in pcap handler
+  to test if it still is used multiple times by thread
+  (which it should not, it should stop to one packet)
+- when all this is done, check that the scan results are
+  the same as the original nmap and that it does not
+  take too muche time to execute
+- then stress-test the shit out of this program (really)
