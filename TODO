@@ -1,6 +1,22 @@
-- close every active pcap handle in exit cleanup handler
 - search and fix the reason of the non-exiting of some
   threads when doing a big number of scans
+  update: It looks like there is a problem with every
+  type of scans except SYN and ACK, I think this is
+  because the vas majority of the time these scans get
+  a response (on localhost anyway) whereas the other will
+  often timeout. Timeout handling is at the source of this
+  problem then. This will have to be further investigated.
+- Try and fix ACK scan false 'positive' tests, meaning all
+  the ports on which the scan result ends up randomly
+  filtered where the original nmap always says unfiltered.
+  It does not happen often (like 3/4 times on 1024 ports)
+  but it still makes the result false and unreliable. The
+  ACK scan should get an RST response for ending up in an
+  unfiltered state, then sometimes it must not receive
+  the RST response, or indeed any response at all. Either
+  that or it gets a icmp packet out of the blue...
+- check other scan results too
+- close every active pcap handle in exit cleanup handler
 - adapt the filter to ipv6 for the icmp part (also maybe
   clean the function/divide it because it's messy)
 - uncomment the 'exit if packet->size' in pcap handler
