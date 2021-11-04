@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/01 14:03:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/04 06:53:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,18 +118,11 @@ void		start_workers(t_nmap_config *cfg, t_scan *scan)
 	int			ret;
 
 	if (!cfg->speedup)
-	{
-		if (next_job(scan))
-			worker((void *)(scan));
-		return;
-	}
-	for (uint8_t i = 0; i < cfg->speedup && next_job(scan + i)
-		&& !ft_thread_error(); ++i)
-	{
+		worker((void *)(scan));
+	for (uint8_t i = 0; i < cfg->speedup && !ft_thread_error(); ++i)
 		if ((ret = ft_thread_create(cfg->thread + i, NULL,
 			worker, (void *)(scan + i))))
 			ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(ret));
-	}
 }
 
 void		*worker(void *ptr)
@@ -140,11 +133,11 @@ void		*worker(void *ptr)
 		ft_atexit(worker_exit);
 	scan = (t_scan *)ptr;
 	g_scan = scan;
-	do
+	while (next_job(scan) && !ft_thread_error())
 	{
 		exec_scan(scan);
 		update_job(scan);
-	} while (next_job(scan) && !ft_thread_error());
+	}
 	ft_atexit(NULL);
 	return (NULL);
 }
