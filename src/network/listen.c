@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/01 13:37:08 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/07 12:09:57 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,7 @@ static pcap_t	*open_device(t_scan *scan, int maxlen, int timeout)
 	pcap_t	*descr;
 	char	errbuf[PCAP_ERRBUF_SIZE];
 
-	if (!(descr = pcap_open_live(scan->job->dev->name, maxlen,
-			0, timeout, errbuf)))
+	if (!(descr = pcap_open_live(NULL, maxlen, 0, timeout, errbuf)))
 		ft_exit(EXIT_FAILURE, "pcap_open_live: %s\n", errbuf);
 	return (descr);
 }
@@ -87,6 +86,13 @@ pcap_t			*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp)
 	return (descr);
 }
 
+//TODO: move these into the nmap config structure because they should be
+//availabe everywhere in the program
+int		g_linktype = 0;
+size_t	linkhdr_size = 0;
+
+#include <pcap/sll.h>
+
 void			grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 					const uint8_t *bytes)
 {
@@ -94,16 +100,19 @@ void			grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 	int				type = 0;
 	size_t			size = 0;
 
-	if (h->len < sizeof(struct ether_header))
-		ft_exit(EXIT_FAILURE, "%s: too small for an ether header", __func__);
+	if (h->len < linkhdr_size)
+		ft_exit(EXIT_FAILURE, "%s: too small for a link layer header",
+			__func__);
 	reply = (t_packet *)user;
 	//TODO: uncomment and test it does not happen (or if it does why ???)
 	//if (reply->size)
 		//ft_exit(EXIT_FAILURE, "%s: reply already initialized", __func__);
-	size = h->len - sizeof(struct ether_header);
+	size = h->len - linkhdr_size;
 	size = size > RAW_DATA_MAXSIZE ? RAW_DATA_MAXSIZE : size;
-	type = ntohs(((struct ether_header *)bytes)->ether_type);
-	bytes += sizeof(struct ether_header);
+	type = ntohs(g_linktype == DLT_LINUX_SLL ?
+		((struct sll_header *)bytes)->sll_protocol :
+		((struct sll2_header *)bytes)->sll2_protocol);
+	bytes += linkhdr_size;
 	if (type != ETHERTYPE_IP && type != ETHERTYPE_IPV6)
 		ft_exit(EXIT_FAILURE, "%s: invalid ether type: %d", __func__, type);
 	else if ((type == ETHERTYPE_IP && size < sizeof(struct iphdr))
@@ -127,6 +136,13 @@ int				ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback)
 {
 	int	ret;
 
+	if ((g_linktype = pcap_datalink(descr)) == PCAP_ERROR_NOT_ACTIVATED)
+		ft_exit(EXIT_FAILURE, "%s: pcap_datalink failure", __func__);
+	if (g_linktype != DLT_LINUX_SLL && g_linktype != DLT_LINUX_SLL2)
+		ft_exit(EXIT_FAILURE, "%s: unsupported link layer type: %d", __func__,
+			g_linktype);
+	linkhdr_size = g_linktype == DLT_LINUX_SLL ? sizeof(struct sll_header)
+		: sizeof(struct sll2_header);
 	if ((ret = pcap_dispatch(descr, 0, callback,
 			(uint8_t *)reply)) == PCAP_ERROR)
 		ft_exit(EXIT_FAILURE, "pcap_dispatch: pcap error");
