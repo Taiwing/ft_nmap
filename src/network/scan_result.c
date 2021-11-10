@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/31 21:04:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/01 11:56:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/10 08:48:18 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,13 @@ static uint8_t	scan_syn_res(t_packet *reply)
 {
 	uint8_t	result;
 
-	result = STATE_FILTERED;
+	result = E_STATE_FILTERED;
 	if (reply->nexthdr == E_NH_TCP)
 	{
 		if (reply->next->tcp.th_flags & TH_SYN)
-			result = STATE_OPEN;
+			result = E_STATE_OPEN;
 		else if (reply->next->tcp.th_flags & TH_RST)
-			result = STATE_CLOSED;
+			result = E_STATE_CLOSED;
 	}
 	return (result);
 }
@@ -31,19 +31,19 @@ static uint8_t	scan_udp_res(t_packet *reply)
 {
 	uint8_t	result;
 
-	result = STATE_FILTERED;
+	result = E_STATE_FILTERED;
 	if (reply->iphdr == E_IH_NONE)
-		result |= STATE_OPEN;
+		result |= E_STATE_OPEN;
 	else if (reply->nexthdr == E_NH_UDP)
-		result = STATE_OPEN;
+		result = E_STATE_OPEN;
 	else if ((reply->nexthdr == E_NH_ICMP
 		&& reply->next->icmp.type == ICMP_DEST_UNREACH
 		&& reply->next->icmp.code == ICMP_PORT_UNREACH))
-		result = STATE_CLOSED;
+		result = E_STATE_CLOSED;
 	else if ((reply->nexthdr == E_NH_ICMP6
 		&& reply->next->icmp6.icmp6_type == ICMPV6_DEST_UNREACH
 		&& reply->next->icmp6.icmp6_code == ICMPV6_PORT_UNREACH))
-		result = STATE_CLOSED;
+		result = E_STATE_CLOSED;
 	return (result);
 }
 
@@ -51,9 +51,9 @@ static uint8_t	scan_ack_res(t_packet *reply)
 {
 	uint8_t	result;
 
-	result = STATE_FILTERED;
+	result = E_STATE_FILTERED;
 	if (reply->nexthdr == E_NH_TCP && reply->next->tcp.th_flags & TH_RST)
-		result = STATE_UNFILTERED;
+		result = E_STATE_UNFILTERED;
 	return (result);
 }
 
@@ -61,11 +61,11 @@ static uint8_t	scan_nfx_res(t_packet *reply)
 {
 	uint8_t	result;
 
-	result = STATE_FILTERED;
+	result = E_STATE_FILTERED;
 	if (reply->iphdr == E_IH_NONE)
-		result |= STATE_OPEN;
+		result |= E_STATE_OPEN;
 	else if (reply->nexthdr == E_NH_TCP && reply->next->tcp.th_flags & TH_RST)
-		result = STATE_CLOSED;
+		result = E_STATE_CLOSED;
 	return (result);
 }
 

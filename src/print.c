@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 06:06:19 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/10 08:57:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,15 @@
 
 const char	g_sep_line[JOB_LINE + 1] = { [0 ... JOB_LINE - 1] = '-' };
 
-const char	*g_scan_results[STATE_CLOSED | STATE_UNFILTERED | 0x01] = {
-	[ STATE_OPEN ] = "O",
-	[ STATE_CLOSED ] = "C",
-	[ STATE_FILTERED ] = "F",
-	[ STATE_OPEN | STATE_FILTERED ] = "OF",
-	[ STATE_CLOSED | STATE_FILTERED ] = "CF",
-	[ STATE_UNFILTERED ] = "U",
-	[ STATE_OPEN | STATE_UNFILTERED ] = "OU",
-	[ STATE_CLOSED | STATE_UNFILTERED ] = "CU",
+const char	*g_scan_results[E_STATE_CLOSED | E_STATE_UNFILTERED | 0x01] = {
+	[ E_STATE_OPEN ] = "O",
+	[ E_STATE_CLOSED ] = "C",
+	[ E_STATE_FILTERED ] = "F",
+	[ E_STATE_OPEN | E_STATE_FILTERED ] = "OF",
+	[ E_STATE_CLOSED | E_STATE_FILTERED ] = "CF",
+	[ E_STATE_UNFILTERED ] = "U",
+	[ E_STATE_OPEN | E_STATE_UNFILTERED ] = "OU",
+	[ E_STATE_CLOSED | E_STATE_UNFILTERED ] = "CU",
 };
 
 /*
@@ -51,7 +51,7 @@ static void	print_port(t_task *task, uint16_t task_id,
 
 	for (int i = 0, j = 0; i < NB_SCANS && j < cfg->nscans; ++i)
 		if (cfg->scans[i])
-			results[j++] = g_scan_results[task->scans[i] & SCAN_MASK];
+			results[j++] = g_scan_results[task->scans[i] & E_STATE_SCAN_MASK];
 	//TODO: use other service files or getservbyport()
 	//services = (char ***)g_tcp_services; //TEMP: pretend it's always TCP for now
 	if (!c)
@@ -66,7 +66,7 @@ static void	print_port(t_task *task, uint16_t task_id,
 		service = "(unknown)";
 	ft_printf("%-*hu | %-*s |%#*t %-"xstr(SCAN_FIELD)"s| %-*s\n",
 		PORT_FIELD, cfg->ports[task_id], SERVICE_FIELD, service,
-		cfg->nscans, results, STATE_FIELD, (task->status & STATE_OPEN) ?
+		cfg->nscans, results, STATE_FIELD, (task->status & E_STATE_OPEN) ?
 		"Open" : "Closed");
 }
 
@@ -82,7 +82,7 @@ void	print_job(t_job *job, t_nmap_config *cfg)
 		ip_addr(&job->host_ip), ipbuf, INET6_ADDRSTRLEN));
 	ft_printf("Open ports:");
 	for (i = 0, c = 0; i < cfg->nports; ++i)
-		if (job->tasks[i].status & STATE_OPEN)
+		if (job->tasks[i].status & E_STATE_OPEN)
 			print_port(job->tasks + i, i, c++, cfg);
 	if (!c)
 		ft_printf(" 0\n");
@@ -90,7 +90,7 @@ void	print_job(t_job *job, t_nmap_config *cfg)
 	if (cfg->nports - c > 0)
 	{
 		for (i = 0, c = 0; i < cfg->nports; ++i)
-			if (job->tasks[i].status & STATE_CLOSED)
+			if (job->tasks[i].status & E_STATE_CLOSED)
 				print_port(job->tasks + i, i, c++, cfg);
 	}
 	else

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 11:27:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/10 08:48:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ static void	flush_jobs(t_nmap_config *cfg)
 
 	lst = NULL;
 	next = (t_job *)cfg->jobs->content;
-	while (next && (next->status & STATE_DONE))
+	while (next && (next->status & E_STATE_DONE))
 	{
 		if (lst)
 			ft_printf("\n\n");
@@ -49,19 +49,19 @@ static int	set_job_status(t_scan *scan)
 {
 	int		i;
 	int		ret = 0;
-	uint8_t	status = STATE_CLOSED;
+	uint8_t	status = E_STATE_CLOSED;
 
-	scan->task->status |= STATE_DONE;
+	scan->task->status |= E_STATE_DONE;
 	for (i = 0; i < NB_SCANS; ++i)
-		if ((scan->task->scans[i] & STATE_OPEN)
-			&& !(scan->task->scans[i] & STATE_FILTERED))
+		if ((scan->task->scans[i] & E_STATE_OPEN)
+			&& !(scan->task->scans[i] & E_STATE_FILTERED))
 			break;
 	if (i < NB_SCANS)
-		status = STATE_OPEN;
+		status = E_STATE_OPEN;
 	scan->task->status |= status;
 	if (++scan->job->done == scan->cfg->nports)
 	{
-		scan->job->status |= STATE_DONE;
+		scan->job->status |= E_STATE_DONE;
 		if (gettimeofday(&scan->job->end_ts, NULL) < 0)
 			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 		ret = 1;
@@ -75,7 +75,7 @@ void		update_job(t_scan *scan)
 
 	if (scan->cfg->speedup)
 		nmap_mutex_lock(&scan->cfg->global_mutex, &g_global_locked);
-	scan->task->scans[scan->type] |= STATE_DONE;
+	scan->task->scans[scan->type] |= E_STATE_DONE;
 	scan->task->scans[scan->type] |= scan->result;
 	scan->result = 0;
 	if (++scan->task->done == scan->cfg->nscans)

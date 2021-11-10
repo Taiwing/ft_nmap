@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/04 06:53:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/10 08:47:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,15 +33,15 @@ static void	lol_wait(t_scan *scan)
 	if (!ft_rand_uint64(&randval, 0, 4))
 		ft_exit(EXIT_FAILURE, "ft_rand_uint64: error");
 	if (!randval)
-		scan->result = STATE_OPEN;
+		scan->result = E_STATE_OPEN;
 	else if (randval == 1)
-		scan->result = STATE_CLOSED;
+		scan->result = E_STATE_CLOSED;
 	else if (randval == 2)
-		scan->result = STATE_FILTERED;
+		scan->result = E_STATE_FILTERED;
 	else if (randval == 3)
-		scan->result = STATE_UNFILTERED;
+		scan->result = E_STATE_UNFILTERED;
 	else
-		scan->result = STATE_OPEN | STATE_FILTERED;
+		scan->result = E_STATE_OPEN | E_STATE_FILTERED;
 	//TEMP
 }
 
@@ -108,7 +108,7 @@ void		wait_workers(t_nmap_config *cfg)
 		// the case)
 		ft_set_thread_error(EXIT_FAILURE);//TEMP
 		for (uint8_t i = 0; i < nthreads; ++i)
-			ft_thread_join(cfg->thread + i, NULL);
+			ft_thread_join(cfg->thread + i + 1, NULL);
 		cfg->speedup = 0;
 	}
 }
@@ -120,8 +120,8 @@ void		start_workers(t_nmap_config *cfg, t_scan *scan)
 	if (!cfg->speedup)
 		worker((void *)(scan));
 	for (uint8_t i = 0; i < cfg->speedup && !ft_thread_error(); ++i)
-		if ((ret = ft_thread_create(cfg->thread + i, NULL,
-			worker, (void *)(scan + i))))
+		if ((ret = ft_thread_create(cfg->thread + i + 1, NULL,
+			worker, (void *)(scan + i + 1))))
 			ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(ret));
 }
 

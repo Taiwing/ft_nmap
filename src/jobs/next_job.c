@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/18 06:46:10 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 11:23:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/10 08:47:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,14 @@ static t_scan	*get_a_scan(t_scan *scan)
 	if (i == NB_SCANS)
 		return (NULL);
 	scan->type = i;
-	scan->task->scans[i] = STATE_ONGOING;
-	scan->task->status |= STATE_ONGOING;
-	scan->job->status |= STATE_ONGOING;
+	scan->task->scans[i] = E_STATE_ONGOING;
+	scan->task->status |= E_STATE_ONGOING;
+	scan->job->status |= E_STATE_ONGOING;
 	if (++scan->task->ongoing == scan->cfg->nscans)
 	{
-		scan->task->status |= STATE_FULL;
+		scan->task->status |= E_STATE_FULL;
 		if (++scan->job->ongoing == scan->cfg->nports)
-			scan->job->status |= STATE_FULL;
+			scan->job->status |= E_STATE_FULL;
 	}
 	return (scan);
 }
@@ -39,7 +39,7 @@ static t_scan	*get_a_task(t_scan *scan)
 	uint16_t	i;
 
 	for (i = scan->task_id; i < scan->cfg->nports; ++i)
-		if (!(scan->job->tasks[i].status & STATE_FULL))
+		if (!(scan->job->tasks[i].status & E_STATE_FULL))
 			break;
 	if (i == scan->cfg->nports)
 		return (NULL);
@@ -57,7 +57,7 @@ static t_scan	*get_a_job(t_scan *scan)
 	for (; *lst; lst = &((*lst)->next))
 	{
 		job = (t_job *)((*lst)->content);
-		if (!(job->status & STATE_FULL))
+		if (!(job->status & E_STATE_FULL))
 			break;
 	}
 	scan->job = job;
@@ -74,9 +74,9 @@ t_scan		*next_job(t_scan *scan)
 
 	if (cfg->speedup)
 		nmap_mutex_lock(&cfg->global_mutex, &g_global_locked);
-	if (scan->task && !(scan->task->status & STATE_FULL))
+	if (scan->task && !(scan->task->status & E_STATE_FULL))
 		scan = get_a_scan(scan);
-	else if (scan->job && !(scan->job->status & STATE_FULL))
+	else if (scan->job && !(scan->job->status & E_STATE_FULL))
 		scan = get_a_task(scan);
 	else
 		scan = get_a_job(scan);

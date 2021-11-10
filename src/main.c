@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 14:56:16 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/10 08:26:12 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ int	main(int argc, char **argv)
 {
 	int				ret;
 	t_nmap_config	cfg = CONFIG_DEF;
-	t_scan			scan[MAX_SPEEDUP] = { [ 0 ... MAX_SPEEDUP - 1] = SCAN_DEF };
+	t_scan			scan[MAX_THREADS] = { [ 0 ... MAX_THREADS - 1] = SCAN_DEF };
 
 	(void)argc;
 	g_cfg = &cfg;

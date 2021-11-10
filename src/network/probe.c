@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/01 11:18:14 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/10 08:41:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,9 @@ void		send_probe(t_nmap_config *cfg, t_probe *probe)
 
 void		share_probe(t_scan *scan, size_t size)
 {
-	uint64_t		thread = ft_thread_self();
 	t_ip			*ip = &scan->job->host_ip;
 	int				tcp = scan->type != E_UDP;
-	t_probe			*probe = scan->cfg->probe + thread - !!thread;
+	t_probe			*probe = scan->cfg->probe + ft_thread_self();
 	enum e_sockets	socket = (ip->family == AF_INET ? E_UDPV4 : E_UDPV6) + tcp;
 
 	if (scan->cfg->speedup)

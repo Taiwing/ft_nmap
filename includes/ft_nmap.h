@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 21:19:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/10 08:22:57 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,25 +26,14 @@
 # define	xstr(s)					str(s)	// stringify macro value
 # define	str(s)					#s
 
-# define	MAX_SPEEDUP				250
+# define	MAX_SPEEDUP				250		// max number of additional threads
+# define	MAX_THREADS				(MAX_SPEEDUP + 1)	// counts main thread
 # define	MAX_PORTS				1024	// maximum number of ports to scan
 # define	MAX_LST_ELM_LEN			1024	// biggest possible comma list element
 # define	PORTS_COUNT				0x10000	// Number of ports (USHRT_MAX + 1)
 # define	MAX_RETRY				4		// Number of retries for sending probe
-
 # define	NB_SCANS				6
 # define	NB_SOCKETS				4
-
-// Scan/Task/Job states
-# define	STATE_PENDING			0x00	// Not started yet
-# define	STATE_ONGOING			0x01	// At least one scan started
-# define	STATE_FULL				0x02	// Every scan/task is ongoing
-# define	STATE_DONE				0x04	// Finished
-# define	STATE_OPEN				0x08
-# define	STATE_CLOSED			0x10
-# define	STATE_FILTERED			0x20
-# define	STATE_UNFILTERED		0x40
-# define	SCAN_MASK				0xf8	// Mask for scan status
 
 // Print format constants
 # define	SERVICE_NAME_MAXLEN		20
@@ -55,6 +44,19 @@
 # define	SERVICE_FIELD			SERVICE_NAME_MAXLEN
 # define	SCAN_FIELD				5
 # define	STATE_FIELD				6
+
+// Job states
+enum e_states {
+	E_STATE_PENDING			= 0x00,	// Not started yet
+	E_STATE_ONGOING			= 0x01,	// At least one scan started
+	E_STATE_FULL			= 0x02,	// Every scan/task is ongoing
+	E_STATE_DONE			= 0x04,	// Finished
+	E_STATE_OPEN			= 0x08,
+	E_STATE_CLOSED			= 0x10,
+	E_STATE_FILTERED		= 0x20,
+	E_STATE_UNFILTERED		= 0x40,
+	E_STATE_SCAN_MASK		= 0xf8	// Mask for scan status
+};
 
 // Scans
 enum e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, E_UDP };
@@ -174,12 +176,12 @@ typedef struct	s_nmap_config
 	t_list			*empty_jobs;
 	pthread_mutex_t	global_mutex;
 	pthread_mutex_t	probe_mutex;
-	t_ft_thread		thread[MAX_SPEEDUP];
+	t_ft_thread		thread[MAX_THREADS];
 	struct ifaddrs	*ifap;
 	enum e_ip_modes	ip_mode;
 	int				socket[NB_SOCKETS];
 	t_netinfo		netinf;
-	t_probe			probe[MAX_SPEEDUP];
+	t_probe			probe[MAX_THREADS];
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
