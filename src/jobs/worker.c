@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 08:24:47 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 10:59:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,7 +100,7 @@ void		wait_workers(t_nmap_config *cfg)
 {
 	uint64_t	nthreads;
 
-	if (cfg->speedup && (nthreads = ft_thread_count()))
+	if ((nthreads = ft_thread_count()))
 	{
 		nmap_mutex_unlock(&cfg->global_mutex, &g_global_locked);
 		//TODO: probably send a signal to end threads (through ft_exit of course)
@@ -113,15 +113,12 @@ void		wait_workers(t_nmap_config *cfg)
 	}
 }
 
-void		start_workers(t_nmap_config *cfg, t_scan_job *scan)
+void		start_workers(t_nmap_config *cfg);
 {
 	int			ret;
 
-	if (!cfg->speedup)
-		worker((void *)(scan));
 	for (uint8_t i = 0; i < cfg->speedup && !ft_thread_error(); ++i)
-		if ((ret = ft_thread_create(cfg->thread + i + 1, NULL,
-			worker, (void *)(scan + i + 1))))
+		if ((ret = ft_thread_create(cfg->thread + i + 1, NULL, worker, NULL)))
 			ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(ret));
 }
 

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 12:29:57 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 12:57:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 10:35:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ static int	init_socket(int domain, int protocol)
 
 void		close_sockets(t_nmap_config *cfg)
 {
-	for (int i = 0; i < NB_SOCKETS; ++i)
+	for (int i = 0; i < SOCKET_COUNT; ++i)
 		if (cfg->socket[i] >= 0)
 			close(cfg->socket[i]);
 }

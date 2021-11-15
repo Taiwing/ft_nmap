@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 08:29:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 10:44:10 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ static void	check_config(t_nmap_config *cfg)
 		if (cfg->ports_to_scan[i])
 			cfg->ports[j++] = i;
 	if (!cfg->nscans)
-		for (; cfg->nscans < NB_SCANS; ++cfg->nscans)
+		for (; cfg->nscans < SCAN_COUNT; ++cfg->nscans)
 			cfg->scans[cfg->nscans] = 1;
 }
 
@@ -47,7 +47,6 @@ int	main(int argc, char **argv)
 {
 	int				ret;
 	t_nmap_config	cfg = CONFIG_DEF;
-	t_scan_job		scan[MAX_THREADS] = { [ 0 ... MAX_THREADS - 1] = SCAN_DEF };
 
 	(void)argc;
 	g_cfg = &cfg;
@@ -62,7 +61,7 @@ int	main(int argc, char **argv)
 	print_config(&cfg);
 	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.global_mutex, NULL)))
 		ft_exit(EXIT_FAILURE, "pthread_mutex_init: %s", strerror(ret));
-	start_workers(&cfg, scan);
+	start_workers(&cfg);
 	wait_workers(&cfg);
 	ft_exit(EXIT_SUCCESS, NULL);
 	return (EXIT_SUCCESS);

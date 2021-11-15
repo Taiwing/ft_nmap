@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 08:29:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 11:27:32 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,11 @@ const char	*g_filter_format =
 "|| (%7$s && %7$s[%7$stype] == icmp-unreach))";
 */
 
+//TODO: Totally remake this function (and the g_filter_format), and call it when
+// creating a new host. Maybe separate filter setting and device opening so that
+// monothreaded runs can get the most precise filter possible while a broader
+// one will be used for multithreaded runs.
+
 pcap_t			*setup_listener(t_scan_job *scan, uint16_t srcp, uint16_t dstp)
 {
 	pcap_t	*descr = NULL;
@@ -79,19 +84,16 @@ pcap_t			*setup_listener(t_scan_job *scan, uint16_t srcp, uint16_t dstp)
 		inet_ntop(host_job->family, ip_addr(srcip), srcipbuf, INET6_ADDRSTRLEN),
 		ip, layer4, dstp, srcp, icmp, 17, scan->type == E_UDP ? IP_HEADER_UDP
 		: IP_HEADER_TCP, 28, 30);
-	//TEMP
-	//ft_printf("FILTER: %s\n", filter);
-	//TEMP
 	set_filter(descr, filter, scan);
+	if ((cfg->linktype = pcap_datalink(descr)) == PCAP_ERROR_NOT_ACTIVATED)
+		ft_exit(EXIT_FAILURE, "%s: pcap_datalink failure", __func__);
+	if (cfg->linktype != DLT_LINUX_SLL && cfg->linktype != DLT_LINUX_SLL2)
+		ft_exit(EXIT_FAILURE, "%s: unsupported link layer type: %d", __func__,
+			cfg->linktype);
+	cfg->linkhdr_size = cfg->linktype == DLT_LINUX_SLL ?
+		sizeof(struct sll_header) : sizeof(struct sll2_header);
 	return (descr);
 }
-
-//TODO: move these into the nmap config structure because they should be
-//availabe everywhere in the program
-int		g_linktype = 0;
-size_t	linkhdr_size = 0;
-
-#include <pcap/sll.h>
 
 void			grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 					const uint8_t *bytes)
@@ -100,19 +102,16 @@ void			grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 	int				type = 0;
 	size_t			size = 0;
 
-	if (h->len < linkhdr_size)
+	if (h->len < g_cfg->linkhdr_size)
 		ft_exit(EXIT_FAILURE, "%s: too small for a link layer header",
 			__func__);
 	reply = (t_packet *)user;
-	//TODO: uncomment and test it does not happen (or if it does why ???)
-	//if (reply->size)
-		//ft_exit(EXIT_FAILURE, "%s: reply already initialized", __func__);
 	size = h->len - linkhdr_size;
 	size = size > RAW_DATA_MAXSIZE ? RAW_DATA_MAXSIZE : size;
-	type = ntohs(g_linktype == DLT_LINUX_SLL ?
+	type = ntohs(g_cfg->linktype == DLT_LINUX_SLL ?
 		((struct sll_header *)bytes)->sll_protocol :
 		((struct sll2_header *)bytes)->sll2_protocol);
-	bytes += linkhdr_size;
+	bytes += g_cfg->linkhdr_size;
 	if (type != ETHERTYPE_IP && type != ETHERTYPE_IPV6)
 		ft_exit(EXIT_FAILURE, "%s: invalid ether type: %d", __func__, type);
 	else if ((type == ETHERTYPE_IP && size < sizeof(struct iphdr))
@@ -134,19 +133,11 @@ void			grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 
 int				ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback)
 {
-	int	ret;
+	int	r;
 
-	if ((g_linktype = pcap_datalink(descr)) == PCAP_ERROR_NOT_ACTIVATED)
-		ft_exit(EXIT_FAILURE, "%s: pcap_datalink failure", __func__);
-	if (g_linktype != DLT_LINUX_SLL && g_linktype != DLT_LINUX_SLL2)
-		ft_exit(EXIT_FAILURE, "%s: unsupported link layer type: %d", __func__,
-			g_linktype);
-	linkhdr_size = g_linktype == DLT_LINUX_SLL ? sizeof(struct sll_header)
-		: sizeof(struct sll2_header);
-	if ((ret = pcap_dispatch(descr, 0, callback,
-			(uint8_t *)reply)) == PCAP_ERROR)
+	if ((r = pcap_dispatch(descr, 0, callback, (uint8_t *)reply)) == PCAP_ERROR)
 		ft_exit(EXIT_FAILURE, "pcap_dispatch: pcap error");
-	else if (ret == PCAP_ERROR_BREAK)
+	else if (r == PCAP_ERROR_BREAK)
 		return (-1);
 	return (0);
 }

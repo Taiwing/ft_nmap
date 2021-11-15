@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 22:51:22 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 10:35:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ void		ports_option(t_nmap_config *cfg, t_optdata *optd)
 		ft_exit(EXIT_FAILURE, "invalid list argument: '%s'", optd->optarg);
 }
 
-const char		*g_nmap_scan_strings[NB_SCANS] = {
+const char		*g_nmap_scan_strings[SCAN_COUNT] = {
 	"SYN", "NULL", "ACK", "FIN", "XMAS", "UDP"
 };
 
@@ -87,10 +87,10 @@ void		scan_option(t_nmap_config *cfg, t_optdata *optd)
 
 	while ((arg = parse_comma_list(optd->optarg)) && *arg)
 	{
-		for (i = 0; i < NB_SCANS; ++i)
+		for (i = 0; i < SCAN_COUNT; ++i)
 			if (!ft_ignore_case_strcmp(g_nmap_scan_strings[i], arg))
 				break;
-		if (i == NB_SCANS)
+		if (i == SCAN_COUNT)
 			ft_exit(EXIT_FAILURE, "invalid scan type: '%s'", arg);
 		else if (!cfg->scans[i])
 		{

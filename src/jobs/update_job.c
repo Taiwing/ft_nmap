@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 08:30:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 10:35:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,11 +52,11 @@ static int	set_job_status(t_scan_job *scan)
 	uint8_t	status = E_STATE_CLOSED;
 
 	scan->port_job->status |= E_STATE_DONE;
-	for (i = 0; i < NB_SCANS; ++i)
+	for (i = 0; i < SCAN_COUNT; ++i)
 		if ((scan->port_job->scan_jobs[i] & E_STATE_OPEN)
 			&& !(scan->port_job->scan_jobs[i] & E_STATE_FILTERED))
 			break;
-	if (i < NB_SCANS)
+	if (i < SCAN_COUNT)
 		status = E_STATE_OPEN;
 	scan->port_job->status |= status;
 	if (++scan->host_job->done == scan->cfg->nports)

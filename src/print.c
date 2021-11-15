@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 08:27:08 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 10:35:30 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,9 +47,9 @@ static void	print_port(t_port_job *port_job, uint16_t port_job_id,
 	int			line;
 	//char		***services;
 	const char	*service;
-	const char	*results[NB_SCANS] = { 0 };
+	const char	*results[SCAN_COUNT] = { 0 };
 
-	for (int i = 0, j = 0; i < NB_SCANS && j < cfg->nscans; ++i)
+	for (int i = 0, j = 0; i < SCAN_COUNT && j < cfg->nscans; ++i)
 		if (cfg->scans[i])
 			results[j++] =
 				g_scan_results[port_job->scan_jobs[i] & E_STATE_SCAN_MASK];
@@ -100,7 +100,7 @@ void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 
 void		print_config(t_nmap_config *cfg)
 {
-	for (int i = 0, j = 0; i < NB_SCANS && j < cfg->nscans; ++i)
+	for (int i = 0, j = 0; i < SCAN_COUNT && j < cfg->nscans; ++i)
 		if (cfg->scans[i])
 			cfg->scan_strings[j++] = g_nmap_scan_strings[i];
 	ft_printf("--- Network ---\n"

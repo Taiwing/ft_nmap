@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/18 06:46:10 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 08:31:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 10:35:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,10 @@ static t_scan_job	*get_a_scan_job(t_scan_job *scan)
 {
 	int	i;
 
-	for (i = scan->type; i < NB_SCANS; ++i)
+	for (i = scan->type; i < SCAN_COUNT; ++i)
 		if (scan->cfg->scans[i] && !scan->port_job->scan_jobs[i])
 			break;
-	if (i == NB_SCANS)
+	if (i == SCAN_COUNT)
 		return (NULL);
 	scan->type = i;
 	scan->port_job->scan_jobs[i] = E_STATE_ONGOING;
