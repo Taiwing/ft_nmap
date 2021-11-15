@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/07 12:09:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 08:29:00 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static pcap_t	*open_device(t_scan *scan, int maxlen, int timeout)
+static pcap_t	*open_device(t_scan_job *scan, int maxlen, int timeout)
 {
 	pcap_t	*descr;
 	char	errbuf[PCAP_ERRBUF_SIZE];
@@ -24,13 +24,13 @@ static pcap_t	*open_device(t_scan *scan, int maxlen, int timeout)
 
 #define SET_FILTER_ERRBUF_SIZE	(PCAP_ERRBUF_SIZE + 128)
 
-static void		set_filter(pcap_t *descr, char *filter, t_scan *scan)
+static void		set_filter(pcap_t *descr, char *filter, t_scan_job *scan)
 {
 	int					ret;
 	struct bpf_program	fp = { 0 };
 	char				errbuf[SET_FILTER_ERRBUF_SIZE + 1] = { 0 };
-	bpf_u_int32			netp = scan->job->family == AF_INET ?
-		PCAP_NETMASK_UNKNOWN : scan->job->dev->netmask.v4.sin_addr.s_addr;
+	bpf_u_int32			netp = scan->host_job->family == AF_INET ?
+		PCAP_NETMASK_UNKNOWN : scan->host_job->dev->netmask.v4.sin_addr.s_addr;
 
 	if (pcap_compile(descr, &fp, filter, 1, netp) == PCAP_ERROR)
 	{
@@ -61,22 +61,22 @@ const char	*g_filter_format =
 "|| (%7$s && %7$s[%7$stype] == icmp-unreach))";
 */
 
-pcap_t			*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp)
+pcap_t			*setup_listener(t_scan_job *scan, uint16_t srcp, uint16_t dstp)
 {
 	pcap_t	*descr = NULL;
-	t_job	*job = scan->job;
-	t_ip	*srcip = &job->dev->ip, *dstip = &job->host_ip;
+	t_host_job	*host_job = scan->host_job;
+	t_ip	*srcip = &host_job->dev->ip, *dstip = &host_job->host_ip;
 	char	filter[FILTER_MAXLEN + 1] = { 0 };
-	char	*ip = job->family == AF_INET ? "ip" : "ip6";
+	char	*ip = host_job->family == AF_INET ? "ip" : "ip6";
 	char	*layer4 = scan->type == E_UDP ? "udp" : "tcp";
-	char	*icmp = job->family == AF_INET ? "icmp" : "icmp6";
+	char	*icmp = host_job->family == AF_INET ? "icmp" : "icmp6";
 	char	srcipbuf[INET6_ADDRSTRLEN + 1], dstipbuf[INET6_ADDRSTRLEN + 1];
 
 	if (!(descr = open_device(scan, HEADER_MAXSIZE, 1)))
 		return (NULL);
 	ft_snprintf(filter, FILTER_MAXLEN, g_filter_format,
-		inet_ntop(job->family, ip_addr(dstip), dstipbuf, INET6_ADDRSTRLEN),
-		inet_ntop(job->family, ip_addr(srcip), srcipbuf, INET6_ADDRSTRLEN),
+		inet_ntop(host_job->family, ip_addr(dstip), dstipbuf, INET6_ADDRSTRLEN),
+		inet_ntop(host_job->family, ip_addr(srcip), srcipbuf, INET6_ADDRSTRLEN),
 		ip, layer4, dstp, srcp, icmp, 17, scan->type == E_UDP ? IP_HEADER_UDP
 		: IP_HEADER_TCP, 28, 30);
 	//TEMP

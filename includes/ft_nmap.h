@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/10 08:22:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 08:30:10 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,14 +48,14 @@
 // Job states
 enum e_states {
 	E_STATE_PENDING			= 0x00,	// Not started yet
-	E_STATE_ONGOING			= 0x01,	// At least one scan started
-	E_STATE_FULL			= 0x02,	// Every scan/task is ongoing
+	E_STATE_ONGOING			= 0x01,	// At least one scan_job started
+	E_STATE_FULL			= 0x02,	// Every scan_job/port_job is ongoing
 	E_STATE_DONE			= 0x04,	// Finished
 	E_STATE_OPEN			= 0x08,
 	E_STATE_CLOSED			= 0x10,
 	E_STATE_FILTERED		= 0x20,
 	E_STATE_UNFILTERED		= 0x40,
-	E_STATE_SCAN_MASK		= 0xf8	// Mask for scan status
+	E_STATE_SCAN_MASK		= 0xf8	// Mask for scan_job status
 };
 
 // Scans
@@ -68,20 +68,20 @@ enum e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
 enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 
 /*
-** Task structure: this is the status of each scan on a given port
+** Task structure: this is the status of each scan_job on a given port
 **
-** status: task status
-** ongoing: counter of started scans
-** done: counter of finished scans
-** scans: status of each scan
+** status: port_job status
+** ongoing: counter of started scan_jobs
+** done: counter of finished scan_jobs
+** scan_jobs: status of each scan_job
 */
-typedef struct	s_task
+typedef struct	s_port_job
 {
 	uint8_t		status;
 	uint8_t		ongoing;
 	uint8_t		done;
-	uint8_t		scans[NB_SCANS];
-}				t_task;
+	uint8_t		scan_jobs[NB_SCANS];
+}				t_port_job;
 
 /*
 ** Job structure: this is the status of each tasks on a given host
@@ -90,14 +90,14 @@ typedef struct	s_task
 ** host_ip: IP from getaddrinfo()
 ** family: IPv4 or IPv6 host and scans
 ** dev: interface to scan from
-** status: job status
-** ongoing: counter of full tasks
-** done: counter of finished tasks
-** start_ts: ts at start of job
-** end_ts: ts at end of job
-** tasks: status of each task
+** status: host_job status
+** ongoing: counter of full port_jobs
+** done: counter of finished port_jobs
+** start_ts: ts at start of host_job
+** end_ts: ts at end of host_job
+** port_jobs: status of each port_job
 */
-typedef struct		s_job
+typedef struct		s_host_job
 {
 	char			*host;
 	t_ip			host_ip;
@@ -108,8 +108,8 @@ typedef struct		s_job
 	uint16_t		done;
 	struct timeval	start_ts;
 	struct timeval	end_ts;
-	t_task			*tasks;
-}					t_job;
+	t_port_job		*port_jobs;
+}					t_host_job;
 
 /*
 ** t_probe: nmap probes
@@ -148,8 +148,8 @@ typedef struct		s_probe
 ** nscans: number of scans to perform on each port
 ** scan_strings: store selected scan names
 ** hosts_fd: file descriptor for the hosts_file
-** jobs: list of active jobs
-** empty_jobs: store allocated and zeroed out jobs
+** host_jobs: list of active host_jobs
+** empty_host_jobs: store allocated and zeroed out host_jobs
 ** global_mutex: global mutex
 ** thread: threads array
 ** ifap: pointer to getifaddrs output (to be freed in cleanup)
@@ -172,8 +172,8 @@ typedef struct	s_nmap_config
 	uint8_t			nscans;
 	const char		*scan_strings[NB_SCANS];
 	int				hosts_fd;
-	t_list			*jobs;
-	t_list			*empty_jobs;
+	t_list			*host_jobs;
+	t_list			*empty_host_jobs;
 	pthread_mutex_t	global_mutex;
 	pthread_mutex_t	probe_mutex;
 	t_ft_thread		thread[MAX_THREADS];
@@ -193,28 +193,28 @@ typedef struct	s_nmap_config
 /*
 ** Scan structure: structure given to worker
 **
-** type: type of scan to perform
-** result: return status of the scan
-** task: pointer to the task of this scan
-** task_id: index of the task in the job's tasks array
-** job: pointer to the job of this task
-** job_ptr: this job's list pointer
+** type: type of scan_job to perform
+** result: return status of the scan_job
+** port_job: pointer to the port_job of this scan_job
+** port_job_id: index of the port_job in the host_job's port_jobs array
+** host_job: pointer to the host_job of this port_job
+** host_job_ptr: this host_job's list pointer
 ** cfg: config pointer
 ** descr: pcap handle for receiving replies
 ** probe: probe packet to be sent
 */
-typedef struct		s_scan
+typedef struct		s_scan_job
 {
 	enum e_scans	type;
 	uint8_t			result;
-	t_task			*task;
-	uint16_t		task_id;
-	t_job			*job;
-	t_list			*job_ptr;
+	t_port_job		*port_job;
+	uint16_t		port_job_id;
+	t_host_job		*host_job;
+	t_list			*host_job_ptr;
 	t_nmap_config	*cfg;
 	pcap_t			*descr;
 	t_packet		probe;
-}					t_scan;
+}					t_scan_job;
 
 # define	SCAN_DEF			{\
 	0, 0, NULL, 0, NULL, NULL, &cfg, NULL, { 0 }\
@@ -229,8 +229,9 @@ const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 void		ports_option(t_nmap_config *cfg, t_optdata *optd);
 void		scan_option(t_nmap_config *cfg, t_optdata *optd);
-void		verbose_listener_setup(t_scan *scan, char *filter);
-void		verbose_scan(t_scan *scan, t_packet *packet, const char *action);
+void		verbose_listener_setup(t_scan_job *scan, char *filter);
+void		verbose_scan(t_scan_job *scan, t_packet *packet,
+				const char *action);
 
 /*
 ** Network functions
@@ -242,15 +243,15 @@ void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
 int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
-void		build_scan_probe(t_packet *probe, t_scan *scan,
+void		build_scan_probe(t_packet *probe, t_scan_job *scan,
 				uint16_t srcp, uint16_t dstp);
-void		share_probe(t_scan *scan, size_t size);
+void		share_probe(t_scan_job *scan, size_t size);
 void		send_probe(t_nmap_config *cfg, t_probe *probe);
 void		grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
-pcap_t		*setup_listener(t_scan *scan, uint16_t srcp, uint16_t dstp);
+pcap_t		*setup_listener(t_scan_job *scan, uint16_t srcp, uint16_t dstp);
 int			ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback);
-void		set_scan_result(t_scan *scan, t_packet *reply);
+void		set_scan_result(t_scan_job *scan, t_packet *reply);
 
 /*
 ** Job functions
@@ -258,14 +259,14 @@ void		set_scan_result(t_scan *scan, t_packet *reply);
 
 void		nmap_mutex_lock(pthread_mutex_t *mutex, int *locked);
 void		nmap_mutex_unlock(pthread_mutex_t *mutex, int *locked);
-t_scan		*next_job(t_scan *scan);
+t_scan_job		*next_job(t_scan_job *scan);
 void		wait_workers(t_nmap_config *cfg);
-void		start_workers(t_nmap_config *cfg, t_scan *scan);
+void		start_workers(t_nmap_config *cfg, t_scan_job *scan);
 void		*worker(void *ptr);
-t_list		*init_new_job(t_scan *scan);
-void		update_job(t_scan *scan);
+t_list		*init_new_host_job(t_scan_job *scan);
+void		update_job(t_scan_job *scan);
 void		print_config(t_nmap_config *cfg);
-void		print_job(t_job *job, t_nmap_config *cfg);
+void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
 
 /*
 ** ft_nmap constants
@@ -280,9 +281,9 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 ** ft_nmap globals
 */
 
-extern __thread int		g_global_locked;
-extern __thread int		g_probe_locked;
-extern __thread t_scan	*g_scan;
-extern t_nmap_config	*g_cfg;
+extern __thread int			g_global_locked;
+extern __thread int			g_probe_locked;
+extern __thread t_scan_job	*g_scan;
+extern t_nmap_config		*g_cfg;
 
 #endif

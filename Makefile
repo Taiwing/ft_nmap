@@ -23,7 +23,7 @@ SRCC			=	options.c\
 					get_options.c\
 
 JOBSC			=	update_job.c\
-					init_new_job.c\
+					init_new_host_job.c\
 					mutex.c\
 					worker.c\
 					next_job.c\
@@ -73,7 +73,7 @@ $(SUB1D)/libft.a:
 options.o: ft_nmap.h network.h libft.h
 main.o: ft_nmap.h network.h libft.h
 update_job.o: ft_nmap.h network.h libft.h
-init_new_job.o: ft_nmap.h network.h libft.h
+init_new_host_job.o: ft_nmap.h network.h libft.h
 mutex.o: ft_nmap.h network.h libft.h
 worker.o: ft_nmap.h network.h libft.h
 next_job.o: ft_nmap.h network.h libft.h

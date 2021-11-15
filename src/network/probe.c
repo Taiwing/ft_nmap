@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/10 08:41:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 08:28:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,9 @@ void		send_probe(t_nmap_config *cfg, t_probe *probe)
 		ft_exit(EXIT_FAILURE, "sendto: %s", strerror(errno));
 }
 
-void		share_probe(t_scan *scan, size_t size)
+void		share_probe(t_scan_job *scan, size_t size)
 {
-	t_ip			*ip = &scan->job->host_ip;
+	t_ip			*ip = &scan->host_job->host_ip;
 	int				tcp = scan->type != E_UDP;
 	t_probe			*probe = scan->cfg->probe + ft_thread_self();
 	enum e_sockets	socket = (ip->family == AF_INET ? E_UDPV4 : E_UDPV6) + tcp;
@@ -55,16 +55,17 @@ static void	set_tcpflags(t_tcph_args *args, enum e_scans scan)
 	args->flags = flags;
 }
 
-void	build_scan_probe(t_packet *probe, t_scan *scan,
+void	build_scan_probe(t_packet *probe, t_scan_job *scan,
 			uint16_t srcp, uint16_t dstp)
 {
-	uint8_t	version = scan->job->family == AF_INET ? 4 : 6;
+	uint8_t	version = scan->host_job->family == AF_INET ? 4 : 6;
 	size_t	ipsz = version == 4 ? sizeof(struct iphdr) : sizeof(struct ipv6hdr);
 	t_tcph_args	tcpargs = { .iphdr = probe->raw_data, .version = version,
 		.srcp = srcp, .dstp = dstp, .seq = 0x12344321, .win = 0xfff };
-	t_iph_args	ipargs = { .version = version, .dstip = &scan->job->host_ip,
-		.srcip = &scan->job->dev->ip, .protocol = scan->type == E_UDP ?
-		IP_HEADER_UDP : IP_HEADER_TCP, .hop_limit = 255, .layer5_len = 0 };
+	t_iph_args	ipargs = { .version = version,
+		.dstip = &scan->host_job->host_ip, .srcip = &scan->host_job->dev->ip,
+		.protocol = scan->type == E_UDP ? IP_HEADER_UDP : IP_HEADER_TCP,
+		.hop_limit = 255, .layer5_len = 0 };
 
 	init_ip_header(probe->raw_data, &ipargs);
 	if (ipargs.protocol == IP_HEADER_UDP)

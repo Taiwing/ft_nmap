@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/31 21:04:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/10 08:48:18 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 08:28:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ static uint8_t	scan_nfx_res(t_packet *reply)
 	return (result);
 }
 
-void			set_scan_result(t_scan *scan, t_packet *reply)
+void			set_scan_result(t_scan_job *scan, t_packet *reply)
 {
 	switch (scan->type)
 	{

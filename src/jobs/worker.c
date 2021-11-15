@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/10 08:47:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/15 08:24:47 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static void	lol_wait(t_scan *scan)
+static void	lol_wait(t_scan_job *scan)
 {
 	//TEMP
 	uint64_t	randval = 0;
@@ -45,11 +45,11 @@ static void	lol_wait(t_scan *scan)
 	//TEMP
 }
 
-static void	exec_scan(t_scan *scan)
+static void	exec_scan(t_scan_job *scan)
 {
 	t_packet	reply = { 0 };
 	uint16_t	srcp = PORT_DEF + ft_thread_self();
-	uint16_t	dstp = scan->cfg->ports[scan->task_id];
+	uint16_t	dstp = scan->cfg->ports[scan->port_job_id];
 
 	//buidl the packet to send
 	build_scan_probe(&scan->probe, scan, srcp, dstp);
@@ -79,7 +79,7 @@ static void	exec_scan(t_scan *scan)
 	//TEST
 }
 
-__thread t_scan	*g_scan = NULL;
+__thread t_scan_job	*g_scan = NULL;
 
 static void	worker_exit(void)
 {
@@ -113,7 +113,7 @@ void		wait_workers(t_nmap_config *cfg)
 	}
 }
 
-void		start_workers(t_nmap_config *cfg, t_scan *scan)
+void		start_workers(t_nmap_config *cfg, t_scan_job *scan)
 {
 	int			ret;
 
@@ -127,11 +127,11 @@ void		start_workers(t_nmap_config *cfg, t_scan *scan)
 
 void		*worker(void *ptr)
 {
-	t_scan			*scan;
+	t_scan_job			*scan;
 
 	if (ft_thread_self())
 		ft_atexit(worker_exit);
-	scan = (t_scan *)ptr;
+	scan = (t_scan_job *)ptr;
 	g_scan = scan;
 	while (next_job(scan) && !ft_thread_error())
 	{
