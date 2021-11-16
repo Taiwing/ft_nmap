@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 15:34:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 14:04:22 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,14 +87,16 @@ enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 ** ongoing: counter of started scan_jobs
 ** done: counter of finished scan_jobs
 ** scan_jobs: status of each scan_job
+** scan_locks: to avoid two receive tasks on a scan
 */
-typedef struct	s_port_job
+typedef struct		s_port_job
 {
-	uint8_t		status;
-	uint8_t		ongoing;
-	uint8_t		done;
-	uint8_t		scan_jobs[SCAN_COUNT];
-}				t_port_job;
+	uint8_t			status;
+	_Atomic uint8_t	ongoing;
+	_Atomic uint8_t	done;
+	uint8_t			scan_jobs[SCAN_COUNT];
+	atomic_int		scan_locks[SCAN_COUNT];
+}					t_port_job;
 
 /*
 ** t_probe: nmap probes
@@ -129,9 +131,9 @@ typedef struct		s_probe
 /*
 ** Job structure: this is the status of each tasks on a given host
 **
-** host_job_id: used to id the job a probe belongs to
+** host_job_id: job counter and identification
 ** host: host string
-** host_ip: IP from getaddrinfo()
+** ip: IP from getaddrinfo()
 ** family: IPv4 or IPv6 host and scans
 ** dev: interface to scan from
 ** status: host_job status
@@ -140,23 +142,21 @@ typedef struct		s_probe
 ** start_ts: ts at start of host_job
 ** end_ts: ts at end of host_job
 ** port_jobs: status of each port_job
-** probes: probe array each corresponding to a scan
 */
-typedef struct		s_host_job
+typedef struct			s_host_job
 {
-	uint16_t		host_job_id;
-	char			*host;
-	t_ip			host_ip;
-	uint16_t		family;
-	t_ifinfo		*dev;
-	uint8_t			status;
-	uint16_t		ongoing;
-	uint16_t		done;
-	struct timeval	start_ts;
-	struct timeval	end_ts;
-	t_port_job		*port_jobs;
-	t_probe			probes[MAX_PROBE];
-}					t_host_job;
+	_Atomic uint64_t	host_job_id;
+	char				*host;
+	t_ip				ip;
+	uint16_t			family;
+	t_ifinfo			*dev;
+	uint8_t				status;
+	_Atomic uint16_t	ongoing;
+	_Atomic uint16_t	done;
+	struct timeval		start_ts;
+	struct timeval		end_ts;
+	t_port_job			port_jobs[MAX_PORTS];
+}						t_host_job;
 
 /*
 ** t_nmap_config: nmap configuration
@@ -173,25 +173,26 @@ typedef struct		s_host_job
 ** nscans: number of scans to perform on each port
 ** scan_strings: store selected scan names
 ** hosts_fd: file descriptor for the hosts_file
-** host_jobs: list of active host_jobs
-** empty_host_jobs: store allocated and zeroed out host_jobs
-** global_mutex: global mutex
-** probe_mutex: probe mutex (yup, ikr ?)
-** low_mutex: low priority mutex access to tasks list
-** high_mutex: high priority mutex access to tasks list
-** thread: threads array
+** linktype: link header type (SLL or SLL2)
+** linkhdr_size: size of said header
 ** ifap: pointer to getifaddrs output (to be freed in cleanup)
 ** ip_mode: ip configuration (IPv4/IPv6 enabled/disabled)
 ** socket: sockets for sending probe packets
 ** netinf: information about the network interfaces
+** thread: threads array
+** print_mutex: mutex for synchronizing printing
+** high_mutex: high priority mutex access to tasks list
+** low_mutex: low priority mutex access to tasks list
+** host_job: current host_job
+** probes: probe array each corresponding to a scan
+** nprobes: probe count (sigatomic for alarm handler)
 ** descr: pcap handle for reading incoming packets
-** linktype: link header type (SLL or SLL2)
-** linkhdr_size: size of said header
 ** main_tasks: tasks to be executed by main thread
-** worker_taks: tasks to be executed by worker thread
+** worker_taks: tasks to be executed by worker threads
 */
 typedef struct		s_nmap_config
 {
+	// Initialized at startup
 	const char		*exec;
 	int				speedup;
 	int				verbose;
@@ -204,49 +205,48 @@ typedef struct		s_nmap_config
 	uint8_t			nscans;
 	const char		*scan_strings[SCAN_COUNT];
 	int				hosts_fd;
-	t_list			*host_jobs;
-	t_list			*empty_host_jobs;
-	pthread_mutex_t	global_mutex;
-	pthread_mutex_t	probe_mutex;
-	pthread_mutex_t	high_mutex;
-	pthread_mutex_t	low_mutex;
-	t_ft_thread		thread[MAX_THREADS];
+	int				linktype;
+	size_t			linkhdr_size;
 	struct ifaddrs	*ifap;
 	enum e_ip_modes	ip_mode;
 	int				socket[SOCKET_COUNT];
 	t_netinfo		netinf;
+	t_ft_thread		thread[MAX_THREADS];
+	pthread_mutex_t	print_mutex;
+	pthread_mutex_t	high_mutex;
+	pthread_mutex_t	low_mutex;
 	pcap_t			*descr;
-	int				linktype;
-	size_t			linkhdr_size;
+	// Modified during execution
+	t_host_job		host_job;
+	t_probe			probes[MAX_PROBE];
+	sig_atomic_t	nprobes;
 	t_list			*main_tasks;
 	t_list			*worker_tasks;
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL,\
-	{ 0 }, 0, { 0 }, -1, NULL, NULL, {{ 0 }}, {{ 0 }}, {{ 0 }}, {{ 0 }},\
-	{{ 0 }}, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, NULL, 0, 0,\
-	NULL, NULL\
+	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 }, 0, { 0 },\
+	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }},\
+	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
+	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL\
 }
 
 /*
 ** Task structure: given to workers and main by next_task()
 **
 ** type: well, type of task (duh)
-** cfg: just a useless pointer to a globally accessible structure
 ** probe: probe in case the task is of type PROBE or REPLY
 ** reply: pointer to eventual reply packet (signals timeout when NULL)
 */
 typedef struct		s_task
 {
 	enum e_tasks	type;
-	t_nmap_config	*cfg;
 	t_probe			*probe;
 	t_packet		*reply;
 }					t_task;
 
 // task function type
-typedef void		(*taskf)(t_task *task);
+typedef void		(*taskf)(t_task *task, t_nmap_config *cfg);
 
 /*
 ** Option functions
@@ -265,20 +265,20 @@ void		verbose_scan(t_scan_job *scan, t_packet *packet,
 ** Network functions
 */
 
+void		open_device(t_nmap_config *cfg, int maxlen, int timeout);
 void		set_alarm_tick(void);
 void		init_sockets(t_nmap_config *cfg);
 void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
 int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
-void		build_probe(t_task *task, uint16_t srcp, uint16_t dstp);
-void		share_probe(t_scan_job *scan, size_t size);
+void		build_probe_packet(t_probe *probe, uint8_t version);
 void		send_probe(t_nmap_config *cfg, t_probe *probe);
 void		grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
 pcap_t		*setup_listener(t_scan_job *scan, uint16_t srcp, uint16_t dstp);
 int			ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback);
-void		set_scan_result(t_scan_job *scan, t_packet *reply);
+uint8_t		scan_result(enum e_scans scan_type, t_packet *reply);
 
 /*
 ** Job functions
@@ -290,8 +290,7 @@ t_scan_job	*next_job(t_scan_job *scan);
 void		start_workers(t_nmap_config *cfg);
 void		wait_workers(t_nmap_config *cfg);
 void		*worker(void *ptr);
-t_list		*init_new_host_job(t_nmap_config *cfg);
-void		update_job(t_scan_job *scan);
+void		update_job(t_nmap_config *cfg, t_task *task, uint8_t result);
 void		print_config(t_nmap_config *cfg);
 void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
 void		push_tasks(t_list **dest, t_list *tasks,
@@ -312,7 +311,7 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 ** ft_nmap globals
 */
 
-extern __thread int			g_global_locked;
+extern __thread int			g_print_locked;
 extern __thread int			g_probe_locked;
 extern __thread t_scan_job	*g_scan;
 extern t_nmap_config		*g_cfg;

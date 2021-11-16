@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 10:35:30 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 13:58:40 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,11 +77,11 @@ void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 	char		ipbuf[INET6_ADDRSTRLEN] = { 0 };
 	double		scan_time = ts_msdiff(&host_job->end_ts, &host_job->start_ts);
 
-	ft_printf("Host: %s\n", host_job->host);
-	ft_printf("Scan took %g seconds\n", scan_time / 1000.0);
-	ft_printf("IP address: %s\n\n", inet_ntop(host_job->host_ip.family,
-		ip_addr(&host_job->host_ip), ipbuf, INET6_ADDRSTRLEN));
-	ft_printf("Open ports:");
+	if (cfg->speedup && cfg->verbose)
+		nmap_mutex_lock(&cfg->print_mutex, &g_print_locked);
+	ft_printf("Host: %s\nScan took %g seconds\nIP address: %s\n\nOpen ports:",
+		host_job->host, scan_time / 1000.0, inet_ntop(host_job->ip.family,
+		ip_addr(&host_job->ip), ipbuf, INET6_ADDRSTRLEN));
 	for (i = 0, c = 0; i < cfg->nports; ++i)
 		if (host_job->port_jobs[i].status & E_STATE_OPEN)
 			print_port(host_job->port_jobs + i, i, c++, cfg);
@@ -96,6 +96,8 @@ void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 	}
 	else
 		ft_printf(" 0\n");
+	if (cfg->speedup && cfg->verbose)
+		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }
 
 void		print_config(t_nmap_config *cfg)

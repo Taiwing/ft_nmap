@@ -6,22 +6,26 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 10:44:10 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 12:37:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static void	cleanup(void)
+static void	main_thread_cleanup(void)
 {
-	//TODO: close every current probe pcap handle (descr)
-	alarm(0); //TODO: then stop alarms
+	alarm(0);
 	if (g_cfg->ifap)
 		freeifaddrs(g_cfg->ifap);
 	wait_workers(g_cfg);
 	if (g_cfg->hosts_fd >= 0)
 		close(g_cfg->hosts_fd);
 	close_sockets(g_cfg);
+	if (g_cfg->descr)
+	{
+		pcap_close(g_cfg->descr);
+		g_cfg->descr = NULL;
+	}
 }
 
 static void	check_config(t_nmap_config *cfg)
@@ -41,6 +45,21 @@ static void	check_config(t_nmap_config *cfg)
 			cfg->scans[cfg->nscans] = 1;
 }
 
+static void	init_config(t_nmap_config *config, int argc, char **argv)
+{
+	g_cfg = &cfg;
+	ft_exitmsg((char *)cfg.exec);
+	ft_atexit(main_thread_cleanup);
+	ft_first_exit();
+	get_options(&cfg, argc, argv);
+	check_config(&cfg);
+	get_network_info(&cfg);
+	init_sockets(&cfg);
+	open_device(cfg, HEADER_MAXSIZE, -1);
+	set_alarm_tick();
+	print_config(&cfg);
+}
+
 t_nmap_config	*g_cfg = NULL;
 
 int	main(int argc, char **argv)
@@ -48,19 +67,8 @@ int	main(int argc, char **argv)
 	int				ret;
 	t_nmap_config	cfg = CONFIG_DEF;
 
-	(void)argc;
-	g_cfg = &cfg;
-	ft_exitmsg((char *)cfg.exec);
-	ft_atexit(cleanup);
-	ft_first_exit();
-	get_options(&cfg, argc, argv);
-	check_config(&cfg);
-	get_network_info(&cfg);
-	init_sockets(&cfg);
-	set_alarm_tick();
-	print_config(&cfg);
-	if (cfg.speedup && (ret = pthread_mutex_init(&cfg.global_mutex, NULL)))
-		ft_exit(EXIT_FAILURE, "pthread_mutex_init: %s", strerror(ret));
+	init_config(&cfg, argc, argv);
+	//TODO: use init task functions and delete start_workers/wait_workers here
 	start_workers(&cfg);
 	wait_workers(&cfg);
 	ft_exit(EXIT_SUCCESS, NULL);

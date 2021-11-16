@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 10:59:25 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 14:11:14 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,14 +59,14 @@ static void	exec_scan(t_scan_job *scan)
 	if (!(scan->descr = setup_listener(scan, srcp, dstp)))
 		ft_exit(EXIT_FAILURE, "%s: failed to setup listener", __func__);
 	//put packet pointer and pcap handle in shared array (for alarm handler)
-	share_probe(scan, scan->probe.size);
+	//share probe(scan, scan->probe.size); (wont do it here like that)
 	//start listening
 	ft_listen(&reply, scan->descr, grab_reply);
 	if (scan->cfg->verbose > 0)
 		verbose_scan(scan, &reply,
 			reply.size > 0 ? "Received reply!" : "Probe timed out...");
 	//interpret answer or non-answer and set scan result
-	set_scan_result(scan, &reply);
+	//scan result (wont do it here anymore)
 
 	//cleanup
 	if (scan->descr)
@@ -83,8 +83,10 @@ __thread t_scan_job	*g_scan = NULL;
 
 static void	worker_exit(void)
 {
-	nmap_mutex_unlock(&g_cfg->global_mutex, &g_global_locked);
-	nmap_mutex_unlock(&g_cfg->probe_mutex, &g_probe_locked);
+	//TODO: unlock mutexes if needed
+	nmap_mutex_unlock(&g_cfg->print_mutex, &g_print_locked);
+	nmap_mutex_unlock(&g_cfg->high_mutex, &g_high_locked);
+	nmap_mutex_unlock(&g_cfg->low_mutex, &g_low_locked);
 	if (g_scan && g_scan->descr)
 	{
 		pcap_close(g_scan->descr);
@@ -102,7 +104,6 @@ void		wait_workers(t_nmap_config *cfg)
 
 	if ((nthreads = ft_thread_count()))
 	{
-		nmap_mutex_unlock(&cfg->global_mutex, &g_global_locked);
 		//TODO: probably send a signal to end threads (through ft_exit of course)
 		// or just set g_thread_error to a non-zero value (if it is not already
 		// the case)
@@ -118,23 +119,28 @@ void		start_workers(t_nmap_config *cfg);
 	int			ret;
 
 	for (uint8_t i = 0; i < cfg->speedup && !ft_thread_error(); ++i)
-		if ((ret = ft_thread_create(cfg->thread + i + 1, NULL, worker, NULL)))
+		if ((ret = ft_thread_create(cfg->thread + i + 1, NULL, worker, cfg)))
 			ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(ret));
 }
 
 void		*worker(void *ptr)
 {
-	t_scan_job			*scan;
+	t_nmap_config	*cfg;
+	t_task			*task = NULL;
+	uint64_t		is_worker_thread;
 
-	if (ft_thread_self())
+	cfg = (t_nmap_config *)ptr;
+	if ((is_worker_thread = ft_thread_self()))
 		ft_atexit(worker_exit);
-	scan = (t_scan_job *)ptr;
-	g_scan = scan;
-	while (next_job(scan) && !ft_thread_error())
+	while ((task = pop_task(&cfg->worker_tasks, is_worker_thread))
+			&& !ft_thread_error())
 	{
-		exec_scan(scan);
+		g_taskf[task->type](task, cfg);
 		update_job(scan);
+		ft_memdel((void **)&task);
 	}
+	if (task)
+		ft_memdel((void **)&task);
 	ft_atexit(NULL);
 	return (NULL);
 }

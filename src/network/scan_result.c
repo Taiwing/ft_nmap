@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/31 21:04:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 08:28:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 10:23:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,15 +69,18 @@ static uint8_t	scan_nfx_res(t_packet *reply)
 	return (result);
 }
 
-void			set_scan_result(t_scan_job *scan, t_packet *reply)
+uint8_t			scan_result(enum e_scans scan_type, t_packet *reply)
 {
-	switch (scan->type)
+	uint8_t	result;
+
+	switch (scan_type)
 	{
-		case E_SYN: scan->result = scan_syn_res(reply);				break;
-		case E_UDP: scan->result = scan_udp_res(reply);				break;
-		case E_ACK: scan->result = scan_ack_res(reply);				break;
+		case E_SYN: result = scan_syn_res(reply);				break;
+		case E_UDP: result = scan_udp_res(reply);				break;
+		case E_ACK: result = scan_ack_res(reply);				break;
 		case E_NULL:
 		case E_FIN:
-		case E_XMAS: scan->result = scan_nfx_res(reply);			break;
+		case E_XMAS: result = scan_nfx_res(reply);				break;
 	}
+	return (result);
 }

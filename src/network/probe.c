@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 14:53:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 11:55:52 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,25 +35,24 @@ static void	set_tcpflags(t_tcph_args *args, enum e_scans scan)
 	args->flags = flags;
 }
 
-void	build_probe(t_task *task)
+void	build_probe_packet(t_probe *probe, uint8_t version)
 {
-	uint8_t	version = task->host_job->family == AF_INET ? 4 : 6;
 	size_t	ipsz = version == 4 ? sizeof(struct iphdr) : sizeof(struct ipv6hdr);
-	t_tcph_args	tcpargs = { .iphdr = task->probe->raw_data, .version = version,
-		.srcp = task->srcp, .dstp = task->dstp, .seq = 0x12344321,
+	t_tcph_args	tcpargs = { .iphdr = probe->packet.raw_data, .version = version,
+		.srcp = probe->srcp, .dstp = probe->dstp, .seq = 0x12344321,
 		.win = 0xfff };
-	t_iph_args	ipargs = { .version = version, .dstip = task->dstip,
-		.srcip = task->srcip, .protocol = task->scan_type == E_UDP ?
+	t_iph_args	ipargs = { .version = version, .dstip = probe->dstip,
+		.srcip = probe->srcip, .protocol = probe->scan_type == E_UDP ?
 		IP_HEADER_UDP : IP_HEADER_TCP, .hop_limit = 255, .layer5_len = 0 };
 
-	init_ip_header(task->probe->raw_data, &ipargs);
+	init_ip_header(probe->packet.raw_data, &ipargs);
 	if (ipargs.protocol == IP_HEADER_UDP)
-		init_udp_header(task->probe->raw_data + ipsz, task->probe->raw_data,
-			task->srcp, task->dstp);
+		init_udp_header(probe->packet.raw_data + ipsz, probe->packet.raw_data,
+			probe->srcp, probe->dstp);
 	else if (ipargs.protocol == IP_HEADER_TCP)
 	{
-		set_tcpflags(&tcpargs, task->scan_type);
-		init_tcp_header(task->probe->raw_data + ipsz, &tcpargs);
+		set_tcpflags(&tcpargs, probe->scan_type);
+		init_tcp_header(probe->packet.raw_data + ipsz, &tcpargs);
 	}
-	init_packet(task->probe, version == 4 ? E_IH_V4 : E_IH_V6);
+	init_packet(&probe->packet, version == 4 ? E_IH_V4 : E_IH_V6);
 }

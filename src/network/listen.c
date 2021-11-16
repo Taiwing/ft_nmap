@@ -6,25 +6,30 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 11:27:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 12:10:52 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static pcap_t	*open_device(t_scan_job *scan, int maxlen, int timeout)
+void	open_device(t_nmap_config *cfg, int maxlen, int timeout)
 {
-	pcap_t	*descr;
 	char	errbuf[PCAP_ERRBUF_SIZE];
 
-	if (!(descr = pcap_open_live(NULL, maxlen, 0, timeout, errbuf)))
+	if (!(cfg->descr = pcap_open_live(NULL, maxlen, 0, timeout, errbuf)))
 		ft_exit(EXIT_FAILURE, "pcap_open_live: %s\n", errbuf);
-	return (descr);
+	if ((cfg->linktype = pcap_datalink(cfg->descr)) == PCAP_ERROR_NOT_ACTIVATED)
+		ft_exit(EXIT_FAILURE, "%s: pcap_datalink failure", __func__);
+	if (cfg->linktype != DLT_LINUX_SLL && cfg->linktype != DLT_LINUX_SLL2)
+		ft_exit(EXIT_FAILURE, "%s: unsupported link layer type: %d", __func__,
+			cfg->linktype);
+	cfg->linkhdr_size = cfg->linktype == DLT_LINUX_SLL ?
+		sizeof(struct sll_header) : sizeof(struct sll2_header);
 }
 
 #define SET_FILTER_ERRBUF_SIZE	(PCAP_ERRBUF_SIZE + 128)
 
-static void		set_filter(pcap_t *descr, char *filter, t_scan_job *scan)
+static void		set_filter_internal(pcap_t *descr, char *filter, t_scan_job *scan)
 {
 	int					ret;
 	struct bpf_program	fp = { 0 };
@@ -66,32 +71,21 @@ const char	*g_filter_format =
 // monothreaded runs can get the most precise filter possible while a broader
 // one will be used for multithreaded runs.
 
-pcap_t			*setup_listener(t_scan_job *scan, uint16_t srcp, uint16_t dstp)
+void	set_filter(t_nmap_config *cfg)
 {
-	pcap_t	*descr = NULL;
-	t_host_job	*host_job = scan->host_job;
-	t_ip	*srcip = &host_job->dev->ip, *dstip = &host_job->host_ip;
+	t_ip	*src = &cfg->host_job.dev->ip, *dst = &cfg->host_job.ip;
 	char	filter[FILTER_MAXLEN + 1] = { 0 };
-	char	*ip = host_job->family == AF_INET ? "ip" : "ip6";
+	char	*ip = cfg->host_job.family == AF_INET ? "ip" : "ip6";
 	char	*layer4 = scan->type == E_UDP ? "udp" : "tcp";
-	char	*icmp = host_job->family == AF_INET ? "icmp" : "icmp6";
-	char	srcipbuf[INET6_ADDRSTRLEN + 1], dstipbuf[INET6_ADDRSTRLEN + 1];
+	char	*icmp = cfg->host_job.family == AF_INET ? "icmp" : "icmp6";
+	char	srcbuf[INET6_ADDRSTRLEN + 1], dstbuf[INET6_ADDRSTRLEN + 1];
 
-	if (!(descr = open_device(scan, HEADER_MAXSIZE, 1)))
-		return (NULL);
 	ft_snprintf(filter, FILTER_MAXLEN, g_filter_format,
-		inet_ntop(host_job->family, ip_addr(dstip), dstipbuf, INET6_ADDRSTRLEN),
-		inet_ntop(host_job->family, ip_addr(srcip), srcipbuf, INET6_ADDRSTRLEN),
+		inet_ntop(cfg->host_job.family, ip_addr(dst), dstbuf, INET6_ADDRSTRLEN),
+		inet_ntop(cfg->host_job.family, ip_addr(src), srcbuf, INET6_ADDRSTRLEN),
 		ip, layer4, dstp, srcp, icmp, 17, scan->type == E_UDP ? IP_HEADER_UDP
 		: IP_HEADER_TCP, 28, 30);
-	set_filter(descr, filter, scan);
-	if ((cfg->linktype = pcap_datalink(descr)) == PCAP_ERROR_NOT_ACTIVATED)
-		ft_exit(EXIT_FAILURE, "%s: pcap_datalink failure", __func__);
-	if (cfg->linktype != DLT_LINUX_SLL && cfg->linktype != DLT_LINUX_SLL2)
-		ft_exit(EXIT_FAILURE, "%s: unsupported link layer type: %d", __func__,
-			cfg->linktype);
-	cfg->linkhdr_size = cfg->linktype == DLT_LINUX_SLL ?
-		sizeof(struct sll_header) : sizeof(struct sll2_header);
+	set_filter_internal(descr, filter, scan);
 	return (descr);
 }
 

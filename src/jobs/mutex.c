@@ -6,14 +6,15 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/02 22:36:08 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 10:52:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 14:08:36 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-__thread int	g_probe_locked = 0;
-__thread int	g_global_locked = 0;
+__thread int	g_print_locked = 0;
+__thread int	g_high_locked = 0;
+__thread int	g_low_locked = 0;
 
 void	nmap_mutex_lock(pthread_mutex_t *mutex, int *locked)
 {

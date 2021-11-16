@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 15:36:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 14:07:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,15 @@
 
 void	push_tasks(t_list **dest, t_list *tasks, t_nmap_config *cfg, int prio)
 {
+	if (!tasks)
+		return ;
 	if (prio)
-		ft_lock_mutex(&cfg->high_mutex);
-	ft_lst_move_to_back(NULL, &tasks, dest);
+		nmap_mutex_lock(&cfg->high_mutex, &g_high_locked);
+	if (*dest)
+		ft_lst_last(tasks)->next = *dest;
+	*dest = tasks;
 	if (prio)
-		ft_unlock_mutex(&cfg->high_mutex);
+		nmap_mutex_unlock(&cfg->high_mutex, &g_high_locked);
 }
 
 t_task	*pop_task(t_list **src, int prio)
@@ -28,14 +32,14 @@ t_task	*pop_task(t_list **src, int prio)
 
 	if (prio)
 	{
-		ft_lock_mutex(&cfg->low_mutex);
-		ft_lock_mutex(&cfg->high_mutex);
+		nmap_mutex_lock(&cfg->low_mutex, &g_low_locked);
+		nmap_mutex_lock(&cfg->high_mutex, &g_high_locked);
 	}
 	lst = ft_lst_pop(src, 0);
 	if (prio)
 	{
-		ft_unlock_mutex(&cfg->high_mutex);
-		ft_unlock_mutex(&cfg->low_mutex);
+		nmap_mutex_unlock(&cfg->high_mutex, &g_high_locked);
+		nmap_mutex_unlock(&cfg->low_mutex, &g_low_locked);
 	}
 	if (lst)
 		task = (t_task *)lst->content;

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 14:37:03 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 21:12:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/16 14:02:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,6 @@ static void	alarm_tick(int sig)
 	t_probe	*probe = g_cfg->probe;
 
 	(void)sig;
-	if (g_cfg->speedup)
-		nmap_mutex_lock(&g_cfg->probe_mutex, &g_probe_locked);
 	do {
 		if (probe[i].is_ready && probe[i].retry++ < MAX_RETRY)
 			send_probe(g_cfg, probe + i);
@@ -30,8 +28,6 @@ static void	alarm_tick(int sig)
 			ft_bzero(probe + i, sizeof(t_probe));
 		}
 	} while (++i < g_cfg->speedup);
-	if (g_cfg->speedup)
-		nmap_mutex_unlock(&g_cfg->probe_mutex, &g_probe_locked);
 	alarm(1);
 }
 
