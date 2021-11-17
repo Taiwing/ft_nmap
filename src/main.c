@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 12:38:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 14:24:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,9 +71,7 @@ int	main(int argc, char **argv)
 	t_nmap_config	cfg = CONFIG_DEF;
 
 	init_config(&cfg, argc, argv);
-	//TODO: use init task functions and delete start_workers/wait_workers here
-	start_workers(&cfg);
-	wait_workers(&cfg);
+	init_tasks(&cfg);
 	ft_exit(EXIT_SUCCESS, NULL);
 	return (EXIT_SUCCESS);
 }

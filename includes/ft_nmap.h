@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 12:38:30 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 14:26:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,6 +129,9 @@ typedef struct				s_probe
 	enum e_sockets			socket;
 }							t_probe;
 
+//TODO: Check if ongoing and even full states are useless now. If they are,
+//as I suspect, delete them mercilessly (that would be the case here but also
+//in port jobs of course).
 /*
 ** Job structure: this is the status of each tasks on a given host
 **
@@ -301,6 +304,7 @@ t_task		*pop_task(t_list **src, int prio);
 void		init_reply_task(const uint8_t *bytes, size_t size, int type);
 void		init_reply_task(const uint8_t *bytes, size_t size,
 				int type, uint16_t probe);
+void		init_tasks(t_nmap_config *cfg);
 
 /*
 ** ft_nmap constants
