@@ -6,39 +6,50 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 06:17:13 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/16 13:58:18 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 16:34:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-void	verbose_listener_setup(t_scan_job *scan, char *filter)
+void	verbose_listener_setup(t_nmap_config *cfg, char *filter)
 {
-	if (scan->cfg->speedup)
-		nmap_mutex_lock(&scan->cfg->print_mutex, &g_print_locked);
+	if (cfg->speedup)
+		nmap_mutex_lock(&cfg->print_mutex, &g_print_locked);
 	ft_putchar('\n');
-	if (scan->cfg->speedup)
+	if (cfg->speedup)
 		ft_printf("Worker Thread %llu (%#llx)\n",
 			ft_thread_self(), pthread_self());
 	ft_printf("Pcap filter set:\n%s\n", filter);
-	if (scan->cfg->speedup)
-		nmap_mutex_unlock(&scan->cfg->print_mutex, &g_print_locked);
+	if (cfg->speedup)
+		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }
 
-void	verbose_scan(t_scan_job *scan, t_packet *packet, const char *action)
+void	verbose_scan(t_nmap_config *cfg, t_probe *probe,
+			t_packet *packet, const char *action)
 {
-	if (scan->cfg->speedup)
-		nmap_mutex_lock(&scan->cfg->print_mutex, &g_print_locked);
+	if (cfg->speedup)
+		nmap_mutex_lock(&cfg->print_mutex, &g_print_locked);
 	ft_printf("\n---- Scan type %s on host '%s' port %hu "
-		"(port_job %hu/%d) ----\n",  g_nmap_scan_strings[scan->type],
-		scan->host_job->host, scan->cfg->ports[scan->port_job_id],
-		scan->port_job_id + 1, scan->cfg->nports);
-	if (scan->cfg->speedup)
+		"(port_job %hu/%d) ----\n",  g_nmap_scan_strings[probe->scan_type],
+		cfg->host_job.host, probe->dstp, probe->port_job_id + 1, cfg->nports);
+	if (cfg->speedup)
 		ft_printf("Worker Thread %llu (%#llx)\n",
 			ft_thread_self(), pthread_self());
 	ft_printf("%s\n", action);
-	print_packet(packet->raw_data, scan->host_job->family,
-		packet->size, (char *)scan->cfg->exec);
-	if (scan->cfg->speedup)
-		nmap_mutex_unlock(&scan->cfg->print_mutex, &g_print_locked);
+	if (packet)
+		print_packet(packet->raw_data, cfg->host_job.family,
+			packet->size, (char *)cfg->exec);
+	if (cfg->speedup)
+		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
+}
+
+void	verbose_reply(t_nmap_config *cfg, t_task *task, t_packet *reply)
+{
+	if (!reply)
+		verbose_scan(cfg, task->probe, reply, "Probe Timeout.");
+	else if (task->result != E_STATE_NONE)
+		verbose_scan(cfg, task->probe, reply, "Received reply packet!");
+	else if (g_cfg->verbose > 1)
+		verbose_scan(cfg, task->probe, reply, "Dropping invalid packet.");
 }

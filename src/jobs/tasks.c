@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 14:05:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 16:33:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ static void	task_probe(t_task *task, t_nmap_config *cfg)
 {
 	t_list	*new_task;
 
+	if (cfg->verbose)
+		verbose_scan(cfg, task->probe, task->probe->packet, "Sending probe...");
 	send_probe(cfg, task->probe);
 }
 

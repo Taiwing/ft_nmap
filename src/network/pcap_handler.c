@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 08:21:27 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 15:40:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 16:34:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,8 @@ void			init_reply_task(const uint8_t *bytes, size_t size,
 	if (!(task.probe = bytes ? get_probe(&reply) : g_cfg->probes + probe))
 		ft_exit(EXIT_FAILURE, "%s: probe not found\n", __func__);
 	task.result = scan_result(task.probe->scan_type, bytes ? &reply : NULL);
+	if (g_cfg->verbose)
+		verbose_reply(g_cfg, &task, bytes ? &reply : NULL);
 	if (task.result == E_STATE_NONE)
 		return ;
 	new_task = ft_lstnew(&task, sizeof(task));

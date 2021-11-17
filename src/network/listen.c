@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 09:38:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 16:07:12 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ static void		set_filter_internal(pcap_t *descr, char *filter, t_scan_job *scan)
 	{
 		ft_snprintf(errbuf, SET_FILTER_ERRBUF_SIZE,
 			"pcap_compile: %s", pcap_geterr(descr));
-		pcap_close(descr);
 		ft_exit(EXIT_FAILURE, errbuf);
 	}
 	ret = pcap_setfilter(descr, &fp);
@@ -50,11 +49,10 @@ static void		set_filter_internal(pcap_t *descr, char *filter, t_scan_job *scan)
 	{
 		ft_snprintf(errbuf, SET_FILTER_ERRBUF_SIZE,
 			"pcap_setfilter: %s", pcap_geterr(descr));
-		pcap_close(descr);
 		ft_exit(EXIT_FAILURE, errbuf);
 	}
 	if (scan->cfg->verbose > 1)
-		verbose_listener_setup(scan, filter);
+		verbose_listener_setup(scan->cfg, filter);
 }
 
 const char	*g_filter_format =
