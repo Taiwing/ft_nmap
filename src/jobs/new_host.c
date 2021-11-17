@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 12:09:52 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 14:47:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,11 +85,13 @@ void	new_host(t_nmap_config *cfg)
 	char	*host = NULL;
 	t_list	*probe_tasks = NULL;
 
-	//TODO: set cfg end bool to true when no more host
 	cfg->nprobes = 0;
 	cfg->host_job.done = 1;
 	if (!(host = next_host(&cfg->host_job.ip, cfg)))
+	{
+		cfg->end = 1;
 		return ;
+	}
 	set_host_job_data(&cfg->host_job);
 	set_filter(cfg);
 	probe_tasks = build_probe_tasks(cfg, &nprobes);

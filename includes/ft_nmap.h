@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 14:26:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 15:17:55 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,7 +192,9 @@ typedef struct			s_host_job
 ** nprobes: probe count (sigatomic for alarm handler)
 ** descr: pcap handle for reading incoming packets
 ** main_tasks: tasks to be executed by main thread
-** worker_taks: tasks to be executed by worker threads
+** worker_tasks: tasks to be executed by worker threads
+** pending_tasks: boolean set to true if worker_tasks is not empty
+** end: boolean signaling the end of ft_nmap's execution
 */
 typedef struct		s_nmap_config
 {
@@ -226,13 +228,15 @@ typedef struct		s_nmap_config
 	sig_atomic_t	nprobes;
 	t_list			*main_tasks;
 	t_list			*worker_tasks;
+	sig_atomic_t	pending_tasks;
+	sig_atomic_t	end;
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
 	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 }, 0, { 0 },\
 	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }},\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
-	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL\
+	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL, 0\
 }
 
 /*
@@ -300,7 +304,7 @@ void		print_config(t_nmap_config *cfg);
 void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
 void		push_tasks(t_list **dest, t_list *tasks,
 				t_nmap_config *cfg, int prio);
-t_task		*pop_task(t_list **src, int prio);
+t_task		*pop_task(t_list **src, t_nmap_config *cfg, int prio);
 void		init_reply_task(const uint8_t *bytes, size_t size, int type);
 void		init_reply_task(const uint8_t *bytes, size_t size,
 				int type, uint16_t probe);

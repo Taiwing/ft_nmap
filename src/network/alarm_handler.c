@@ -25,6 +25,11 @@ static void	alarm_handler(int sig)
 	int		nprobes = g_cfg->nprobes;
 
 	(void)sig;
+	if (g_cfg->end)
+	{
+		pcap_breakloop();
+		return;
+	}
 	for (int i = 0; i < nprobes; ++i)
 	{
 		if (probe[i].done)

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 07:20:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 15:31:44 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,14 +86,10 @@ static void	worker_exit(void)
 	nmap_mutex_unlock(&g_cfg->print_mutex, &g_print_locked);
 	nmap_mutex_unlock(&g_cfg->high_mutex, &g_high_locked);
 	nmap_mutex_unlock(&g_cfg->low_mutex, &g_low_locked);
-	if (g_scan && g_scan->descr)
-	{
-		pcap_close(g_scan->descr);
-		g_scan->descr = NULL;
-	}
 	if (g_cfg->verbose > 2)
 		ft_printf("worker_exit - worker %llu (%llx)!\n",
 			ft_thread_self(), pthread_self());
+	g_cfg->end = 1;
 	ft_thread_exit();
 }
 
@@ -103,10 +99,7 @@ void		wait_workers(t_nmap_config *cfg)
 
 	if ((nthreads = ft_thread_count()))
 	{
-		//TODO: probably send a signal to end threads (through ft_exit of course)
-		// or just set g_thread_error to a non-zero value (if it is not already
-		// the case)
-		ft_set_thread_error(EXIT_FAILURE);//TEMP
+		cfg->end = 1;
 		for (uint8_t i = 0; i < nthreads; ++i)
 			ft_thread_join(cfg->thread + i + 1, NULL);
 		cfg->speedup = 0;
@@ -117,7 +110,7 @@ void		start_workers(t_nmap_config *cfg);
 {
 	int			ret;
 
-	for (uint8_t i = 0; i < cfg->speedup && !ft_thread_error(); ++i)
+	for (uint8_t i = 0; i < cfg->speedup && !cfg->end; ++i)
 		if ((ret = ft_thread_create(cfg->thread + i + 1, NULL, worker, cfg)))
 			ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(ret));
 }
@@ -125,21 +118,19 @@ void		start_workers(t_nmap_config *cfg);
 void		*worker(void *ptr)
 {
 	t_nmap_config	*cfg;
+	t_list			**task_list;
 	t_task			*task = NULL;
 	uint64_t		is_worker_thread;
 
 	cfg = (t_nmap_config *)ptr;
 	if ((is_worker_thread = ft_thread_self()))
 		ft_atexit(worker_exit);
-	while ((task = pop_task(&cfg->worker_tasks, is_worker_thread))
-			&& !ft_thread_error())
+	task_list = is_worker_thread ? &cfg->worker_tasks : &cfg->main_tasks;
+	while ((task = pop_task(task_list, cfg, is_worker_thread)))
 	{
 		g_tasks[task->type](task, cfg);
-		update_job(scan);
 		ft_memdel((void **)&task);
 	}
-	if (task)
-		ft_memdel((void **)&task);
 	ft_atexit(NULL);
 	return (NULL);
 }
