@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/16 14:04:22 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 12:14:01 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ enum e_states {
 	E_STATE_CLOSED			= 0x10,
 	E_STATE_FILTERED		= 0x20,
 	E_STATE_UNFILTERED		= 0x40,
+	E_STATE_NONE			= 0x80,
 	E_STATE_SCAN_MASK		= 0xf8	// Mask for scan_job status
 };
 
@@ -113,20 +114,20 @@ typedef struct		s_port_job
 ** packet: probe packet
 ** socket: socket type
 */
-typedef struct		s_probe
+typedef struct				s_probe
 {
-	sig_atomic_t	done;
-	sig_atomic_t	retry;
-	t_ip			*srcip;
-	t_ip			*dstip;
-	uint16_t		srcp;
-	uint16_t		dstp;
-	uint16_t		host_job_id;
-	uint16_t		port_job_id;
-	enum e_scans	scan_type;
-	t_packet		packet;
-	enum e_sockets	socket;
-}					t_probe;
+	sig_atomic_t			done;
+	sig_atomic_t			retry;
+	_Atomic enum e_scans	scan_type;
+	t_ip					*srcip;
+	t_ip					*dstip;
+	uint16_t				srcp;
+	uint16_t				dstp;
+	uint16_t				host_job_id;
+	uint16_t				port_job_id;
+	t_packet				packet;
+	enum e_sockets			socket;
+}							t_probe;
 
 /*
 ** Job structure: this is the status of each tasks on a given host
@@ -236,13 +237,13 @@ typedef struct		s_nmap_config
 **
 ** type: well, type of task (duh)
 ** probe: probe in case the task is of type PROBE or REPLY
-** reply: pointer to eventual reply packet (signals timeout when NULL)
+** result: scan result from given packet for REPLY task
 */
 typedef struct		s_task
 {
 	enum e_tasks	type;
 	t_probe			*probe;
-	t_packet		*reply;
+	uint8_t			result;
 }					t_task;
 
 // task function type
@@ -274,10 +275,11 @@ int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
 void		build_probe_packet(t_probe *probe, uint8_t version);
 void		send_probe(t_nmap_config *cfg, t_probe *probe);
-void		grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
+void		pcap_handler(uint8_t *u, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
 pcap_t		*setup_listener(t_scan_job *scan, uint16_t srcp, uint16_t dstp);
-int			ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback);
+int			ft_listen(t_packet *reply, pcap_t *descr,
+				pcap_handler callback, int cnt);
 uint8_t		scan_result(enum e_scans scan_type, t_packet *reply);
 
 /*
@@ -290,12 +292,15 @@ t_scan_job	*next_job(t_scan_job *scan);
 void		start_workers(t_nmap_config *cfg);
 void		wait_workers(t_nmap_config *cfg);
 void		*worker(void *ptr);
-void		update_job(t_nmap_config *cfg, t_task *task, uint8_t result);
+int			update_job(t_nmap_config *cfg, t_task *task);
 void		print_config(t_nmap_config *cfg);
 void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
 void		push_tasks(t_list **dest, t_list *tasks,
 				t_nmap_config *cfg, int prio);
 t_task		*pop_task(t_list **src, int prio);
+void		init_reply_task(const uint8_t *bytes, size_t size, int type);
+void		init_reply_task(const uint8_t *bytes, size_t size,
+				int type, uint16_t probe);
 
 /*
 ** ft_nmap constants

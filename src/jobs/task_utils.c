@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/16 14:07:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 07:28:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,9 @@ void	push_tasks(t_list **dest, t_list *tasks, t_nmap_config *cfg, int prio)
 		nmap_mutex_unlock(&cfg->high_mutex, &g_high_locked);
 }
 
+//TODO: Design the "waiting for a task" system (maybe directly with pthread
+//conditions or just like that for the test). See if the two high/low lock
+//setup is appropriate for waiting.
 t_task	*pop_task(t_list **src, int prio)
 {
 	t_list	*lst = NULL;

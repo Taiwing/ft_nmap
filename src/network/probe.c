@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/16 11:55:52 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 11:58:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,5 +54,5 @@ void	build_probe_packet(t_probe *probe, uint8_t version)
 		set_tcpflags(&tcpargs, probe->scan_type);
 		init_tcp_header(probe->packet.raw_data + ipsz, &tcpargs);
 	}
-	init_packet(&probe->packet, version == 4 ? E_IH_V4 : E_IH_V6);
+	init_packet(&probe->packet, version == 4 ? E_IH_V4 : E_IH_V6, NULL);
 }

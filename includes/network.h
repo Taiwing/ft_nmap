@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/01 11:25:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 11:59:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,8 @@ typedef union		u_nexthdr
 ** nextip: pointer to second ip header if not NONE
 ** last: pointer to next header if any
 ** size: size of raw data (every headers)
-** raw_data: where every header is stored
+** raw_data: where every headers are stored
+** buf: static buffer if the storage is not extern
 */
 
 typedef struct		s_packet
@@ -135,7 +136,8 @@ typedef struct		s_packet
 	t_iphdr			*nextip;
 	t_nexthdr		*last;
 	size_t			size;
-	uint8_t			raw_data[RAW_DATA_MAXSIZE];
+	uint8_t			*raw_data;
+	uint8_t			buf[RAW_DATA_MAXSIZE];
 }					t_packet;
 
 /*
@@ -211,6 +213,7 @@ int			print_packet(void *packet, int domain, size_t size, char *exec);
 ** Packet
 */
 
-void		init_packet(t_packet *packet, enum e_iphdr iph);
+void		reset_packet(t_packet *packet, uint8_t *datap);
+void		init_packet(t_packet *packet, enum e_iphdr iph, uint8_t *datap);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/31 12:17:45 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/01 11:31:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 11:58:50 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,20 +56,22 @@ static enum e_nexthdr	set_nexthdr(uint8_t type, enum e_iphdr iph)
 	return (E_IH_NONE);
 }
 
-void					reset_packet(t_packet *packet)
+void					reset_packet(t_packet *packet, uint8_t *datap)
 {
 	packet->iphdr = packet->nextiphdr = E_IH_NONE;
 	packet->nexthdr = packet->lasthdr = E_NH_NONE;
 	packet->ip = packet->nextip = NULL;
 	packet->next = packet->last = NULL;
 	packet->size = 0;
+	packet->raw_data = datap ? datap : packet->buf;
 }
 
-void					init_packet(t_packet *packet, enum e_iphdr iph)
+void					init_packet(t_packet *packet,
+		enum e_iphdr iph, uint8_t *datap)
 {
 	uint8_t	type;
 
-	reset_packet(packet);
+	reset_packet(packet, datap);
 	if ((packet->iphdr = iph) == E_IH_NONE)
 		return;
 	packet->ip = (t_iphdr *)packet->raw_data;

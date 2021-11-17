@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/16 12:37:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 07:01:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,9 @@
 
 static void	main_thread_cleanup(void)
 {
+	nmap_mutex_unlock(&g_cfg->print_mutex, &g_print_locked);
+	nmap_mutex_unlock(&g_cfg->high_mutex, &g_high_locked);
+	nmap_mutex_unlock(&g_cfg->low_mutex, &g_low_locked);
 	alarm(0);
 	if (g_cfg->ifap)
 		freeifaddrs(g_cfg->ifap);
@@ -47,17 +50,17 @@ static void	check_config(t_nmap_config *cfg)
 
 static void	init_config(t_nmap_config *config, int argc, char **argv)
 {
-	g_cfg = &cfg;
-	ft_exitmsg((char *)cfg.exec);
+	g_cfg = cfg;
+	ft_exitmsg((char *)cfg->exec);
 	ft_atexit(main_thread_cleanup);
 	ft_first_exit();
-	get_options(&cfg, argc, argv);
-	check_config(&cfg);
-	get_network_info(&cfg);
-	init_sockets(&cfg);
+	get_options(cfg, argc, argv);
+	check_config(cfg);
+	get_network_info(cfg);
+	init_sockets(cfg);
 	open_device(cfg, HEADER_MAXSIZE, -1);
 	set_alarm_tick();
-	print_config(&cfg);
+	print_config(cfg);
 }
 
 t_nmap_config	*g_cfg = NULL;

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/16 12:10:52 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 09:38:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,47 +89,13 @@ void	set_filter(t_nmap_config *cfg)
 	return (descr);
 }
 
-void			grab_reply(uint8_t *user, const struct pcap_pkthdr *h,
-					const uint8_t *bytes)
-{
-	t_packet		*reply;
-	int				type = 0;
-	size_t			size = 0;
-
-	if (h->len < g_cfg->linkhdr_size)
-		ft_exit(EXIT_FAILURE, "%s: too small for a link layer header",
-			__func__);
-	reply = (t_packet *)user;
-	size = h->len - linkhdr_size;
-	size = size > RAW_DATA_MAXSIZE ? RAW_DATA_MAXSIZE : size;
-	type = ntohs(g_cfg->linktype == DLT_LINUX_SLL ?
-		((struct sll_header *)bytes)->sll_protocol :
-		((struct sll2_header *)bytes)->sll2_protocol);
-	bytes += g_cfg->linkhdr_size;
-	if (type != ETHERTYPE_IP && type != ETHERTYPE_IPV6)
-		ft_exit(EXIT_FAILURE, "%s: invalid ether type: %d", __func__, type);
-	else if ((type == ETHERTYPE_IP && size < sizeof(struct iphdr))
-		|| (type == ETHERTYPE_IPV6 && size < sizeof(struct ipv6hdr)))
-		ft_exit(EXIT_FAILURE, "%s: too small for an IP%s header: %hu bytes",
-			__func__, type == ETHERTYPE_IP ? "v4" : "v6", size);
-	ft_memcpy(reply->raw_data, bytes, size);
-	init_packet(reply, type == ETHERTYPE_IP ? E_IH_V4 : E_IH_V6);
-	if (reply->size > size)
-		ft_exit(EXIT_FAILURE, "%s: computed size bigger than received data",
-			__func__);
-	//TEMP
-	/*
-	ft_printf("size: %zu\n", size);
-	verbose_scan(g_scan, reply, "Debug from grab_reply:");
-	*/
-	//TEMP
-}
-
-int				ft_listen(t_packet *reply, pcap_t *descr, pcap_handler callback)
+int			ft_listen(t_packet *reply, pcap_t *descr,
+				pcap_handler callback, int cnt)
 {
 	int	r;
 
-	if ((r = pcap_dispatch(descr, 0, callback, (uint8_t *)reply)) == PCAP_ERROR)
+	if ((r = pcap_dispatch(descr, cnt, callback,
+			(uint8_t *)reply)) == PCAP_ERROR)
 		ft_exit(EXIT_FAILURE, "pcap_dispatch: pcap error");
 	else if (r == PCAP_ERROR_BREAK)
 		return (-1);

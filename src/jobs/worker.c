@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/16 14:11:14 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 07:20:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ __thread t_scan_job	*g_scan = NULL;
 
 static void	worker_exit(void)
 {
-	//TODO: unlock mutexes if needed
 	nmap_mutex_unlock(&g_cfg->print_mutex, &g_print_locked);
 	nmap_mutex_unlock(&g_cfg->high_mutex, &g_high_locked);
 	nmap_mutex_unlock(&g_cfg->low_mutex, &g_low_locked);
@@ -135,7 +134,7 @@ void		*worker(void *ptr)
 	while ((task = pop_task(&cfg->worker_tasks, is_worker_thread))
 			&& !ft_thread_error())
 	{
-		g_taskf[task->type](task, cfg);
+		g_tasks[task->type](task, cfg);
 		update_job(scan);
 		ft_memdel((void **)&task);
 	}

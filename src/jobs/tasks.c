@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/16 10:28:24 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 12:19:22 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,8 @@ static void	task_thread_spawn(t_task *task, t_nmap_config *cfg)
 
 static void	task_listen(t_task *task, t_nmap_config *cfg)
 {
-	t_packet	reply = { 0 };
-
 	(void)task;
-	ft_listen(&reply, cfg->descr, grab_reply);
+	ft_listen(NULL, cfg->descr, pcap_handler, 0);
 }
 
 static void	task_new_host(t_task *task, t_nmap_config *cfg)
@@ -34,15 +32,33 @@ static void	task_new_host(t_task *task, t_nmap_config *cfg)
 
 static void	task_probe(t_task *task, t_nmap_config *cfg)
 {
+	t_list	*new_task;
+
 	send_probe(cfg, task->probe);
+	if (!cfg->speedup)
+	{
+		task->type = E_TASK_LISTEN;
+		task->probe = NULL;
+		new_task = ft_lstnew(task, sizeof(t_task));
+		push_tasks(&cfg->main_tasks, new_task, 0);
+	}
 }
 
 static void	task_reply(t_task *task, t_nmap_config *cfg)
 {
-	uint8_t	result = scan_result(task->probe->scan_type, task->reply);	
+	t_list	*new_task;
 
-	ft_memdel((void **)&task->reply);
-	update_job(cfg, task, result);
+	if (update_job(cfg, task))
+	{
+		task->type = E_TASK_NEW_HOST;
+		task->probe = NULL;
+		task->result = 0;
+		new_task = ft_lstnew(task, sizeof(t_task));
+		if (cfg->speedup)
+			push_tasks(&cfg->worker_tasks, new_task, 1);
+		else
+			push_tasks(&cfg->main_tasks, new_task, 0);
+	}
 }
 
 static void	task_thread_wait(t_task *task, t_nmap_config *cfg)
