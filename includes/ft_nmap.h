@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 12:14:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 12:38:30 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -267,7 +267,7 @@ void		verbose_scan(t_scan_job *scan, t_packet *packet,
 */
 
 void		open_device(t_nmap_config *cfg, int maxlen, int timeout);
-void		set_alarm_tick(void);
+void		set_alarm_handler(void);
 void		init_sockets(t_nmap_config *cfg);
 void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);

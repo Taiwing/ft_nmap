@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 07:01:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 12:38:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ static void	init_config(t_nmap_config *config, int argc, char **argv)
 	get_network_info(cfg);
 	init_sockets(cfg);
 	open_device(cfg, HEADER_MAXSIZE, -1);
-	set_alarm_tick();
+	set_alarm_handler();
 	print_config(cfg);
 }
 
