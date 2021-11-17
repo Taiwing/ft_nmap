@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 08:21:27 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 12:18:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 15:40:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void			init_reply_task(const uint8_t *bytes, size_t size,
 		push_tasks(&g_cfg->worker_tasks, new_task, 1);
 }
 
-void			pcap_handler(uint8_t *u, const struct pcap_pkthdr *h,
+void			pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 	const uint8_t *bytes)
 {
 	int				type = 0;

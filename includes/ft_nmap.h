@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 15:17:55 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/17 15:42:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 # include <pthread.h>
 # include <sys/time.h>
 # include <pcap/sll.h>
+# include <signal.h>
+# include <stdatomic.h>
 
 /*
 ** ft_nmap macros and enums
@@ -282,7 +284,7 @@ int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
 void		build_probe_packet(t_probe *probe, uint8_t version);
 void		send_probe(t_nmap_config *cfg, t_probe *probe);
-void		pcap_handler(uint8_t *u, const struct pcap_pkthdr *h,
+void		pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
 pcap_t		*setup_listener(t_scan_job *scan, uint16_t srcp, uint16_t dstp);
 int			ft_listen(t_packet *reply, pcap_t *descr,
@@ -295,7 +297,6 @@ uint8_t		scan_result(enum e_scans scan_type, t_packet *reply);
 
 void		nmap_mutex_lock(pthread_mutex_t *mutex, int *locked);
 void		nmap_mutex_unlock(pthread_mutex_t *mutex, int *locked);
-t_scan_job	*next_job(t_scan_job *scan);
 void		start_workers(t_nmap_config *cfg);
 void		wait_workers(t_nmap_config *cfg);
 void		*worker(void *ptr);
@@ -305,7 +306,6 @@ void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
 void		push_tasks(t_list **dest, t_list *tasks,
 				t_nmap_config *cfg, int prio);
 t_task		*pop_task(t_list **src, t_nmap_config *cfg, int prio);
-void		init_reply_task(const uint8_t *bytes, size_t size, int type);
 void		init_reply_task(const uint8_t *bytes, size_t size,
 				int type, uint16_t probe);
 void		init_tasks(t_nmap_config *cfg);
@@ -326,7 +326,6 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 
 extern __thread int			g_print_locked;
 extern __thread int			g_probe_locked;
-extern __thread t_scan_job	*g_scan;
 extern t_nmap_config		*g_cfg;
 
 #endif

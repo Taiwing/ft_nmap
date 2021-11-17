@@ -23,10 +23,11 @@ SRCC			=	options.c\
 					get_options.c\
 
 JOBSC			=	update_job.c\
-					init_new_host_job.c\
 					mutex.c\
 					worker.c\
-					next_job.c\
+					new_host.c\
+					task_utils.c\
+					tasks.c\
 
 NETWORKC		=	next_host.c\
 					print_headers.c\
@@ -35,7 +36,8 @@ NETWORKC		=	next_host.c\
 					ip.c\
 					probe.c\
 					interfaces.c\
-					alarm_tick.c\
+					pcap_handler.c\
+					alarm_handler.c\
 					scan_result.c\
 					listen.c\
 					get_destinfo.c\
@@ -73,10 +75,11 @@ $(SUB1D)/libft.a:
 options.o: ft_nmap.h network.h libft.h
 main.o: ft_nmap.h network.h libft.h
 update_job.o: ft_nmap.h network.h libft.h
-init_new_host_job.o: ft_nmap.h network.h libft.h
 mutex.o: ft_nmap.h network.h libft.h
 worker.o: ft_nmap.h network.h libft.h
-next_job.o: ft_nmap.h network.h libft.h
+new_host.o: ft_nmap.h network.h libft.h
+task_utils.o: ft_nmap.h network.h libft.h
+tasks.o: ft_nmap.h network.h libft.h
 print.o: ft_nmap.h network.h libft.h
 next_host.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h
@@ -85,7 +88,8 @@ sockets.o: ft_nmap.h network.h libft.h
 ip.o: ft_nmap.h network.h libft.h
 probe.o: ft_nmap.h network.h libft.h
 interfaces.o: ft_nmap.h network.h libft.h
-alarm_tick.o: ft_nmap.h network.h libft.h
+pcap_handler.o: ft_nmap.h network.h libft.h
+alarm_handler.o: ft_nmap.h network.h libft.h
 scan_result.o: ft_nmap.h network.h libft.h
 listen.o: ft_nmap.h network.h libft.h
 get_destinfo.o: ft_nmap.h network.h libft.h

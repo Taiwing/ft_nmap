@@ -1,4 +1,3 @@
-#include <signal.h>
 #include "ft_nmap.h"
 
 static void	init_probe_task(t_probe *probe)
