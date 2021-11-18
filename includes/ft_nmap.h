@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 17:03:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 18:34:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,6 +186,7 @@ typedef struct			s_host_job
 ** socket: sockets for sending probe packets
 ** netinf: information about the network interfaces
 ** thread: threads array
+** nthreads: thread count
 ** print_mutex: mutex for synchronizing printing
 ** high_mutex: high priority mutex access to tasks list
 ** low_mutex: low priority mutex access to tasks list
@@ -220,6 +221,7 @@ typedef struct		s_nmap_config
 	int				socket[SOCKET_COUNT];
 	t_netinfo		netinf;
 	t_ft_thread		thread[MAX_THREADS];
+	uint8_t			nthreads;
 	pthread_mutex_t	print_mutex;
 	pthread_mutex_t	high_mutex;
 	pthread_mutex_t	low_mutex;
@@ -236,7 +238,7 @@ typedef struct		s_nmap_config
 
 # define	CONFIG_DEF				{\
 	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 }, 0, { 0 },\
-	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }},\
+	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL, 0, 0\
 }

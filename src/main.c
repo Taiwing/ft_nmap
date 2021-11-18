@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 17:04:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 17:08:44 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ int	main(int argc, char **argv)
 
 	init_config(&cfg, argc, argv);
 	init_tasks(&cfg);
+	worker(&cfg);
 	ft_exit(EXIT_SUCCESS, NULL);
 	return (EXIT_SUCCESS);
 }

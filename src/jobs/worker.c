@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 16:33:30 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 18:33:55 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,24 +26,25 @@ static void	worker_exit(void)
 
 void		wait_workers(t_nmap_config *cfg)
 {
-	uint64_t	nthreads;
-
-	if ((nthreads = ft_thread_count()))
-	{
-		cfg->end = 1;
-		for (uint8_t i = 0; i < nthreads; ++i)
-			ft_thread_join(cfg->thread + i + 1, NULL);
-		cfg->speedup = 0;
-	}
+	cfg->end = 1;
+	while (cfg->nthreads)
+		ft_thread_join(cfg->thread + cfg->nthreads--, NULL);
+	cfg->speedup = 0;
 }
 
 void		start_workers(t_nmap_config *cfg)
 {
-	int			ret;
+	int					e;
 
-	for (uint8_t i = 0; i < cfg->speedup && !cfg->end; ++i)
-		if ((ret = ft_thread_create(cfg->thread + i + 1, NULL, worker, cfg)))
-			ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(ret));
+	while (cfg->nthreads < cfg->speedup && !cfg->end)
+	{
+		e = ft_thread_create(cfg->thread + ++cfg->nthreads, NULL, worker, cfg);
+		if (e)
+		{
+			--cfg->nthreads;
+			ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(e));
+		}
+	}
 }
 
 void		*worker(void *ptr)
