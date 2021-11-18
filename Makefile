@@ -29,7 +29,8 @@ JOBSC			=	update_job.c\
 					task_utils.c\
 					tasks.c\
 
-NETWORKC		=	next_host.c\
+NETWORKC		=	filter.c\
+					next_host.c\
 					print_headers.c\
 					ip_headers.c\
 					sockets.c\
@@ -81,6 +82,7 @@ new_host.o: ft_nmap.h network.h libft.h
 task_utils.o: ft_nmap.h network.h libft.h
 tasks.o: ft_nmap.h network.h libft.h
 print.o: ft_nmap.h network.h libft.h
+filter.o: ft_nmap.h network.h libft.h
 next_host.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h
 ip_headers.o: network.h libft.h

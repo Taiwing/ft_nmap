@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 16:35:29 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 16:33:01 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -287,7 +287,6 @@ void		build_probe_packet(t_probe *probe, uint8_t version);
 void		send_probe(t_nmap_config *cfg, t_probe *probe);
 void		pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
-pcap_t		*setup_listener(t_scan_job *scan, uint16_t srcp, uint16_t dstp);
 int			ft_listen(t_packet *reply, pcap_t *descr,
 				pcap_handler callback, int cnt);
 uint8_t		scan_result(enum e_scans scan_type, t_packet *reply);
@@ -326,7 +325,8 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 */
 
 extern __thread int			g_print_locked;
-extern __thread int			g_probe_locked;
+extern __thread int			g_high_locked;
+extern __thread int			g_low_locked;
 extern t_nmap_config		*g_cfg;
 
 #endif
