@@ -16,7 +16,8 @@ JOBSDIR			=	jobs
 NETWORKDIR		=	network
 SERVICESDIR		=	services
 
-SRCC			=	options.c\
+SRCC			=	debug.c\
+					options.c\
 					main.c\
 					print.c\
 					verbose.c\
@@ -73,6 +74,7 @@ $(NAME): $(SUB1D)/libft.a $(ODIR) $(OBJ)
 $(SUB1D)/libft.a:
 	make -C $(SUB1D)
 
+debug.o: ft_nmap.h network.h libft.h
 options.o: ft_nmap.h network.h libft.h
 main.o: ft_nmap.h network.h libft.h
 update_job.o: ft_nmap.h network.h libft.h

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 08:01:16 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 16:51:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 19:20:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ static void		set_filter_internal(char *filter, t_nmap_config *cfg)
 			"pcap_setfilter: %s", pcap_geterr(cfg->descr));
 		ft_exit(EXIT_FAILURE, errbuf);
 	}
-	if (cfg->verbose > 1)
+	if (cfg->debug)
 		verbose_listener_setup(cfg, filter);
 }
 

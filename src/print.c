@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/16 13:58:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 19:25:40 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 	char		ipbuf[INET6_ADDRSTRLEN] = { 0 };
 	double		scan_time = ts_msdiff(&host_job->end_ts, &host_job->start_ts);
 
-	if (cfg->speedup && cfg->verbose)
+	if (cfg->speedup && (cfg->verbose || cfg->debug))
 		nmap_mutex_lock(&cfg->print_mutex, &g_print_locked);
 	ft_printf("Host: %s\nScan took %g seconds\nIP address: %s\n\nOpen ports:",
 		host_job->host, scan_time / 1000.0, inet_ntop(host_job->ip.family,
@@ -96,7 +96,7 @@ void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 	}
 	else
 		ft_printf(" 0\n");
-	if (cfg->speedup && cfg->verbose)
+	if (cfg->speedup && (cfg->verbose || cfg->debug))
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }
 

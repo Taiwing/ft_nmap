@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 18:56:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 19:27:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,8 @@ t_opt	g_nmap_opt[] = {
 };
 
 char	*g_nmap_help[] = {
-	"Show debugging information about ft_nmap.",
+	"Show debugging information about pcap filters and posix threads. Also\n"
+	"\t\tprint packets that do not match any valid probe (filter failure).",
 	"File containing a list of hosts to scan (1 per line).",
 	"Print this and exit.",
 	"Hosts to scan specified as a comma separated list of IPv4-IPv6 addresses\n"
@@ -39,8 +40,7 @@ char	*g_nmap_help[] = {
 	"Scans to perform specified as a comma separated list. Possible values:\n"
 	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). Does them all by default.",
 	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
-	"Show probe packets, replies and timeouts. Set this option two times for\n"
-	"\t\tinvalid scan replies (eg: -vv) and three times for invalid packets.",
+	"Show probe packets, replies and timeouts.",
 	"Use only IPv4.",
 	"Use only IPv6.",
 	NULL,
@@ -139,7 +139,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 	while ((opt = ft_getopt_long(argc, args, &o)) >= 0)
 		switch (opt)
 		{
-			case 'd': cfg->debug = 1;									break;
+			case 'd': ++cfg->debug;										break;
 			case 'f': cfg->hosts_file = o.optarg;						break;
 			case 'i': cfg->hosts = o.optarg;							break;
 			case 'p': ports_option(cfg, &o);							break;
