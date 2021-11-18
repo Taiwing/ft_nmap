@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 19:17:37 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 19:45:12 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -271,10 +271,10 @@ const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 void		ports_option(t_nmap_config *cfg, t_optdata *optd);
 void		scan_option(t_nmap_config *cfg, t_optdata *optd);
-void		verbose_listener_setup(t_nmap_config *cfg, char *filter);
 void		verbose_scan(t_nmap_config *cfg, t_probe *probe,
 				t_packet *packet, const char *action);
 void		verbose_reply(t_nmap_config *cfg, t_task *task, t_packet *reply);
+void		debug_listener_setup(t_nmap_config *cfg, char *filter);
 void		debug_invalid_packet(t_nmap_config *cfg, t_packet *packet);
 
 /*

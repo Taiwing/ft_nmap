@@ -6,24 +6,11 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 06:17:13 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 19:17:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 19:42:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
-
-void	verbose_listener_setup(t_nmap_config *cfg, char *filter)
-{
-	if (cfg->speedup)
-		nmap_mutex_lock(&cfg->print_mutex, &g_print_locked);
-	ft_putchar('\n');
-	if (cfg->speedup)
-		ft_printf("Worker Thread %llu (%#llx)\n",
-			ft_thread_self(), pthread_self());
-	ft_printf("Pcap filter set:\n%s\n", filter);
-	if (cfg->speedup)
-		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
-}
 
 void	verbose_scan(t_nmap_config *cfg, t_probe *probe,
 			t_packet *packet, const char *action)

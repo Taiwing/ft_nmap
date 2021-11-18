@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 08:01:16 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 19:20:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 19:42:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@ static void		set_filter_internal(char *filter, t_nmap_config *cfg)
 	bpf_u_int32			netp = cfg->host_job.family == AF_INET ?
 		PCAP_NETMASK_UNKNOWN : cfg->host_job.dev->netmask.v4.sin_addr.s_addr;
 
+	if (cfg->debug)
+		debug_listener_setup(cfg, filter);
 	if (pcap_compile(cfg->descr, &fp, filter, 1, netp) == PCAP_ERROR)
 	{
 		ft_snprintf(errbuf, SET_FILTER_ERRBUF_SIZE,
@@ -37,8 +39,6 @@ static void		set_filter_internal(char *filter, t_nmap_config *cfg)
 			"pcap_setfilter: %s", pcap_geterr(cfg->descr));
 		ft_exit(EXIT_FAILURE, errbuf);
 	}
-	if (cfg->debug)
-		verbose_listener_setup(cfg, filter);
 }
 
 #define HOST_FILTER			"(%1$s src host %2$s && %1$s dst host %3$s)"
