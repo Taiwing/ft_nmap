@@ -6,15 +6,16 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/30 06:00:45 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 18:56:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"f:hi:p:S:s:v46"
+#define	FT_NMAP_OPT	"df:hi:p:S:s:v46"
 
 t_opt	g_nmap_opt[] = {
+	{ "debug",		0,	NULL,	'd' },
 	{ "file",		1,	NULL,	'f'	},
 	{ "help",		0,	NULL,	'h'	},
 	{ "ip",			1,	NULL,	'i'	},
@@ -28,6 +29,7 @@ t_opt	g_nmap_opt[] = {
 };
 
 char	*g_nmap_help[] = {
+	"Show debugging information about ft_nmap.",
 	"File containing a list of hosts to scan (1 per line).",
 	"Print this and exit.",
 	"Hosts to scan specified as a comma separated list of IPv4-IPv6 addresses\n"
@@ -37,15 +39,16 @@ char	*g_nmap_help[] = {
 	"Scans to perform specified as a comma separated list. Possible values:\n"
 	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). Does them all by default.",
 	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
-	"Show packets content before they are sent.",
+	"Show probe packets, replies and timeouts. Set this option two times for\n"
+	"\t\tinvalid scan replies (eg: -vv) and three times for invalid packets.",
 	"Use only IPv4.",
 	"Use only IPv6.",
 	NULL,
 };
 
 char	*g_nmap_usage[] = {
-	"[-hv46] [-f path] [-p list] [-S list] [-s number] --ip list",
-	"[-hv46] [-i list] [-p list] [-S list] [-s number] --file path",
+	"[-dhv46] [-f path] [-p list] [-S list] [-s number] --ip list",
+	"[-dhv46] [-i list] [-p list] [-S list] [-s number] --file path",
 	NULL,
 };
 
@@ -136,6 +139,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 	while ((opt = ft_getopt_long(argc, args, &o)) >= 0)
 		switch (opt)
 		{
+			case 'd': cfg->debug = 1;									break;
 			case 'f': cfg->hosts_file = o.optarg;						break;
 			case 'i': cfg->hosts = o.optarg;							break;
 			case 'p': ports_option(cfg, &o);							break;
