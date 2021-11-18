@@ -2,20 +2,20 @@
 
 static void	init_probe_task(t_probe *probe)
 {
-	t_list	new_task;
+	t_list	*new_task;
 	t_task	task = { E_TASK_PROBE, probe, 0 };
 
 	new_task = ft_lstnew(&task, sizeof(task));
-	if (!cfg->speedup)
+	if (!g_cfg->speedup)
 	{
 		task.type = E_TASK_LISTEN;
 		task.probe = NULL;
 		new_task->next = ft_lstnew(&task, sizeof(task));
-		push_tasks(&cfg->main_tasks, new_task, 0);
-		pcap_breakloop();
+		push_tasks(&g_cfg->main_tasks, new_task, g_cfg, 0);
+		pcap_breakloop(g_cfg->descr);
 	}
 	else
-		push_tasks(&cfg->worker_tasks, new_task, 1);
+		push_tasks(&g_cfg->worker_tasks, new_task, g_cfg, 1);
 }
 
 static void	alarm_handler(int sig)
@@ -26,7 +26,7 @@ static void	alarm_handler(int sig)
 	(void)sig;
 	if (g_cfg->end)
 	{
-		pcap_breakloop();
+		pcap_breakloop(g_cfg->descr);
 		return;
 	}
 	for (int i = 0; i < nprobes; ++i)

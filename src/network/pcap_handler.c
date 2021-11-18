@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 08:21:27 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 18:44:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 16:57:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 static t_probe	*get_probe(t_packet *reply)
 {
-	enum e_nexhdr	type = reply->nexthdr;
+	enum e_nexthdr	type = reply->nexthdr;
 	t_nexthdr		*hdr = reply->next;
 	uint16_t		dport, sport;
 
@@ -50,7 +50,7 @@ void			init_reply_task(const uint8_t *bytes, size_t size,
 
 	if (bytes)
 		init_packet(&reply, type == ETHERTYPE_IP ? E_IH_V4 : E_IH_V6,
-			bytes);
+			(uint8_t *)bytes);
 	if (reply.size > size)
 		ft_exit(EXIT_FAILURE, "%s: computed size bigger than received data",
 			__func__);
@@ -63,11 +63,11 @@ void			init_reply_task(const uint8_t *bytes, size_t size,
 	new_task = ft_lstnew(&task, sizeof(task));
 	if (!g_cfg->speedup)
 	{
-		push_tasks(&g_cfg->main_tasks, new_task, 0);
+		push_tasks(&g_cfg->main_tasks, new_task, g_cfg, 0);
 		pcap_breakloop(g_cfg->descr);
 	}
 	else
-		push_tasks(&g_cfg->worker_tasks, new_task, 1);
+		push_tasks(&g_cfg->worker_tasks, new_task, g_cfg, 1);
 }
 
 void			pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
@@ -80,7 +80,7 @@ void			pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 	if (h->len < g_cfg->linkhdr_size)
 		ft_exit(EXIT_FAILURE, "%s: too small for a link layer header",
 			__func__);
-	size = h->len - linkhdr_size;
+	size = h->len - g_cfg->linkhdr_size;
 	size = size > RAW_DATA_MAXSIZE ? RAW_DATA_MAXSIZE : size;
 	type = ntohs(g_cfg->linktype == DLT_LINUX_SLL ?
 		((struct sll_header *)bytes)->sll_protocol :

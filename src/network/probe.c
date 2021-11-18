@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 11:58:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 16:54:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,9 @@
 
 void		send_probe(t_nmap_config *cfg, t_probe *probe)
 {
-	if (sendto(cfg->socket[probe->socket], probe->packet, probe->size, 0,
-			(struct sockaddr *)probe->dstip, ip_sock_size(probe->dstip)) < 0)
+	if (sendto(cfg->socket[probe->socket], probe->packet.raw_data,
+		probe->packet.size, 0, (struct sockaddr *)probe->dstip,
+		ip_sock_size(probe->dstip)) < 0)
 		ft_exit(EXIT_FAILURE, "sendto: %s", strerror(errno));
 }
 

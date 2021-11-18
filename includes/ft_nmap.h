@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 16:33:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 17:03:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,7 @@ typedef struct		s_nmap_config
 	ft_exec_name(*argv), 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 }, 0, { 0 },\
 	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }},\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
-	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL, 0\
+	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL, 0, 0\
 }
 
 /*
@@ -283,12 +283,14 @@ void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
 int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
+void		new_host(t_nmap_config *cfg);
 void		build_probe_packet(t_probe *probe, uint8_t version);
 void		send_probe(t_nmap_config *cfg, t_probe *probe);
 void		pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
 int			ft_listen(t_packet *reply, pcap_t *descr,
 				pcap_handler callback, int cnt);
+void		set_filter(t_nmap_config *cfg, t_probe *probe);
 uint8_t		scan_result(enum e_scans scan_type, t_packet *reply);
 
 /*

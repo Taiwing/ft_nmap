@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 08:01:16 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 11:01:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 16:51:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ static void set_icmp_port_filter(char *filter, char *buf, uint16_t args[7])
 		(family == AF_INET ? ICMP_PORT_FILTER : ICMP6_PORT_FILTER) :
 		(family == AF_INET ? ICMP_PORT_RANGE_FILTER : ICMP6_PORT_RANGE_FILTER),
 		srcp[0], dstp[0], srcp[1], dstp[1]);
-	ft_strlcat(filter, buf, FITLER_MAXLEN);
+	ft_strlcat(filter, buf, FILTER_MAXLEN);
 	ft_strlcat(filter, "))", FILTER_MAXLEN);
 }
 
@@ -98,11 +98,12 @@ static void	build_port_filters(char *filter, uint16_t family,
 	char		*layer4str = NULL;
 	uint16_t	layer4 = HAS_UDP | HAS_TCP;
 	char		buf[FILTER_MAXLEN + 1] = { 0 };
+	uint16_t	nprobes = cfg->nscans * cfg->nports;
 	uint16_t	dstp[2] = {
 		probe ? probe->dstp : cfg->ports[0], cfg->ports[cfg->nports - 1]
 	};
 	uint16_t	srcp[2] = {
-		probe ? probe->srcp : PORT_DEF, PORT_DEF + cfg->nprobes - 1
+		probe ? probe->srcp : PORT_DEF, PORT_DEF + nprobes - 1
 	};
 
 	if (!cfg->scans[E_UDP] || (probe && probe->scan_type != E_UDP))
@@ -126,13 +127,10 @@ void		set_filter(t_nmap_config *cfg, t_probe *probe)
 	char		srcbuf[INET6_ADDRSTRLEN + 1], dstbuf[INET6_ADDRSTRLEN + 1];
 	char		filter[FILTER_MAXLEN + 1] = { 0 };
 
-	char	*icmp = cfg->host_job.family == AF_INET ? "icmp" : "icmp6";
-	char	*ip = cfg->host_job.family == AF_INET ? "ip" : "ip6";
-
 	ft_snprintf(filter, FILTER_MAXLEN, HOST_FILTER,
 		family == AF_INET ? "ip" : "ip6",
 		inet_ntop(family, ip_addr(dst), dstbuf, INET6_ADDRSTRLEN),
 		inet_ntop(family, ip_addr(src), srcbuf, INET6_ADDRSTRLEN));
 	build_port_filters(filter, family, cfg, probe);
-	set_filter_internal(cfg->descr, filter);
+	set_filter_internal(filter, cfg);
 }

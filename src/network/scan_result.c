@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/31 21:04:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 11:43:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 17:01:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,14 @@
 
 static uint8_t	parse_icmp_reply(t_packet *reply, int is_udp)
 {
+	uint8_t	code;
+
 	if (reply->nexthdr == E_NH_ICMP
 		&& reply->next->icmp.type == ICMP_DEST_UNREACH)
 	{
 		if ((code = reply->next->icmp.code) == ICMP_PORT_UNREACH)
 			return (is_udp ? E_STATE_CLOSED : E_STATE_FILTERED);
-		else if ((code >= 0 && code <= 2) || code == 9
-			|| code == 10 || code == 13)
+		else if (code <= 2 || code == 9 || code == 10 || code == 13)
 			return (E_STATE_FILTERED);
 	}
 	else if (reply->nexthdr == E_NH_ICMP6
@@ -28,7 +29,7 @@ static uint8_t	parse_icmp_reply(t_packet *reply, int is_udp)
 	{
 		if ((code = reply->next->icmp6.icmp6_code) == ICMPV6_PORT_UNREACH)
 			return (is_udp ? E_STATE_CLOSED : E_STATE_FILTERED);
-		else if (code >= 0 && code <= 3)
+		else if (code <= 3)
 			return (E_STATE_FILTERED);
 	}
 	return (E_STATE_NONE);

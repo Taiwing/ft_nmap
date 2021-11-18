@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 14:24:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 17:04:01 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ static void	check_config(t_nmap_config *cfg)
 			cfg->scans[cfg->nscans] = 1;
 }
 
-static void	init_config(t_nmap_config *config, int argc, char **argv)
+static void	init_config(t_nmap_config *cfg, int argc, char **argv)
 {
 	g_cfg = cfg;
 	ft_exitmsg((char *)cfg->exec);
@@ -67,7 +67,6 @@ t_nmap_config	*g_cfg = NULL;
 
 int	main(int argc, char **argv)
 {
-	int				ret;
 	t_nmap_config	cfg = CONFIG_DEF;
 
 	init_config(&cfg, argc, argv);
