@@ -18,6 +18,16 @@ static void	init_probe_task(t_probe *probe)
 		push_tasks(&g_cfg->worker_tasks, new_task, g_cfg, 1);
 }
 
+static void	set_probe_timeout(t_probe *probe)
+{
+	t_task			task = { E_TASK_REPLY, probe, E_STATE_NONE };
+
+	task.result = scan_result(probe->scan_type, NULL);
+	if (g_cfg->verbose)
+		verbose_reply(g_cfg, &task, NULL);
+	push_reply_task(&task);
+}
+
 static void	alarm_handler(int sig)
 {
 	t_probe	*probe = g_cfg->probes;
@@ -36,7 +46,7 @@ static void	alarm_handler(int sig)
 		if (probe[i].retry++ < MAX_RETRY)
 			init_probe_task(probe + i);
 		else
-			init_reply_task(NULL, 0, 0, (uint16_t)i);
+			set_probe_timeout(probe + i);
 		if (!g_cfg->speedup)
 			break ;
 	}

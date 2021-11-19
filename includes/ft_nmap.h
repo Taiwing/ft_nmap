@@ -315,8 +315,7 @@ void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
 void		push_tasks(t_list **dest, t_list *tasks,
 				t_nmap_config *cfg, int prio);
 t_task		*pop_task(t_list **src, t_nmap_config *cfg, int prio);
-void		init_reply_task(const uint8_t *bytes, size_t size,
-				int type, uint16_t probe);
+void		push_reply_task(t_task *task);
 void		init_tasks(t_nmap_config *cfg);
 
 /*
