@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 07:19:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 10:43:12 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ static void	task_thread_spawn(t_task *task, t_nmap_config *cfg)
 
 static void	task_listen(t_task *task, t_nmap_config *cfg)
 {
-	(void)task;
+	if (cfg->debug > 1)
+		debug_task(cfg, task);
 	ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
 }
 
