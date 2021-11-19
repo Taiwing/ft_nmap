@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 11:23:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 11:49:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,12 +101,9 @@ typedef struct		s_port_job
 	atomic_int		scan_locks[SCAN_COUNT];
 }					t_port_job;
 
-//TODO: maybe remove done and init retry at 4 and decrease it at each retry
-//(0 would be the 'done' state obviously)
 /*
 ** t_probe: nmap probes
 **
-** done: boolean set to true on reply or timeout (atomic even across signals)
 ** retry: counter of retries (MAX_RETRY then timeout, sig atomic too)
 ** srcip: ip to send probe to
 ** dstip: ip to send probe to
@@ -120,7 +117,6 @@ typedef struct		s_port_job
 */
 typedef struct				s_probe
 {
-	sig_atomic_t			done;
 	sig_atomic_t			retry;
 	_Atomic enum e_scans	scan_type;
 	t_ip					*srcip;

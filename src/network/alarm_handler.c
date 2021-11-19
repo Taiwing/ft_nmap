@@ -41,9 +41,9 @@ static void	alarm_handler(int sig)
 	}
 	for (int i = 0; i < nprobes; ++i)
 	{
-		if (probe[i].done)
+		if (probe[i].retry <= 0)
 			continue ;
-		if (probe[i].retry++ < MAX_RETRY)
+		if (--probe[i].retry > 0)
 			init_probe_task(probe + i);
 		else
 			set_probe_timeout(probe + i);
