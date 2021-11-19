@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 16:49:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 07:19:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 
 static void	task_thread_spawn(t_task *task, t_nmap_config *cfg)
 {
-	(void)task;
+	if (cfg->debug > 1)
+		debug_task(cfg, task);
 	start_workers(cfg);
 }
 
@@ -26,12 +27,15 @@ static void	task_listen(t_task *task, t_nmap_config *cfg)
 
 static void	task_new_host(t_task *task, t_nmap_config *cfg)
 {
-	(void)task;
+	if (cfg->debug > 1)
+		debug_task(cfg, task);
 	new_host(cfg);
 }
 
 static void	task_probe(t_task *task, t_nmap_config *cfg)
 {
+	if (cfg->debug > 1)
+		debug_task(cfg, task);
 	if (!cfg->speedup)
 		set_filter(cfg, task->probe);
 	if (cfg->verbose)
@@ -44,6 +48,8 @@ static void	task_reply(t_task *task, t_nmap_config *cfg)
 {
 	t_list	*new_task;
 
+	if (cfg->debug > 1)
+		debug_task(cfg, task);
 	if (update_job(cfg, task))
 	{
 		task->type = E_TASK_NEW_HOST;
@@ -59,7 +65,8 @@ static void	task_reply(t_task *task, t_nmap_config *cfg)
 
 static void	task_thread_wait(t_task *task, t_nmap_config *cfg)
 {
-	(void)task;
+	if (cfg->debug > 1)
+		debug_task(cfg, task);
 	wait_workers(cfg);
 }
 
