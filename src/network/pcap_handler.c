@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 08:21:27 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 22:01:29 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 06:16:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@ static t_probe	*get_probe(t_packet *reply)
 		default:
 			return (NULL);
 	}
+	sport = ntohs(sport);
+	dport = ntohs(dport);
 	if (sport < PORT_DEF || g_cfg->probes[sport - PORT_DEF].dstp != dport)
 		return (NULL);
 	return (g_cfg->probes + sport - PORT_DEF);
