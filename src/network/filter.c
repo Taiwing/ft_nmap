@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 08:01:16 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 05:54:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 05:59:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,11 +59,6 @@ static void		set_filter_internal(char *filter, t_nmap_config *cfg)
 #define ICMP6_PORT_RANGE_FILTER		\
 	"(ip6[88:2] >= %1$hu && ip6[88:2] <= %3$hu "\
 	"&& ip6[90:2] >= %2$hu && ip6[90:2] <= %4$hu)"
-
-//TODO: Totally remake this function (and the g_filter_format), and call it when
-// creating a new host. Maybe separate filter setting and device opening so that
-// monothreaded runs can get the most precise filter possible while a broader
-// one will be used for multithreaded runs.
 
 #define HAS_UDP 1
 #define HAS_TCP 2
