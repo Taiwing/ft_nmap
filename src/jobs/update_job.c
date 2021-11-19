@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 15:43:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 11:20:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ int			update_job(t_nmap_config *cfg, t_task *task)
 	int					ret = 0;
 
 	port_job = cfg->host_job.port_jobs + task->probe->port_job_id;
-	if (task->probe->done || cfg->host_job.done
+	if (task->probe->done || cfg->host_job.done == cfg->nports
 		|| task->probe->host_job_id != cfg->host_job.host_job_id
 		|| ++port_job->scan_locks[task->probe->scan_type] > 1)
 		return (ret);

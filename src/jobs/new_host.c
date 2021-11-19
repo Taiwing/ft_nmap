@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 16:46:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 11:18:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void	new_host(t_nmap_config *cfg)
 	t_list		*probe_tasks = NULL;
 
 	cfg->nprobes = 0;
-	cfg->host_job.done = 1;
+	cfg->host_job.done = cfg->nports;
 	if (!(host = next_host(&cfg->host_job.ip, cfg)))
 	{
 		cfg->end = 1;
