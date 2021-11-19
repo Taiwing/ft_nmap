@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 08:01:16 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 19:42:58 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 05:54:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,7 @@ static void		set_filter_internal(char *filter, t_nmap_config *cfg)
 #define ICMP6_PORT_FILTER	"ip6[88:2] == %1$hu && ip6[90:2] == %2$hu"
 
 #define LAYER4_PORT_RANGE_FILTER	\
-	"(%1$s src port >= %2$hu && %1$s src port <= %4$hu "\
-	"&& %1$s dst port >= %3$hu && %1$s dst port <= %5$hu)"
+	"(%1$s src portrange %2$hu-%4$hu && %1$s dst portrange %3$hu-%5$hu)"
 #define ICMP_PORT_RANGE_FILTER		\
 	"(icmp[28:2] >= %1$hu && icmp[28:2] <= %3$hu "\
 	"&& icmp[30:2] >= %2$hu && icmp[30:2] <= %4$hu)"

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 08:21:27 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 19:18:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/18 22:01:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ void			init_reply_task(const uint8_t *bytes, size_t size,
 		ft_exit(EXIT_FAILURE, "%s: packet parsing failure (size)", __func__);
 	if ((task.probe = bytes ? get_probe(&reply) : g_cfg->probes + probe))
 		task.result = scan_result(task.probe->scan_type, bytes ? &reply : NULL);
-	if (g_cfg->verbose)
+	if (g_cfg->verbose && task.probe)
 		verbose_reply(g_cfg, &task, bytes ? &reply : NULL);
 	if (g_cfg->debug && !task.probe && bytes)
 		debug_invalid_packet(g_cfg, &reply);
