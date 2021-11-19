@@ -6,11 +6,12 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 07:22:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 11:03:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
+#include "ft_printf_internal.h"
 
 void	debug_listener_setup(t_nmap_config *cfg, char *filter)
 {
@@ -19,7 +20,7 @@ void	debug_listener_setup(t_nmap_config *cfg, char *filter)
 	ft_putchar('\n');
 	if (cfg->speedup)
 		ft_printf("Worker Thread %llu (%#llx)\n",
-			ft_thread_self(), pthread_self());
+				ft_thread_self(), pthread_self());
 	ft_printf("Setting pcap filter:\n%s\n", filter);
 	if (cfg->speedup)
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
@@ -32,9 +33,9 @@ void	debug_invalid_packet(t_nmap_config *cfg, t_packet *packet, char *action)
 	ft_printf("\n---- %s ----\n", action);
 	if (cfg->speedup)
 		ft_printf("Worker Thread %llu (%#llx)\n",
-			ft_thread_self(), pthread_self());
+				ft_thread_self(), pthread_self());
 	print_packet(packet->raw_data, cfg->host_job.family,
-		packet->size, (char *)cfg->exec);
+			packet->size, (char *)cfg->exec);
 	if (cfg->speedup)
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }
@@ -88,14 +89,34 @@ void	debug_task(t_nmap_config *cfg, t_task *task)
 	ft_putchar('\n');
 	if (cfg->speedup)
 		ft_printf("Worker Thread %llu (%#llx)\n",
-			ft_thread_self(), pthread_self());
+				ft_thread_self(), pthread_self());
 	ft_printf("Executing %s task\n", g_nmap_task_strings[task->type]);
 	if (task->probe)
 		ft_printf("probe: scan = %s, srcp = %hu, dstp = %hu\n",
-			g_nmap_scan_strings[task->probe->scan_type],
-			task->probe->srcp, task->probe->dstp);
+				g_nmap_scan_strings[task->probe->scan_type],
+				task->probe->srcp, task->probe->dstp);
 	if (task->type == E_TASK_REPLY)
 		debug_reply(task->result);
+	if (cfg->speedup)
+		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
+}
+
+void	debug_print(t_nmap_config *cfg, const char *format, ...)
+{
+	t_farg  args = { 0 };
+	t_pdata data;
+
+	if (!cfg->debug)
+		return;
+	if (cfg->speedup)
+		nmap_mutex_lock(&cfg->print_mutex, &g_print_locked);
+	pdata_init(&data, PMODE_CLASSIC, 1);
+	pdata_set_buf(&data, NULL, 0);
+	va_start(args.cur, format);
+	va_copy(args.ref, args.cur);
+	ft_printf_internal(&data, format, &args);
+	va_end(args.cur);
+	va_end(args.ref);
 	if (cfg->speedup)
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 08:58:55 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 11:01:18 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -278,6 +278,7 @@ void		debug_listener_setup(t_nmap_config *cfg, char *filter);
 void		debug_invalid_packet(t_nmap_config *cfg,
 				t_packet *packet, char *action);
 void		debug_task(t_nmap_config *cfg, t_task *task);
+void		debug_print(t_nmap_config *cfg, const char *format, ...);
 
 /*
 ** Network functions
