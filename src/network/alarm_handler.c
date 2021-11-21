@@ -12,6 +12,7 @@ static void	init_probe_task(t_probe *probe)
 		task.probe = NULL;
 		new_task->next = ft_lstnew(&task, sizeof(task));
 		push_tasks(&g_cfg->main_tasks, new_task, g_cfg, 0);
+		g_cfg->current_probe = -1;
 		pcap_breakloop(g_cfg->descr);
 	}
 	else
@@ -31,15 +32,17 @@ static void	set_probe_timeout(t_probe *probe)
 static void	alarm_handler(int sig)
 {
 	t_probe	*probe = g_cfg->probes;
-	int		nprobes = g_cfg->nprobes;
+	int		current_probe = g_cfg->current_probe;
+	int		nprobes = g_cfg->speedup ? g_cfg->nprobes : current_probe + 1;
 
 	(void)sig;
-	if (g_cfg->end)
+	if (g_cfg->end || (!g_cfg->speedup && current_probe < 0))
 	{
-		pcap_breakloop(g_cfg->descr);
+		if (g_cfg->end)
+			pcap_breakloop(g_cfg->descr);
 		return;
 	}
-	for (int i = 0; i < nprobes; ++i)
+	for (int i = g_cfg->speedup ? 0 : current_probe; i < nprobes; ++i)
 	{
 		if (probe[i].retry <= 0)
 			continue ;
@@ -47,8 +50,6 @@ static void	alarm_handler(int sig)
 			init_probe_task(probe + i);
 		else
 			set_probe_timeout(probe + i);
-		if (!g_cfg->speedup)
-			break ;
 	}
 	alarm(1);
 }

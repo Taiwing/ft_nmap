@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 11:49:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 14:46:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,6 +196,7 @@ typedef struct			s_host_job
 ** main_tasks: tasks to be executed by main thread
 ** worker_tasks: tasks to be executed by worker threads
 ** pending_tasks: boolean set to true if worker_tasks is not empty
+** current_probe: id of current probe for monothreaded runs
 ** end: boolean signaling the end of ft_nmap's execution
 */
 typedef struct		s_nmap_config
@@ -233,6 +234,7 @@ typedef struct		s_nmap_config
 	t_list			*main_tasks;
 	t_list			*worker_tasks;
 	sig_atomic_t	pending_tasks;
+	sig_atomic_t	current_probe;
 	sig_atomic_t	end;
 }					t_nmap_config;
 
@@ -240,7 +242,7 @@ typedef struct		s_nmap_config
 	ft_exec_name(*argv), 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 }, 0, { 0 },\
 	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
-	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL, 0, 0\
+	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL, 0, -1, 0\
 }
 
 /*

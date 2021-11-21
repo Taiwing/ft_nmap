@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 10:43:12 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/19 15:37:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,16 @@ static void	task_listen(t_task *task, t_nmap_config *cfg)
 {
 	if (cfg->debug > 1)
 		debug_task(cfg, task);
-	ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
+	if (!cfg->speedup)
+	{
+		while (!cfg->end && cfg->current_probe >= 0)
+			ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
+	}
+	else
+	{
+		while (!cfg->end)
+			ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
+	}
 }
 
 static void	task_new_host(t_task *task, t_nmap_config *cfg)
@@ -38,7 +47,10 @@ static void	task_probe(t_task *task, t_nmap_config *cfg)
 	if (cfg->debug > 1)
 		debug_task(cfg, task);
 	if (!cfg->speedup)
+	{
 		set_filter(cfg, task->probe);
+		cfg->current_probe = task->probe->srcp - PORT_DEF;
+	}
 	if (cfg->verbose)
 		verbose_scan(cfg, task->probe,
 			&task->probe->packet, "Sending probe...");
