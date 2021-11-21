@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 12:06:23 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 18:46:12 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/21 06:24:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,8 @@ static t_list	*list_interfaces(t_nmap_config *cfg)
 	if (getifaddrs(&cfg->ifap) < 0)
 		ft_exit(EXIT_FAILURE, "getifaddrs: %s", strerror(errno));
 	for (struct ifaddrs *ifap = cfg->ifap; ifap; ifap = ifap->ifa_next)
-		if ((ifap->ifa_flags & IFF_UP) && ifap->ifa_name
+		if ((ifap->ifa_flags & IFF_LOWER_UP) && (ifap->ifa_flags & IFF_UP)
+			&& !(ifap->ifa_flags & IFF_DORMANT) && ifap->ifa_name
 			&& ifap->ifa_addr && ifap->ifa_netmask
 			&& (ifap->ifa_addr->sa_family == AF_INET
 			|| ifap->ifa_addr->sa_family == AF_INET6)
@@ -53,14 +54,13 @@ static int		check_interface(t_netinfo *netinf, t_ifinfo *ifinf, char *dev)
 	else if (!netinf->loopback_v6 && ifinf->ip.family == AF_INET6
 		&& (ifinf->flags & IFF_LOOPBACK))
 		netinf->loopback_v6 = ifinf;
-	else if (!netinf->defdev_v4 && ifinf->ip.family == AF_INET
-		&& !ft_strcmp(dev, ifinf->name))
+	else if (!netinf->defdev_v4 && ifinf->ip.family == AF_INET)
 		netinf->defdev_v4 = ifinf;
-	else if (!netinf->defdev_v6 && ifinf->ip.family == AF_INET6
-		&& !ft_strcmp(dev, ifinf->name))
+	else if (!netinf->defdev_v6 && ifinf->ip.family == AF_INET6)
 		netinf->defdev_v6 = ifinf;
-	return (netinf->defdev_v4 && netinf->defdev_v6
-		&& netinf->loopback_v4 && netinf->loopback_v6);
+	return (netinf->loopback_v4 && netinf->loopback_v6
+		&& netinf->defdev_v4 && !ft_strcmp(dev, netinf->defdev_v4->name)
+		&& netinf->defdev_v6 && !ft_strcmp(dev, netinf->defdev_v6->name));
 }
 
 void			get_network_info(t_nmap_config *cfg)

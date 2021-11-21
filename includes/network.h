@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 11:59:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/21 06:25:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@
 # include <netinet/tcp.h>
 # include <netinet/udp.h>
 # include <ifaddrs.h>
-# include <net/if.h>
+# include <linux/if.h>
 
 # define FILTER_BUFSIZE		1024
 
