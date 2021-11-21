@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 11:40:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/21 18:53:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,6 @@ static void	set_host_job_data(t_host_job *host_job, const char *host,
 	ft_bzero((void *)&host_job->end_ts, sizeof(host_job->end_ts));
 	ft_bzero((void *)host_job->port_jobs, sizeof(host_job->port_jobs));
 	host_job->status = 0;
-	host_job->ongoing = 0;
 }
 
 void	new_host(t_nmap_config *cfg)

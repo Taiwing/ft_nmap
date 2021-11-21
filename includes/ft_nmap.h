@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 14:46:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/21 18:52:52 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,15 +53,13 @@
 // Job states
 enum e_states {
 	E_STATE_PENDING			= 0x00,	// Not started yet
-	E_STATE_ONGOING			= 0x01,	// At least one scan_job started
-	E_STATE_FULL			= 0x02,	// Every scan_job/port_job is ongoing
-	E_STATE_DONE			= 0x04,	// Finished
-	E_STATE_OPEN			= 0x08,
-	E_STATE_CLOSED			= 0x10,
-	E_STATE_FILTERED		= 0x20,
-	E_STATE_UNFILTERED		= 0x40,
-	E_STATE_NONE			= 0x80, // Invalid reply packet
-	E_STATE_SCAN_MASK		= 0xf8	// Mask for scan_job status
+	E_STATE_DONE			= 0x01,	// Finished
+	E_STATE_OPEN			= 0x02,
+	E_STATE_CLOSED			= 0x04,
+	E_STATE_FILTERED		= 0x08,
+	E_STATE_UNFILTERED		= 0x10,
+	E_STATE_NONE			= 0x20, // Invalid reply packet
+	E_STATE_SCAN_MASK		= 0x1e	// Mask for scan_job status
 };
 
 // Tasks
@@ -87,7 +85,6 @@ enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 ** Task structure: this is the status of each scan_job on a given port
 **
 ** status: port_job status
-** ongoing: counter of started scan_jobs
 ** done: counter of finished scan_jobs
 ** scan_jobs: status of each scan_job
 ** scan_locks: to avoid two receive tasks on a scan
@@ -95,7 +92,6 @@ enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 typedef struct		s_port_job
 {
 	uint8_t			status;
-	_Atomic uint8_t	ongoing;
 	_Atomic uint8_t	done;
 	uint8_t			scan_jobs[SCAN_COUNT];
 	atomic_int		scan_locks[SCAN_COUNT];
@@ -129,9 +125,6 @@ typedef struct				s_probe
 	enum e_sockets			socket;
 }							t_probe;
 
-//TODO: Check if ongoing and even full states are useless now. If they are,
-//as I suspect, delete them mercilessly (that would be the case here but also
-//in port jobs of course).
 /*
 ** Job structure: this is the status of each tasks on a given host
 **
@@ -141,7 +134,6 @@ typedef struct				s_probe
 ** family: IPv4 or IPv6 host and scans
 ** dev: interface to scan from
 ** status: host_job status
-** ongoing: counter of full port_jobs
 ** done: counter of finished port_jobs
 ** start_ts: ts at start of host_job
 ** end_ts: ts at end of host_job
@@ -155,7 +147,6 @@ typedef struct			s_host_job
 	uint16_t			family;
 	t_ifinfo			*dev;
 	uint8_t				status;
-	_Atomic uint16_t	ongoing;
 	_Atomic uint16_t	done;
 	struct timeval		start_ts;
 	struct timeval		end_ts;

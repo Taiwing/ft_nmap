@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 11:03:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/21 18:54:00 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,6 @@ const char	*g_nmap_task_strings[TASK_COUNT] = {
 
 const char	*g_nmap_state_strings[] = {
 	[E_STATE_PENDING]		= "PENDING",
-	[E_STATE_ONGOING]		= "ONGOING",
-	[E_STATE_FULL]			= "FULL",
 	[E_STATE_DONE]			= "DONE",
 	[E_STATE_OPEN]			= "OPEN",
 	[E_STATE_CLOSED]		= "CLOSED",
