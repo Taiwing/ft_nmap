@@ -6,22 +6,22 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 19:27:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/28 06:37:22 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"df:hi:p:S:s:v46"
+#define	FT_NMAP_OPT	"df:hp:S:s:t:v46"
 
 t_opt	g_nmap_opt[] = {
 	{ "debug",		0,	NULL,	'd' },
 	{ "file",		1,	NULL,	'f'	},
 	{ "help",		0,	NULL,	'h'	},
-	{ "ip",			1,	NULL,	'i'	},
 	{ "ports",		1,	NULL,	'p'	},
 	{ "scan",		1,	NULL,	'S'	},
 	{ "speedup",	1,	NULL,	's'	},
+	{ "target",		1,	NULL,	't'	},
 	{ "verbose",	0,	NULL,	'v'	},
 	{ "ipv4",		0,	NULL,	'4'	},
 	{ "ipv6",		0,	NULL,	'6'	},
@@ -33,13 +33,13 @@ char	*g_nmap_help[] = {
 	"\t\tprint packets that do not match any valid probe (filter failure).",
 	"File containing a list of hosts to scan (1 per line).",
 	"Print this and exit.",
-	"Hosts to scan specified as a comma separated list of IPv4-IPv6 addresses\n"
-	"\t\tor hostnames (eg: localhost,192.168.1.0/24,2001::ffff).",
 	"Ports to scan specified as a comma separated list of individual ports or\n"
 	"\t\tranges (eg: 80,22,1024-2048). The default is 1-1024.",
 	"Scans to perform specified as a comma separated list. Possible values:\n"
 	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). Does them all by default.",
 	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
+	"Hosts to scan specified as a comma separated list of IPv4-IPv6 addresses\n"
+	"\t\tor hostnames (eg: localhost,192.168.1.0/24,2001::ffff).",
 	"Show probe packets, replies and timeouts.",
 	"Use only IPv4.",
 	"Use only IPv6.",
@@ -141,10 +141,10 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 		{
 			case 'd': ++cfg->debug;										break;
 			case 'f': cfg->hosts_file = o.optarg;						break;
-			case 'i': cfg->hosts = o.optarg;							break;
 			case 'p': ports_option(cfg, &o);							break;
 			case 'S': scan_option(cfg, &o);								break;
 			case 's': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
+			case 't': cfg->hosts = o.optarg;							break;
 			case 'v': ++cfg->verbose;									break;
 			case '4': cfg->ip_mode = E_IPV4;							break;
 			case '6': cfg->ip_mode = E_IPV6;							break;
