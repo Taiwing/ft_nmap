@@ -24,7 +24,7 @@ static void		add_interface(t_list **iflist, struct ifaddrs *ifap)
 	ft_memcpy(&interface.netmask, ifap->ifa_netmask,
 		ifap->ifa_netmask->sa_family == AF_INET ?
 		sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6));
-	ft_lst_push_front(iflist, &interface, sizeof(interface));
+	ft_lst_push_back(iflist, &interface, sizeof(interface));
 }
 
 static t_list	*list_interfaces(t_nmap_config *cfg)
@@ -54,25 +54,26 @@ static int		check_interface(t_netinfo *netinf, t_ifinfo *ifinf, char *dev)
 	else if (!netinf->loopback_v6 && ifinf->ip.family == AF_INET6
 		&& (ifinf->flags & IFF_LOOPBACK))
 		netinf->loopback_v6 = ifinf;
-	else if (!netinf->defdev_v4 && ifinf->ip.family == AF_INET)
+	else if (ifinf->ip.family == AF_INET && (!netinf->defdev_v4 ||
+		(dev && !ft_strcmp(dev, netinf->defdev_v4->name))))
 		netinf->defdev_v4 = ifinf;
-	else if (!netinf->defdev_v6 && ifinf->ip.family == AF_INET6)
+	else if (ifinf->ip.family == AF_INET6 && (!netinf->defdev_v6 ||
+		(dev && !ft_strcmp(dev, netinf->defdev_v6->name))))
 		netinf->defdev_v6 = ifinf;
 	return (netinf->loopback_v4 && netinf->loopback_v6
-		&& netinf->defdev_v4 && !ft_strcmp(dev, netinf->defdev_v4->name)
-		&& netinf->defdev_v6 && !ft_strcmp(dev, netinf->defdev_v6->name));
+		&& netinf->defdev_v4
+		&& (!dev || !ft_strcmp(dev, netinf->defdev_v4->name))
+		&& netinf->defdev_v6
+		&& (!dev || !ft_strcmp(dev, netinf->defdev_v6->name)));
 }
 
 void			get_network_info(t_nmap_config *cfg)
 {
-	char		*dev;
+	char		*dev = NULL;
 	t_netinfo	*netinf = &cfg->netinf;
-	char		errbuf[PCAP_ERRBUF_SIZE] = { 0 };
 
 	if (!(netinf->iflist = list_interfaces(cfg)))
 		ft_exit(EXIT_FAILURE, "%s: did not find any valid interface", __func__);
-	if (!(dev = pcap_lookupdev(errbuf)))
-		ft_exit(EXIT_FAILURE, "pcap_lookupdev: %s", errbuf);
 	for (t_list *lst = netinf->iflist; lst; lst = lst->next)
 		if (check_interface(netinf, (t_ifinfo *)lst->content, dev))
 			break;

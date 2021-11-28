@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/21 06:25:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/27 13:22:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ typedef union			u_ip
 typedef struct		s_ifinfo
 {
 	char			*name;
-	uint16_t		flags;
+	uint32_t		flags;
 	t_ip			ip;
 	t_ip			netmask;
 }					t_ifinfo;
