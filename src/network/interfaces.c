@@ -46,7 +46,8 @@ static t_list	*list_interfaces(t_nmap_config *cfg)
 	return (iflist);
 }
 
-static int		check_interface(t_netinfo *netinf, t_ifinfo *ifinf, char *dev)
+static void		check_interface(t_netinfo *netinf,
+		t_ifinfo *ifinf, const char *dev)
 {
 	if (!netinf->loopback_v4 && ifinf->ip.family == AF_INET
 		&& (ifinf->flags & IFF_LOOPBACK))
@@ -54,39 +55,44 @@ static int		check_interface(t_netinfo *netinf, t_ifinfo *ifinf, char *dev)
 	else if (!netinf->loopback_v6 && ifinf->ip.family == AF_INET6
 		&& (ifinf->flags & IFF_LOOPBACK))
 		netinf->loopback_v6 = ifinf;
-	else if (ifinf->ip.family == AF_INET && (!netinf->defdev_v4 ||
-		(dev && !ft_strcmp(dev, netinf->defdev_v4->name))))
+	else if (!netinf->defdev_v4 && ifinf->ip.family == AF_INET
+		&& (!dev || !ft_strcmp(dev, ifinf->name)))
 		netinf->defdev_v4 = ifinf;
-	else if (ifinf->ip.family == AF_INET6 && (!netinf->defdev_v6 ||
-		(dev && !ft_strcmp(dev, netinf->defdev_v6->name))))
+	else if (!netinf->defdev_v6 && ifinf->ip.family == AF_INET6
+		&& (!dev || !ft_strcmp(dev, ifinf->name)))
 		netinf->defdev_v6 = ifinf;
-	return (netinf->loopback_v4 && netinf->loopback_v6
-		&& netinf->defdev_v4
-		&& (!dev || !ft_strcmp(dev, netinf->defdev_v4->name))
-		&& netinf->defdev_v6
-		&& (!dev || !ft_strcmp(dev, netinf->defdev_v6->name)));
+}
+
+static void		err_check(t_netinfo *netinf, t_nmap_config *cfg,
+		const char *fstr)
+{
+	const char	*type = cfg->ip_mode == E_IPV4 ? "any IPv4"
+		: cfg->ip_mode == E_IPV6 ? "any IPv6" : "any";
+
+	if ((!netinf->defdev_v4 && !netinf->defdev_v6)
+		|| (cfg->ip_mode == E_IPV4 && !netinf->defdev_v4)
+		|| (cfg->ip_mode == E_IPV6 && !netinf->defdev_v6))
+	{
+		ft_exit(EXIT_FAILURE, cfg->dev ?
+			"%s: did not find %s interface named '%s'"
+			: "%s: did not find %s interface",
+			fstr, type, cfg->dev);
+	}
+	else if (cfg->ip_mode == E_IPALL && !netinf->defdev_v6)
+		cfg->ip_mode = E_IPV4;
+	else if (cfg->ip_mode == E_IPALL && !netinf->defdev_v4)
+		cfg->ip_mode = E_IPV6;
 }
 
 void			get_network_info(t_nmap_config *cfg)
 {
-	char		*dev = NULL;
 	t_netinfo	*netinf = &cfg->netinf;
 
 	if (!(netinf->iflist = list_interfaces(cfg)))
 		ft_exit(EXIT_FAILURE, "%s: did not find any valid interface", __func__);
 	for (t_list *lst = netinf->iflist; lst; lst = lst->next)
-		if (check_interface(netinf, (t_ifinfo *)lst->content, dev))
-			break;
-	if (!netinf->defdev_v4 && !netinf->defdev_v6)
-		ft_exit(EXIT_FAILURE, "%s: did not find default interface", __func__);
-	else if (cfg->ip_mode == E_IPV4 && !netinf->defdev_v4)
-		ft_exit(EXIT_FAILURE, "%s: did not find an IPv4 interface", __func__);
-	else if (cfg->ip_mode == E_IPV6 && !netinf->defdev_v6)
-		ft_exit(EXIT_FAILURE, "%s: did not find an IPv6 interface", __func__);
-	else if (cfg->ip_mode == E_IPALL && !netinf->defdev_v6)
-		cfg->ip_mode = E_IPV4;
-	else if (cfg->ip_mode == E_IPALL && !netinf->defdev_v4)
-		cfg->ip_mode = E_IPV6;
+		check_interface(netinf, (t_ifinfo *)lst->content, cfg->dev);
+	err_check(netinf, cfg, __func__);
 	if (!netinf->loopback_v4)
 		netinf->loopback_v4 = netinf->defdev_v4;
 	if (!netinf->loopback_v6)

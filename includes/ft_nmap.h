@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/21 18:52:52 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/28 06:44:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,6 +165,7 @@ typedef struct			s_host_job
 ** nports: number of ports to scan in ports array
 ** hosts: hosts list given by cmd argument
 ** hosts_file: file containing a list of hosts
+** dev: interface on which to listen to given by user
 ** scans: scans to perform as an array of booleans
 ** nscans: number of scans to perform on each port
 ** scan_strings: store selected scan names
@@ -202,6 +203,7 @@ typedef struct		s_nmap_config
 	uint16_t		nports;
 	const char		*hosts;
 	const char		*hosts_file;
+	const char		*dev;
 	uint8_t			scans[SCAN_COUNT];
 	uint8_t			nscans;
 	const char		*scan_strings[SCAN_COUNT];
@@ -230,8 +232,8 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	ft_exec_name(*argv), 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, { 0 }, 0, { 0 },\
-	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
+	ft_exec_name(*argv), 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 }, 0,\
+	{ 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL, 0, -1, 0\
 }
