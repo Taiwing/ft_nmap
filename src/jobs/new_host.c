@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/21 18:53:29 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/28 15:40:30 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,11 +23,11 @@ static t_probe	*init_task_probe(t_nmap_config *cfg, uint16_t probe_id,
 	probe->dstp = cfg->ports[port];
 	probe->host_job_id = cfg->host_job.host_job_id;
 	probe->port_job_id = port;
+	probe->scan_type = scan;
 	reset_packet(&probe->packet, NULL);
 	build_probe_packet(probe, cfg->host_job.family == AF_INET ? 4 : 6);
 	probe->socket = (cfg->host_job.ip.family == AF_INET
 		? E_UDPV4 : E_UDPV6) + (scan != E_UDP);
-	probe->scan_type = scan;
 	probe->retry = 1 + MAX_RETRY;
 	return (probe);
 }
@@ -44,6 +44,7 @@ static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nprobes)
 		if (cfg->scans[scan])
 			for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
 			{
+				debug_print(cfg, "scan value is..... %hu\n", scan);
 				probe.probe = init_task_probe(cfg, id, scan, port);
 				ft_lst_push_back(&probe_tasks, &probe, sizeof(probe));
 				if (!cfg->speedup)
