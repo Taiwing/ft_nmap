@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 19:25:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/29 08:45:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 		host_job->host, scan_time / 1000.0, inet_ntop(host_job->ip.family,
 		ip_addr(&host_job->ip), ipbuf, INET6_ADDRSTRLEN));
 	for (i = 0, c = 0; i < cfg->nports; ++i)
-		if (host_job->port_jobs[i].status & E_STATE_OPEN)
+		if ((host_job->port_jobs[i].status & E_STATE_SCAN_MASK) == E_STATE_OPEN)
 			print_port(host_job->port_jobs + i, i, c++, cfg);
 	if (!c)
 		ft_printf(" 0\n");
@@ -91,7 +91,7 @@ void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 	if (cfg->nports - c > 0)
 	{
 		for (i = 0, c = 0; i < cfg->nports; ++i)
-			if (host_job->port_jobs[i].status & E_STATE_CLOSED)
+			if ((host_job->port_jobs[i].status & E_STATE_SCAN_MASK) != E_STATE_OPEN)
 				print_port(host_job->port_jobs + i, i, c++, cfg);
 	}
 	else

@@ -6,28 +6,29 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/21 16:54:35 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/29 08:34:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-// Port is set as open if one of the scan_jobs returns an open status
-// TODO: this is very simple and should probably changed for something
-// a little bit more subtle in function of the type of scan_job
 static int	set_job_status(t_nmap_config *cfg, t_port_job *port_job)
 {
 	int		i;
 	int		ret = 0;
-	uint8_t	status = E_STATE_CLOSED;
+	uint8_t	status = E_STATE_OPEN | E_STATE_FILTERED;
+	uint8_t	new_status = E_STATE_OPEN | E_STATE_FILTERED;
 
 	port_job->status |= E_STATE_DONE;
 	for (i = 0; i < SCAN_COUNT; ++i)
-		if ((port_job->scan_jobs[i] & E_STATE_OPEN)
-			&& !(port_job->scan_jobs[i] & E_STATE_FILTERED))
-			break;
-	if (i < SCAN_COUNT)
-		status = E_STATE_OPEN;
+	{
+		if (!(new_status = port_job->scan_jobs[i] & E_STATE_SCAN_MASK))
+			continue ;
+		if (status == (E_STATE_OPEN | E_STATE_FILTERED) || new_status < status)
+			status = new_status;
+		if (status == E_STATE_OPEN)
+			break ;
+	}
 	port_job->status |= status;
 	if (++cfg->host_job.done == cfg->nports)
 	{
