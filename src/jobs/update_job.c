@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/29 08:34:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/29 18:01:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ static int	set_job_status(t_nmap_config *cfg, t_port_job *port_job)
 	{
 		if (!(new_status = port_job->scan_jobs[i] & E_STATE_SCAN_MASK))
 			continue ;
-		if (status == (E_STATE_OPEN | E_STATE_FILTERED) || new_status < status)
+		if (new_status < status)
 			status = new_status;
 		if (status == E_STATE_OPEN)
 			break ;

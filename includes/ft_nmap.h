@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/28 06:44:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/29 18:26:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@
 # define	PORTS_COUNT				0x10000	// Number of ports (USHRT_MAX + 1)
 # define	MAX_RETRY				4		// Number of retries for sending probe
 # define	SCAN_COUNT				6
-# define	SOCKET_COUNT				4
+# define	SOCKET_COUNT			4
 # define	TASK_COUNT				6
 # define	MAX_PROBE				(MAX_PORTS * SCAN_COUNT)
 
@@ -48,7 +48,6 @@
 # define	PORT_FIELD				5
 # define	SERVICE_FIELD			SERVICE_NAME_MAXLEN
 # define	SCAN_FIELD				5
-# define	STATE_FIELD				6
 
 // Job states
 enum e_states {
@@ -56,8 +55,8 @@ enum e_states {
 	E_STATE_DONE			= 0x01,	// Finished
 	E_STATE_OPEN			= 0x02,
 	E_STATE_CLOSED			= 0x04,
-	E_STATE_FILTERED		= 0x08,
-	E_STATE_UNFILTERED		= 0x10,
+	E_STATE_UNFILTERED		= 0x08,
+	E_STATE_FILTERED		= 0x10,
 	E_STATE_NONE			= 0x20, // Invalid reply packet
 	E_STATE_SCAN_MASK		= 0x1e	// Mask for scan_job status
 };

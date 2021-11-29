@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/28 15:40:30 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/29 21:35:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nprobes)
 		if (cfg->scans[scan])
 			for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
 			{
-				debug_print(cfg, "scan value is..... %hu\n", scan);
 				probe.probe = init_task_probe(cfg, id, scan, port);
 				ft_lst_push_back(&probe_tasks, &probe, sizeof(probe));
 				if (!cfg->speedup)

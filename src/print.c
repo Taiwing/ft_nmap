@@ -6,23 +6,31 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/29 08:45:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/29 21:31:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
+# define	PORT_STATUS_MAX		(E_STATE_OPEN | E_STATE_FILTERED)
+# define	MAX_PRINT_PORTS		26
+
 const char	g_sep_line[JOB_LINE + 1] = { [0 ... JOB_LINE - 1] = '-' };
 
-const char	*g_scan_results[E_STATE_CLOSED | E_STATE_UNFILTERED | 0x01] = {
+const char	*g_scan_results[PORT_STATUS_MAX + 1] = {
 	[ E_STATE_OPEN ] = "O",
 	[ E_STATE_CLOSED ] = "C",
+	[ E_STATE_UNFILTERED ] = "U",
 	[ E_STATE_FILTERED ] = "F",
 	[ E_STATE_OPEN | E_STATE_FILTERED ] = "OF",
-	[ E_STATE_CLOSED | E_STATE_FILTERED ] = "CF",
-	[ E_STATE_UNFILTERED ] = "U",
-	[ E_STATE_OPEN | E_STATE_UNFILTERED ] = "OU",
-	[ E_STATE_CLOSED | E_STATE_UNFILTERED ] = "CU",
+};
+
+const char	*g_port_status[PORT_STATUS_MAX + 1] = {
+	[E_STATE_OPEN] = "Open",
+	[E_STATE_CLOSED] = "Closed",
+	[E_STATE_UNFILTERED] = "Unfiltered",
+	[E_STATE_FILTERED] = "Filtered",
+	[E_STATE_OPEN | E_STATE_FILTERED] = "Open|Filtered",
 };
 
 /*
@@ -57,45 +65,64 @@ static void	print_port(t_port_job *port_job, uint16_t port_job_id,
 	//services = (char ***)g_tcp_services; //TEMP: pretend it's always TCP for now
 	if (!c)
 	{
-		line = ft_printf("\n%-*s | %-*s |%#*t %-"xstr(SCAN_FIELD)"s| %-*s",
+		line = ft_printf("\n| %-*s | %-*s |%#*t %-"xstr(SCAN_FIELD)"s|",
 			PORT_FIELD, "Port", SERVICE_FIELD, "Service", cfg->nscans,
-			cfg->scan_strings, STATE_FIELD, "State");
+			cfg->scan_strings);
 		if (line > 1)
 			ft_printf("\n%.*s\n", line - 1, g_sep_line);
 	}
 	if (!(service = g_tcp_services[cfg->ports[port_job_id]][0]))
 		service = "(unknown)";
-	ft_printf("%-*hu | %-*s |%#*t %-"xstr(SCAN_FIELD)"s| %-*s\n",
+	ft_printf("| %-*hu | %-*s |%#*t %-"xstr(SCAN_FIELD)"s|\n",
 		PORT_FIELD, cfg->ports[port_job_id], SERVICE_FIELD, service,
-		cfg->nscans, results, STATE_FIELD, (port_job->status & E_STATE_OPEN) ?
-		"Open" : "Closed");
+		cfg->nscans, results);
+}
+
+void	print_port_by_status(t_host_job *host_job, t_nmap_config *cfg,
+			uint16_t count[PORT_STATUS_MAX + 1],
+			uint16_t port_id[PORT_STATUS_MAX + 1][MAX_PORTS])
+{
+	uint8_t	c = 0;
+	uint8_t	status = E_STATE_OPEN;
+
+	while (!cfg->verbose && ++status < PORT_STATUS_MAX + 1)
+		if (g_port_status[status] && count[status] > MAX_PRINT_PORTS)
+			ft_printf("%s%hu %s", !c++ ? "Ports not shown: " : ", ",
+				count[status], g_port_status[status]);
+	if (c)
+		ft_putchar('\n');
+	for (status = E_STATE_OPEN; status < PORT_STATUS_MAX + 1; ++status)
+	{
+		if (g_port_status[status] && count[status]
+			&& (count[status] <= MAX_PRINT_PORTS || status == E_STATE_OPEN
+			|| cfg->verbose || cfg->debug))
+		{
+			ft_printf("\n%s ports:", g_port_status[status]);
+			for (uint16_t i = 0; i < count[status]; ++i)
+				print_port(host_job->port_jobs + port_id[status][i],
+					port_id[status][i], i, cfg);
+		}
+	}
 }
 
 void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 {
-	uint16_t	i, c;
 	char		ipbuf[INET6_ADDRSTRLEN] = { 0 };
+	uint16_t	count[PORT_STATUS_MAX + 1] = { 0 };
+	uint16_t	port_id[PORT_STATUS_MAX + 1][MAX_PORTS] = { 0 };
 	double		scan_time = ts_msdiff(&host_job->end_ts, &host_job->start_ts);
 
 	if (cfg->speedup && (cfg->verbose || cfg->debug))
 		nmap_mutex_lock(&cfg->print_mutex, &g_print_locked);
-	ft_printf("Host: %s\nScan took %g seconds\nIP address: %s\n\nOpen ports:",
+	for (uint16_t i = 0, status; i < cfg->nports; ++i)
+	{
+		status = host_job->port_jobs[i].status & E_STATE_SCAN_MASK;
+		port_id[status][count[status]++] = i;
+	}
+	ft_printf("Host: %s\nScan took %g seconds\nIP address: %s\n",
 		host_job->host, scan_time / 1000.0, inet_ntop(host_job->ip.family,
 		ip_addr(&host_job->ip), ipbuf, INET6_ADDRSTRLEN));
-	for (i = 0, c = 0; i < cfg->nports; ++i)
-		if ((host_job->port_jobs[i].status & E_STATE_SCAN_MASK) == E_STATE_OPEN)
-			print_port(host_job->port_jobs + i, i, c++, cfg);
-	if (!c)
-		ft_printf(" 0\n");
-	ft_printf("\nClosed/Filtered/Unfiltered ports:");
-	if (cfg->nports - c > 0)
-	{
-		for (i = 0, c = 0; i < cfg->nports; ++i)
-			if ((host_job->port_jobs[i].status & E_STATE_SCAN_MASK) != E_STATE_OPEN)
-				print_port(host_job->port_jobs + i, i, c++, cfg);
-	}
-	else
-		ft_printf(" 0\n");
+	print_port_by_status(host_job, cfg, count, port_id);
 	if (cfg->speedup && (cfg->verbose || cfg->debug))
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }
