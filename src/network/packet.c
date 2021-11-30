@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/31 12:17:45 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/17 11:58:50 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/30 06:43:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ void					init_packet(t_packet *packet,
 	type = iph == E_IH_V4 ? packet->nextip->v4.protocol
 		: packet->nextip->v6.nexthdr;
 	if ((packet->lasthdr = set_nexthdr(type, iph)) != E_NH_NONE)
-		packet->last = (t_nexthdr *)(packet->nextip + (iph == E_IH_V4
+		packet->last = (t_nexthdr *)((uint8_t *)packet->nextip + (iph == E_IH_V4
 			? sizeof(struct iphdr) : sizeof(struct ipv6hdr)));
 	set_packet_size(packet);
 }
