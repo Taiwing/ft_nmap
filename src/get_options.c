@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/28 06:49:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/30 07:09:22 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@ t_opt	g_nmap_opt[] = {
 	{ "help",		0,	NULL,	'h'	},
 	{ "interface",	1,	NULL,	'i'	},
 	{ "ports",		1,	NULL,	'p'	},
-	{ "scan",		1,	NULL,	'S'	},
-	{ "speedup",	1,	NULL,	's'	},
+	{ "speedup",	1,	NULL,	'S'	},
+	{ "scan",		1,	NULL,	's'	},
 	{ "target",		1,	NULL,	't'	},
 	{ "verbose",	0,	NULL,	'v'	},
 	{ "ipv4",		0,	NULL,	'4'	},
@@ -34,12 +34,13 @@ char	*g_nmap_help[] = {
 	"\t\tprint packets that do not match any valid probe (filter failure).",
 	"File containing a list of hosts to scan (1 per line).",
 	"Print this and exit.",
-	"Select interface on which to listen on.\n",
+	"Select interface on which to listen on.",
 	"Ports to scan specified as a comma separated list of individual ports or\n"
 	"\t\tranges (eg: 80,22,1024-2048). The default is 1-1024.",
-	"Scans to perform specified as a comma separated list. Possible values:\n"
-	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). Does them all by default.",
 	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
+	"Scans to perform specified as a comma separated list. Possible values:\n"
+	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). It is possible to only\n"
+	"\t\tuse one letter by scan (eg: '-sA' for ACK). Does them all by default.",
 	"Hosts to scan specified as a comma separated list of IPv4-IPv6 addresses\n"
 	"\t\tor hostnames (eg: localhost,192.168.1.0/24,2001::ffff).",
 	"Show probe packets, replies and timeouts.",
@@ -49,8 +50,8 @@ char	*g_nmap_help[] = {
 };
 
 char	*g_nmap_usage[] = {
-	"[-dhv46] [-f path] [-p list] [-S list] [-s number] [-i iface] -t list",
-	"[-dhv46] [-t list] [-p list] [-S list] [-s number] [-i iface] -f path",
+	"[-dhv46] [-f path] [-p list] [-S number] [-s list] [-i iface] -t list",
+	"[-dhv46] [-t list] [-p list] [-S number] [-s list] [-i iface] -f path",
 	NULL,
 };
 
@@ -145,8 +146,8 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'f': cfg->hosts_file = o.optarg;						break;
 			case 'i': cfg->dev = o.optarg;								break;
 			case 'p': ports_option(cfg, &o);							break;
-			case 'S': scan_option(cfg, &o);								break;
-			case 's': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
+			case 'S': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
+			case 's': scan_option(cfg, &o);								break;
 			case 't': cfg->hosts = o.optarg;							break;
 			case 'v': ++cfg->verbose;									break;
 			case '4': cfg->ip_mode = E_IPV4;							break;
