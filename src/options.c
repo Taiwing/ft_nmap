@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 10:35:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/11/30 07:21:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,12 +83,13 @@ const char		*g_nmap_scan_strings[SCAN_COUNT] = {
 void		scan_option(t_nmap_config *cfg, t_optdata *optd)
 {
 	const char	*arg = NULL;
-	int			i;
+	int			i, len;
 
 	while ((arg = parse_comma_list(optd->optarg)) && *arg)
 	{
+		len = ft_strlen(arg);
 		for (i = 0; i < SCAN_COUNT; ++i)
-			if (!ft_ignore_case_strcmp(g_nmap_scan_strings[i], arg))
+			if (!ft_ignore_case_strncmp(g_nmap_scan_strings[i], arg, len))
 				break;
 		if (i == SCAN_COUNT)
 			ft_exit(EXIT_FAILURE, "invalid scan type: '%s'", arg);
