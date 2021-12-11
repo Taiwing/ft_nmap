@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/29 18:26:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 09:40:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,8 @@
 # define	SOCKET_COUNT			4
 # define	TASK_COUNT				6
 # define	MAX_PROBE				(MAX_PORTS * SCAN_COUNT)
+# define	MAX_UDP_PAYLOADS		0x100
+# define	UDP_PAYLOADS_FILE		"../data/nmap-payloads"
 
 // Print format constants
 # define	SERVICE_NAME_MAXLEN		20
@@ -180,10 +182,11 @@ typedef struct			s_host_job
 ** print_mutex: mutex for synchronizing printing
 ** high_mutex: high priority mutex access to tasks list
 ** low_mutex: low priority mutex access to tasks list
+** descr: pcap handle for reading incoming packets
+** udp_payloads: structure to fetch the udp payloads by port
 ** host_job: current host_job
 ** probes: probe array each corresponding to a scan
 ** nprobes: probe count (sigatomic for alarm handler)
-** descr: pcap handle for reading incoming packets
 ** main_tasks: tasks to be executed by main thread
 ** worker_tasks: tasks to be executed by worker threads
 ** pending_tasks: boolean set to true if worker_tasks is not empty
@@ -219,6 +222,7 @@ typedef struct		s_nmap_config
 	pthread_mutex_t	high_mutex;
 	pthread_mutex_t	low_mutex;
 	pcap_t			*descr;
+	t_udp_payload	**udp_payloads[PORTS_COUNT];
 	// Modified during execution
 	t_host_job		host_job;
 	t_probe			probes[MAX_PROBE];
@@ -234,7 +238,8 @@ typedef struct		s_nmap_config
 	ft_exec_name(*argv), 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 }, 0,\
 	{ 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
-	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, {{ 0 }}, 0, NULL, NULL, 0, -1, 0\
+	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, {{ 0 }}, 0, NULL, NULL, 0,\
+	-1, 0\
 }
 
 /*
@@ -271,6 +276,18 @@ void		debug_invalid_packet(t_nmap_config *cfg,
 				t_packet *packet, char *action);
 void		debug_task(t_nmap_config *cfg, t_task *task);
 void		debug_print(t_nmap_config *cfg, const char *format, ...);
+
+/*
+** Ports functions
+*/
+
+// setport function type
+typedef void		(*t_setportf)(t_nmap_config *cfg, int pa, int pb, void *d);
+
+void		set_scan_ports(t_nmap_config *cfg, int porta,
+		int portb, void *data);
+void		parse_ports(t_nmap_config *cfg, char *str,
+		t_setportf setport, void *data);
 
 /*
 ** Network functions

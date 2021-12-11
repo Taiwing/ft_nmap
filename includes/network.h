@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/27 13:22:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/01 18:34:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,6 +166,18 @@ typedef struct		s_tcph_args
 	uint16_t		win;
 	uint16_t		urp;
 }					t_tcph_args;
+
+/*
+** t_udp_payload: possible udp payload for a given port
+**
+** size: length of the payload in bytes
+** data: paylaod data
+*/
+typedef struct		s_udp_payload
+{
+	size_t			size;
+	uint8_t			*data;
+}					t_udp_payload;
 
 /*
 ** IP utility functions

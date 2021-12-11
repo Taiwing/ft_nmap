@@ -33,6 +33,7 @@ JOBSC			=	update_job.c\
 NETWORKC		=	filter.c\
 					next_host.c\
 					print_headers.c\
+					udp_payloads.c\
 					ip_headers.c\
 					sockets.c\
 					ip.c\
@@ -44,6 +45,7 @@ NETWORKC		=	filter.c\
 					listen.c\
 					get_destinfo.c\
 					layer4_headers.c\
+					ports.c\
 					packet.c\
 
 SERVICESC		=	udp_services.c\
@@ -74,7 +76,7 @@ $(NAME): $(SUB1D)/libft.a $(ODIR) $(OBJ)
 $(SUB1D)/libft.a:
 	make -C $(SUB1D)
 
-debug.o: ft_nmap.h network.h libft.h
+debug.o: ft_nmap.h network.h libft.h ft_printf_internal.h
 options.o: ft_nmap.h network.h libft.h
 main.o: ft_nmap.h network.h libft.h
 update_job.o: ft_nmap.h network.h libft.h
@@ -87,6 +89,7 @@ print.o: ft_nmap.h network.h libft.h
 filter.o: ft_nmap.h network.h libft.h
 next_host.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h
+udp_payloads.o: ft_nmap.h network.h libft.h
 ip_headers.o: network.h libft.h
 sockets.o: ft_nmap.h network.h libft.h
 ip.o: ft_nmap.h network.h libft.h
@@ -98,6 +101,7 @@ scan_result.o: ft_nmap.h network.h libft.h
 listen.o: ft_nmap.h network.h libft.h
 get_destinfo.o: ft_nmap.h network.h libft.h
 layer4_headers.o: network.h libft.h
+ports.o: ft_nmap.h network.h libft.h
 packet.o: ft_nmap.h network.h libft.h
 verbose.o: ft_nmap.h network.h libft.h
 udp_services.o: ft_nmap.h network.h libft.h

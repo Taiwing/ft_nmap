@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/30 07:09:22 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 09:45:36 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'd': ++cfg->debug;										break;
 			case 'f': cfg->hosts_file = o.optarg;						break;
 			case 'i': cfg->dev = o.optarg;								break;
-			case 'p': ports_option(cfg, &o);							break;
+			case 'p': parse_ports(cfg, o.optarg, set_scan_ports, NULL);	break;
 			case 'S': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
 			case 's': scan_option(cfg, &o);								break;
 			case 't': cfg->hosts = o.optarg;							break;
