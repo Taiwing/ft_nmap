@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 09:40:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 10:00:10 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@
 # define	TASK_COUNT				6
 # define	MAX_PROBE				(MAX_PORTS * SCAN_COUNT)
 # define	MAX_UDP_PAYLOADS		0x100
-# define	UDP_PAYLOADS_FILE		"../data/nmap-payloads"
+# define	UDP_PAYLOADS_FILE		"./data/nmap-payloads"
 
 // Print format constants
 # define	SERVICE_NAME_MAXLEN		20
@@ -288,6 +288,7 @@ void		set_scan_ports(t_nmap_config *cfg, int porta,
 		int portb, void *data);
 void		parse_ports(t_nmap_config *cfg, char *str,
 		t_setportf setport, void *data);
+void		init_udp_payloads(t_nmap_config *cfg);
 
 /*
 ** Network functions

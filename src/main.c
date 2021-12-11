@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 12:07:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 09:59:40 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,8 @@ static void	init_config(t_nmap_config *cfg, int argc, char **argv)
 	get_network_info(cfg);
 	init_sockets(cfg);
 	open_device(cfg, HEADER_MAXSIZE, 1);
+	if (cfg->scans[E_UDP])
+		init_udp_payloads(cfg);
 	set_alarm_handler();
 	print_config(cfg);
 }
