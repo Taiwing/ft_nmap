@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/01 18:34:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 13:51:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,16 +30,22 @@
 # include <ifaddrs.h>
 # include <linux/if.h>
 
-# define FILTER_BUFSIZE		1024
+# define	FILTER_BUFSIZE				1024
 
-# define PORT_DEF			45654	//TODO: TBD, not sure we will keep this one
+# define	PORT_DEF					45654	//TODO: TBD, not sure we will keep this one
 
-# define IP_HEADER_ICMP		0x01
-# define IP_HEADER_TCP		0x06
-# define IP_HEADER_UDP		0x11
-# define IP_HEADER_ICMP6	0x3a
+# define	IP_HEADER_ICMP				0x01
+# define	IP_HEADER_TCP				0x06
+# define	IP_HEADER_UDP				0x11
+# define	IP_HEADER_ICMP6				0x3a
 
-# define FILTER_MAXLEN		1024
+# define	FILTER_MAXLEN				1024
+
+# define	MAX_UDP_PAYLOADS			0x100
+# define	UDP_PAYLOADS_FILE			"./data/nmap-payloads"
+# define	MAX_UDP_PAYLOAD_LENGTH		2048
+# define	MAX_UDPFILE_TOKEN_LENGTH	1024
+# define	TOKEN_COUNT					7
 
 /*
 ** IP union (better than an unIP union I guess... ROFL) for v4 and v6
@@ -166,6 +172,37 @@ typedef struct		s_tcph_args
 	uint16_t		win;
 	uint16_t		urp;
 }					t_tcph_args;
+
+/*
+** Udp payload file parsing
+*/
+
+// Udp payload file tokens
+enum e_udpfile_token {
+	E_UF_TOKEN_NONE = 0,
+	E_UF_TOKEN_EOF,
+	E_UF_TOKEN_STRING,
+	E_UF_TOKEN_PROTO,
+	E_UF_TOKEN_PROTO_PORTS,
+	E_UF_TOKEN_SOURCE,
+	E_UF_TOKEN_SOURCE_PORT,
+};
+
+/*
+** t_udpfile_token:
+**
+** type: type of the token
+** last: type of the last token (for the parse table)
+** size: size of token data
+** text: token data
+*/
+typedef struct				s_udpfile_token
+{
+	enum e_udpfile_token	type;
+	enum e_udpfile_token	last;
+	size_t					size;
+	char					text[MAX_UDPFILE_TOKEN_LENGTH];
+}							t_udpfile_token;
 
 /*
 ** t_udp_payload: possible udp payload for a given port

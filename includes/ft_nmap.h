@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 10:00:10 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 13:52:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,30 +26,28 @@
 ** ft_nmap macros and enums
 */
 
-# define	xstr(s)					str(s)	// stringify macro value
-# define	str(s)					#s
+# define	xstr(s)						str(s)	// stringify macro value
+# define	str(s)						#s
 
-# define	MAX_SPEEDUP				250		// max number of additional threads
-# define	MAX_THREADS				(MAX_SPEEDUP + 1)	// counts main thread
-# define	MAX_PORTS				1024	// maximum number of ports to scan
-# define	MAX_LST_ELM_LEN			1024	// biggest possible comma list element
-# define	PORTS_COUNT				0x10000	// Number of ports (USHRT_MAX + 1)
-# define	MAX_RETRY				4		// Number of retries for sending probe
-# define	SCAN_COUNT				6
-# define	SOCKET_COUNT			4
-# define	TASK_COUNT				6
-# define	MAX_PROBE				(MAX_PORTS * SCAN_COUNT)
-# define	MAX_UDP_PAYLOADS		0x100
-# define	UDP_PAYLOADS_FILE		"./data/nmap-payloads"
+# define	MAX_SPEEDUP					250		// max number of additional threads
+# define	MAX_THREADS					(MAX_SPEEDUP + 1)	// counts main thread
+# define	MAX_PORTS					1024	// maximum number of ports to scan
+# define	MAX_LST_ELM_LEN				1024	// biggest possible comma list element
+# define	PORTS_COUNT					0x10000	// Number of ports (USHRT_MAX + 1)
+# define	MAX_RETRY					4		// Number of retries for sending probe
+# define	SCAN_COUNT					6
+# define	SOCKET_COUNT				4
+# define	TASK_COUNT					6
+# define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
 
 // Print format constants
-# define	SERVICE_NAME_MAXLEN		20
-# define	SERVICE_DESC_MAXLEN		331
-# define	RES_MAXLEN				3
-# define	JOB_LINE				80
-# define	PORT_FIELD				5
-# define	SERVICE_FIELD			SERVICE_NAME_MAXLEN
-# define	SCAN_FIELD				5
+# define	SERVICE_NAME_MAXLEN			20
+# define	SERVICE_DESC_MAXLEN			331
+# define	RES_MAXLEN					3
+# define	JOB_LINE					80
+# define	PORT_FIELD					5
+# define	SERVICE_FIELD				SERVICE_NAME_MAXLEN
+# define	SCAN_FIELD					5
 
 // Job states
 enum e_states {

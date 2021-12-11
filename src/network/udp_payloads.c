@@ -6,26 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/30 19:50:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 10:29:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 13:46:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
 //TODO: move to ft_nmap.h
-#define MAX_UDP_PAYLOAD_LENGTH		2048
-#define MAX_UDPFILE_TOKEN_LENGTH	1024
-#define TOKEN_COUNT					7
-
-enum e_udpfile_token {
-	E_UF_TOKEN_NONE = 0,
-	E_UF_TOKEN_EOF,
-	E_UF_TOKEN_STRING,
-	E_UF_TOKEN_PROTO,
-	E_UF_TOKEN_PROTO_PORTS,
-	E_UF_TOKEN_SOURCE,
-	E_UF_TOKEN_SOURCE_PORT,
-};
 
 enum e_udpfile_token	g_uf_start[] = {
 	E_UF_TOKEN_EOF,
@@ -64,14 +51,6 @@ enum e_udpfile_token	*g_parse_table[TOKEN_COUNT] = {
 	[E_UF_TOKEN_SOURCE] = g_uf_token_source,
 	[E_UF_TOKEN_SOURCE_PORT] = g_uf_start,
 };
-
-typedef struct				s_udpfile_token
-{
-	enum e_udpfile_token	type;
-	enum e_udpfile_token	last;
-	size_t					size;
-	char					text[MAX_UDPFILE_TOKEN_LENGTH];
-}							t_udpfile_token;
 
 const char	*g_hexdigits = "0123456789abcdef";
 
