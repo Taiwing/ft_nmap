@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 13:51:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 14:04:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,8 @@
 
 # define	MAX_UDP_PAYLOADS			0x100
 # define	UDP_PAYLOADS_FILE			"./data/nmap-payloads"
-# define	MAX_UDP_PAYLOAD_LENGTH		2048
-# define	MAX_UDPFILE_TOKEN_LENGTH	1024
+# define	MAX_UDP_PAYLOAD_LENGTH		512
+# define	MAX_UDPFILE_TOKEN_LENGTH	(MAX_UDP_PAYLOAD_LENGTH)
 # define	TOKEN_COUNT					7
 
 /*
@@ -112,7 +112,9 @@ typedef union		u_nexthdr
 	struct icmp6hdr	icmp6;
 }					t_nexthdr;
 
-# define RAW_DATA_MAXSIZE	((sizeof(t_iphdr) + sizeof(t_nexthdr)) * 2)
+# define PAYLOAD_MAXSIZE	(MAX_UDP_PAYLOAD_LENGTH)
+# define RAW_DATA_MAXSIZE	\
+	((sizeof(t_iphdr) + sizeof(t_nexthdr)) * 2 + PAYLOAD_MAXSIZE)
 # define HEADER_MAXSIZE		(sizeof(struct ether_header) + RAW_DATA_MAXSIZE)
 
 /*
