@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/30 19:50:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 09:45:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 09:51:49 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,7 +137,7 @@ static enum e_udpfile_token	get_udpfile_symbol(t_udpfile_token *token,
 		&& token->size < MAX_UDPFILE_TOKEN_LENGTH)
 		token->text[token->size++] = line[j++];
 	if (token->size >= MAX_UDPFILE_TOKEN_LENGTH)
-		ft_exit(EXIT_FAILURE, "%s: symbol token too long (max: ", __func__);
+		ft_exit(EXIT_FAILURE, "%s: symbol token too long", __func__);
 	token->text[token->size] = 0;
 	*i = j;
 	if (!ft_strcmp(token->text, "udp"))
