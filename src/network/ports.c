@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/03 20:39:02 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 07:13:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 10:29:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,6 @@ void		parse_ports(t_nmap_config *cfg, char *str,
 		setport(cfg, porta, portb, data);
 	}
 	if (!portexp || !p || *p)
-		ft_exit(EXIT_FAILURE, "%s: invalid list argument: '%s'", str, __func__);
+		ft_exit(EXIT_FAILURE, "%s: invalid list argument: '%s'", __func__, str);
 }
 

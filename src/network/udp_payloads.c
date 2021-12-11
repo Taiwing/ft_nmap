@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/30 19:50:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 09:51:49 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/12/11 10:29:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,6 +231,7 @@ static void	parse_token(t_nmap_config *cfg, t_udpfile_token *token,
 		case E_UF_TOKEN_STRING: append_string(*payload, data, token);	break;
 		case E_UF_TOKEN_PROTO_PORTS:
 		case E_UF_TOKEN_SOURCE_PORT:
+			parse_comma_list(NULL);
 			parse_ports(cfg, token->text, set_udp_payloads, *payload);	break;
 		case E_UF_TOKEN_SOURCE:											break;
 	}
@@ -262,7 +263,6 @@ void		init_udp_payloads(t_nmap_config *cfg)
 {
 	if ((cfg->hosts_fd = open(UDP_PAYLOADS_FILE, O_RDONLY)) < 0)
 		return;
-	//TODO: do the things
 	parse_udpfile(cfg, cfg->hosts_fd);
 	close(cfg->hosts_fd);
 	cfg->hosts_fd = -1;
