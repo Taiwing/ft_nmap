@@ -234,6 +234,7 @@ static void	parse_token(t_nmap_config *cfg, t_udpfile_token *token,
 			parse_ports(cfg, token->text, set_udp_payloads, *payload);	break;
 		case E_UF_TOKEN_SOURCE:											break;
 	}
+	token->last = token->type;
 }
 
 static void	parse_udpfile(t_nmap_config *cfg, int fd)
@@ -257,7 +258,7 @@ static void	parse_udpfile(t_nmap_config *cfg, int fd)
 		ft_exit(EXIT_FAILURE, "get_next_line: unknown error");
 }
 
-void		init_udp_payloads_list(t_nmap_config *cfg)
+void		init_udp_payloads(t_nmap_config *cfg)
 {
 	if ((cfg->hosts_fd = open(UDP_PAYLOADS_FILE, O_RDONLY)) < 0)
 		return;
