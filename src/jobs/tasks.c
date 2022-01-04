@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/04 09:22:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/04 09:53:50 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ static void	task_reply(t_task *task, t_nmap_config *cfg)
 		else
 			push_tasks(&cfg->main_tasks, lst, cfg, 0);
 	}
+	ft_memdel((void **)&task->reply);
 }
 
 static void	task_thread_wait(t_task *task, t_nmap_config *cfg)
