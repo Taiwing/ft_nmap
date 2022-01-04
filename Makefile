@@ -33,6 +33,7 @@ JOBSC			=	update_job.c\
 NETWORKC		=	filter.c\
 					next_host.c\
 					print_headers.c\
+					parse_reply_packet.c\
 					udp_payloads.c\
 					ip_headers.c\
 					sockets.c\
@@ -89,6 +90,7 @@ print.o: ft_nmap.h network.h libft.h
 filter.o: ft_nmap.h network.h libft.h
 next_host.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h
+parse_reply_packet.o: ft_nmap.h network.h libft.h
 udp_payloads.o: ft_nmap.h network.h libft.h
 ip_headers.o: network.h libft.h
 sockets.o: ft_nmap.h network.h libft.h

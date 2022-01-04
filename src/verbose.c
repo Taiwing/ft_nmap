@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 06:17:13 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 19:42:17 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/04 09:03:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,12 +31,13 @@ void	verbose_scan(t_nmap_config *cfg, t_probe *probe,
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }
 
-void		verbose_reply(t_nmap_config *cfg, t_task *task, t_packet *reply)
+void		verbose_reply(t_nmap_config *cfg, t_probe *probe,
+				t_packet *reply, uint8_t result)
 {
 	if (!reply)
-		verbose_scan(cfg, task->probe, reply, "Probe Timeout.");
-	else if (task->result == E_STATE_NONE)
-		verbose_scan(cfg, task->probe, reply, "Dropping invalid reply.");
+		verbose_scan(cfg, probe, reply, "Probe Timeout.");
+	else if (result == E_STATE_NONE)
+		verbose_scan(cfg, probe, reply, "Dropping invalid reply.");
 	else
-		verbose_scan(cfg, task->probe, reply, "Received reply packet!");
+		verbose_scan(cfg, probe, reply, "Received reply packet!");
 }

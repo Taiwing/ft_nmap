@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/29 21:35:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/04 09:11:53 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nprobes)
 {
 	uint16_t	id = 0;
 	t_list		*probe_tasks = NULL;
-	t_task		probe = { E_TASK_PROBE, NULL, 0 };
-	t_task		listen = { E_TASK_LISTEN, NULL, 0 };
+	t_task		probe = { .type = E_TASK_PROBE };
+	t_task		listen = { .type = E_TASK_LISTEN };
 
 	for (uint16_t scan = 0; scan < SCAN_COUNT; ++scan)
 	{

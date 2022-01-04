@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 19:40:10 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/04 09:14:13 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,13 +62,13 @@ t_task	*pop_task(t_list **src, t_nmap_config *cfg, int prio)
 
 void	init_tasks(t_nmap_config *cfg)
 {
-	t_task	task = { E_TASK_NEW_HOST, NULL, 0 };
+	t_task	task = { .type = E_TASK_NEW_HOST };
 	t_list	*main = NULL;
 	t_list	*workers = NULL;
 
+	main = ft_lstnew(&task, sizeof(task));
 	if (cfg->speedup)
 	{
-		main = ft_lstnew(&task, sizeof(task));
 		task.type = E_TASK_THREAD_SPAWN;
 		ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
 		task.type = E_TASK_LISTEN;
@@ -76,8 +76,6 @@ void	init_tasks(t_nmap_config *cfg)
 		task.type = E_TASK_THREAD_WAIT;
 		ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
 	}
-	else
-		main = ft_lstnew(&task, sizeof(task));
 	cfg->main_tasks = main;
 	cfg->worker_tasks = workers;
 }

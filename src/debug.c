@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/21 18:54:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/04 09:23:36 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ static void	debug_reply(uint8_t result)
 	ft_putchar('\n');
 }
 
-void	debug_task(t_nmap_config *cfg, t_task *task)
+void	debug_task(t_nmap_config *cfg, t_task *task, uint8_t result)
 {
 	if (cfg->speedup)
 		nmap_mutex_lock(&cfg->print_mutex, &g_print_locked);
@@ -94,7 +94,7 @@ void	debug_task(t_nmap_config *cfg, t_task *task)
 				g_nmap_scan_strings[task->probe->scan_type],
 				task->probe->srcp, task->probe->dstp);
 	if (task->type == E_TASK_REPLY)
-		debug_reply(task->result);
+		debug_reply(result);
 	if (cfg->speedup)
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }

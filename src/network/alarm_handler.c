@@ -3,7 +3,7 @@
 static void	init_probe_task(t_probe *probe)
 {
 	t_list	*new_task;
-	t_task	task = { E_TASK_PROBE, probe, 0 };
+	t_task	task = { .type = E_TASK_PROBE, .probe = probe };
 
 	new_task = ft_lstnew(&task, sizeof(task));
 	if (!g_cfg->speedup)
@@ -21,11 +21,10 @@ static void	init_probe_task(t_probe *probe)
 
 static void	set_probe_timeout(t_probe *probe)
 {
-	t_task			task = { E_TASK_REPLY, probe, E_STATE_NONE };
+	t_task			task = { .type = E_TASK_REPLY, .probe = probe };
 
-	task.result = scan_result(probe->scan_type, NULL);
 	if (g_cfg->verbose)
-		verbose_reply(g_cfg, &task, NULL);
+		verbose_reply(g_cfg, probe, NULL, 0);
 	push_reply_task(&task);
 }
 

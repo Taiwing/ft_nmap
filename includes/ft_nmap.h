@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 13:52:03 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/04 09:23:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,13 +100,13 @@ typedef struct		s_port_job
 ** t_probe: nmap probes
 **
 ** retry: counter of retries (MAX_RETRY then timeout, sig atomic too)
+** scan_type: probe's scan type
 ** srcip: ip to send probe to
 ** dstip: ip to send probe to
 ** srcp: src port (PORT_DEF + index of the probe in the probes array)
 ** dstp: port to send probe to
 ** host_job_id: id of the host job for this probe
 ** port_job_id: index of the port_job in the host_job's port_jobs array
-** scan_type: probe's scan type
 ** packet: probe packet
 ** socket: socket type
 */
@@ -244,14 +244,16 @@ typedef struct		s_nmap_config
 ** Task structure: given to workers and main by next_task()
 **
 ** type: well, type of task (duh)
-** probe: probe in case the task is of type PROBE or REPLY
-** result: scan result from given packet for REPLY task
+** probe: probe in case the task is of type PROBE
+** reply: scan reply bytes for REPLY task
+** reply_size: scan reply packet size for REPLY task
 */
 typedef struct		s_task
 {
 	enum e_tasks	type;
 	t_probe			*probe;
-	uint8_t			result;
+	uint8_t			*reply;
+	size_t			reply_size;
 }					t_task;
 
 // task function type
@@ -268,11 +270,12 @@ void		ports_option(t_nmap_config *cfg, t_optdata *optd);
 void		scan_option(t_nmap_config *cfg, t_optdata *optd);
 void		verbose_scan(t_nmap_config *cfg, t_probe *probe,
 				t_packet *packet, const char *action);
-void		verbose_reply(t_nmap_config *cfg, t_task *task, t_packet *reply);
+void		verbose_reply(t_nmap_config *cfg, t_probe *probe,
+				t_packet *reply, uint8_t result);
 void		debug_listener_setup(t_nmap_config *cfg, char *filter);
 void		debug_invalid_packet(t_nmap_config *cfg,
 				t_packet *packet, char *action);
-void		debug_task(t_nmap_config *cfg, t_task *task);
+void		debug_task(t_nmap_config *cfg, t_task *task, uint8_t result);
 void		debug_print(t_nmap_config *cfg, const char *format, ...);
 
 /*
@@ -308,6 +311,8 @@ int			ft_listen(t_packet *reply, pcap_t *descr,
 				pcap_handler callback, int cnt);
 void		set_filter(t_nmap_config *cfg, t_probe *probe);
 uint8_t		scan_result(enum e_scans scan_type, t_packet *reply);
+uint8_t		parse_reply_packet(t_task *task, t_nmap_config *cfg,
+				t_probe **probe);
 
 /*
 ** Job functions
@@ -318,7 +323,7 @@ void		nmap_mutex_unlock(pthread_mutex_t *mutex, int *locked);
 void		start_workers(t_nmap_config *cfg);
 void		wait_workers(t_nmap_config *cfg);
 void		*worker(void *ptr);
-int			update_job(t_nmap_config *cfg, t_task *task);
+int			update_job(t_nmap_config *cfg, t_probe *probe, uint8_t result);
 void		print_config(t_nmap_config *cfg);
 void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
 void		push_tasks(t_list **dest, t_list *tasks,

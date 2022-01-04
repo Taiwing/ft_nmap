@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/29 18:01:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/04 08:41:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,19 +40,19 @@ static int	set_job_status(t_nmap_config *cfg, t_port_job *port_job)
 	return (ret);
 }
 
-int			update_job(t_nmap_config *cfg, t_task *task)
+int		update_job(t_nmap_config *cfg, t_probe *probe, uint8_t result)
 {
 	static atomic_int	point_status = 0;
 	t_port_job			*port_job = NULL;
 	int					ret = 0;
 
-	port_job = cfg->host_job.port_jobs + task->probe->port_job_id;
-	if (task->probe->retry < 0 || cfg->host_job.done == cfg->nports
-		|| task->probe->host_job_id != cfg->host_job.host_job_id
-		|| ++port_job->scan_locks[task->probe->scan_type] > 1)
+	port_job = cfg->host_job.port_jobs + probe->port_job_id;
+	if (probe->retry < 0 || cfg->host_job.done == cfg->nports
+		|| probe->host_job_id != cfg->host_job.host_job_id
+		|| ++port_job->scan_locks[probe->scan_type] > 1)
 		return (ret);
-	task->probe->retry = -1;
-	port_job->scan_jobs[task->probe->scan_type] |= E_STATE_DONE | task->result;
+	probe->retry = -1;
+	port_job->scan_jobs[probe->scan_type] |= E_STATE_DONE | result;
 	if (++port_job->done == cfg->nscans)
 	{
 		ft_printf("%s.", point_status++ ? "" : "\n\n" );
