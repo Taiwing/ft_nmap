@@ -1,3 +1,10 @@
+- Make it possible to have multiple probes per scans to
+  handle udp payloads. This means changing probe structure
+  to scan_job again and turn the packet field into a an
+  array of packets (or find a way to store multiple probe
+  packets for a scan). Every possible payload should be
+  sent when scanning a UDP port with an nmap-payloads
+  entry.
 - Try and fix ACK scan false 'positive' tests, meaning all
   the ports on which the scan result ends up randomly
   filtered where the original nmap always says unfiltered.
@@ -6,15 +13,21 @@
   ACK scan should get an RST response for ending up in an
   unfiltered state, then sometimes it must not receive
   the RST response, or indeed any response at all. Either
-  that or it gets a icmp packet out of the blue...
+  that or it gets an icmp packet out of the blue...
+- Also fix false 'positive' tests for SYN scan (example
+  on framasoft.org for ports 137, 139 and 179). They
+  also appear filtered when the original set them to
+  closed. As for the ACK scan, it's probably because the
+  probe timeouts when it should not. It somehow does not
+  see the icmp response from framasoft.
+- fix sendto 'invalid argument' error when probing port
+  8080 on the local network host address (it works on
+  localhost, it works on the wifi local address, but not
+  on the default ethernet lan address)
 - check other scan results too
-- close every active pcap handle in exit cleanup handler
 - adapt the filter to ipv6 for the icmp part (also maybe
   clean the function/divide it because it's messy)
-- uncomment the 'exit if packet->size' in pcap handler
-  to test if it still is used multiple times by thread
-  (which it should not, it should stop to one packet)
 - when all this is done, check that the scan results are
   the same as the original nmap and that it does not
-  take too muche time to execute
+  take too much time to execute
 - then stress-test the shit out of this program (really)
