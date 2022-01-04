@@ -15,11 +15,16 @@
   the RST response, or indeed any response at all. Either
   that or it gets an icmp packet out of the blue...
 - Also fix false 'positive' tests for SYN scan (example
-  on framasoft.org for ports 137, 139 and 179). They
+  on framasoft.org for ports 137, 138 and 179). They
   also appear filtered when the original set them to
   closed. As for the ACK scan, it's probably because the
   probe timeouts when it should not. It somehow does not
   see the icmp response from framasoft.
+  UPDATE: For 137 and 138, the behavior is normal, this
+  is just because they are not part of the nmap default
+  port set for some reason. For 179 (bgp), there is
+  indeed a timeout for ft_nmap when there is a closed
+  status for the original.
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
   localhost, it works on the wifi local address, but not
