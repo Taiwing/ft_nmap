@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/04 09:53:50 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:26:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ static void	task_listen(t_task *task, t_nmap_config *cfg)
 		debug_task(cfg, task, 0);
 	if (!cfg->speedup)
 	{
-		while (!cfg->end && cfg->current_probe >= 0)
+		while (!cfg->end && cfg->current_scan_job >= 0)
 			ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
 	}
 	else
@@ -48,27 +48,27 @@ static void	task_probe(t_task *task, t_nmap_config *cfg)
 		debug_task(cfg, task, 0);
 	if (!cfg->speedup)
 	{
-		set_filter(cfg, task->probe);
-		cfg->current_probe = task->probe->srcp - PORT_DEF;
+		set_filter(cfg, task->scan_job);
+		cfg->current_scan_job = task->scan_job->srcp - PORT_DEF;
 	}
 	if (cfg->verbose)
-		verbose_scan(cfg, task->probe,
-			&task->probe->packet, "Sending probe...");
-	send_probe(cfg, task->probe);
+		verbose_scan(cfg, task->scan_job,
+			&task->scan_job->packet, "Sending probe...");
+	send_probe(cfg, task->scan_job);
 }
 
 static void	task_reply(t_task *task, t_nmap_config *cfg)
 {
 	t_list          *lst;
 	uint8_t         result;
-	t_probe			*probe = task->probe;
+	t_scan_job			*scan_job = task->scan_job;
 	t_task          new_task = { .type = E_TASK_NEW_HOST };
 
-	result = !probe ? parse_reply_packet(task, cfg, &probe)
-		: scan_result(probe->scan_type, NULL);
+	result = !scan_job ? parse_reply_packet(task, cfg, &scan_job)
+		: scan_result(scan_job->type, NULL);
 	if (cfg->debug > 1)
 		debug_task(cfg, task, result);
-	if (result != E_STATE_NONE && update_job(cfg, probe, result))
+	if (result != E_STATE_NONE && update_job(cfg, scan_job, result))
 	{
 		lst = ft_lstnew(&new_task, sizeof(t_task));
 		if (cfg->speedup)

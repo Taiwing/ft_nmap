@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 08:21:27 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/04 08:49:35 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:16:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void			push_reply_task(t_task *task)
 	if (!g_cfg->speedup)
 	{
 		push_tasks(&g_cfg->main_tasks, new_task, g_cfg, 0);
-		g_cfg->current_probe = -1;
+		g_cfg->current_scan_job = -1;
 		pcap_breakloop(g_cfg->descr);
 	}
 	else

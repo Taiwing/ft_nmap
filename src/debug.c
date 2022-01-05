@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/04 09:23:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:25:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,10 +89,10 @@ void	debug_task(t_nmap_config *cfg, t_task *task, uint8_t result)
 		ft_printf("Worker Thread %llu (%#llx)\n",
 				ft_thread_self(), pthread_self());
 	ft_printf("Executing %s task\n", g_nmap_task_strings[task->type]);
-	if (task->probe)
-		ft_printf("probe: scan = %s, srcp = %hu, dstp = %hu\n",
-				g_nmap_scan_strings[task->probe->scan_type],
-				task->probe->srcp, task->probe->dstp);
+	if (task->scan_job)
+		ft_printf("scan_job: scan = %s, srcp = %hu, dstp = %hu\n",
+				g_nmap_scan_strings[task->scan_job->type],
+				task->scan_job->srcp, task->scan_job->dstp);
 	if (task->type == E_TASK_REPLY)
 		debug_reply(result);
 	if (cfg->speedup)

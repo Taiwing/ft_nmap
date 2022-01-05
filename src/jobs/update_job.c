@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/04 08:41:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:26:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ static int	set_job_status(t_nmap_config *cfg, t_port_job *port_job)
 	port_job->status |= E_STATE_DONE;
 	for (i = 0; i < SCAN_COUNT; ++i)
 	{
-		if (!(new_status = port_job->scan_jobs[i] & E_STATE_SCAN_MASK))
+		if (!(new_status = port_job->scan_status[i] & E_STATE_SCAN_MASK))
 			continue ;
 		if (new_status < status)
 			status = new_status;
@@ -40,19 +40,19 @@ static int	set_job_status(t_nmap_config *cfg, t_port_job *port_job)
 	return (ret);
 }
 
-int		update_job(t_nmap_config *cfg, t_probe *probe, uint8_t result)
+int		update_job(t_nmap_config *cfg, t_scan_job *scan_job, uint8_t result)
 {
 	static atomic_int	point_status = 0;
 	t_port_job			*port_job = NULL;
 	int					ret = 0;
 
-	port_job = cfg->host_job.port_jobs + probe->port_job_id;
-	if (probe->retry < 0 || cfg->host_job.done == cfg->nports
-		|| probe->host_job_id != cfg->host_job.host_job_id
-		|| ++port_job->scan_locks[probe->scan_type] > 1)
+	port_job = cfg->host_job.port_jobs + scan_job->port_job_id;
+	if (scan_job->retry < 0 || cfg->host_job.done == cfg->nports
+		|| scan_job->host_job_id != cfg->host_job.host_job_id
+		|| ++port_job->scan_locks[scan_job->type] > 1)
 		return (ret);
-	probe->retry = -1;
-	port_job->scan_jobs[probe->scan_type] |= E_STATE_DONE | result;
+	scan_job->retry = -1;
+	port_job->scan_status[scan_job->type] |= E_STATE_DONE | result;
 	if (++port_job->done == cfg->nscans)
 	{
 		ft_printf("%s.", point_status++ ? "" : "\n\n" );

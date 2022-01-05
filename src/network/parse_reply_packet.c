@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/12 20:43:03 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 15:50:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:26:53 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static t_probe	*get_probe(t_packet *reply, t_nmap_config *cfg)
+static t_scan_job	*get_scan_job(t_packet *reply, t_nmap_config *cfg)
 {
 	int				is_icmp = reply->nexthdr && reply->nexthdr < E_NH_TCP;
 	enum e_nexthdr	type = is_icmp ? reply->lasthdr : reply->nexthdr;
@@ -32,9 +32,9 @@ static t_probe	*get_probe(t_packet *reply, t_nmap_config *cfg)
 		default:
 			return (NULL);
 	}
-	if (sport < PORT_DEF || cfg->probes[sport - PORT_DEF]->dstp != dport)
+	if (sport < PORT_DEF || cfg->scan_jobs[sport - PORT_DEF]->dstp != dport)
 		return (NULL);
-	return (cfg->probes[sport - PORT_DEF]);
+	return (cfg->scan_jobs[sport - PORT_DEF]);
 }
 
 static uint8_t	*check_link_layer(t_task *task, t_nmap_config *cfg,
@@ -63,7 +63,7 @@ static uint8_t	*check_link_layer(t_task *task, t_nmap_config *cfg,
 }
 
 uint8_t			parse_reply_packet(t_task *task, t_nmap_config *cfg,
-		t_probe **probe)
+		t_scan_job **scan_job)
 {
 	enum e_iphdr	iph;
 	size_t			size;
@@ -79,11 +79,11 @@ uint8_t			parse_reply_packet(t_task *task, t_nmap_config *cfg,
 			debug_invalid_packet(cfg, &reply, "Dropping Invalid Packet");
 		ft_exit(EXIT_FAILURE, "%s: packet parsing failure (size)", __func__);
 	}
-	if ((*probe = get_probe(&reply, cfg)))
+	if ((*scan_job = get_scan_job(&reply, cfg)))
 	{
-		result = scan_result((*probe)->scan_type, &reply);
+		result = scan_result((*scan_job)->type, &reply);
 		if (cfg->verbose)
-			verbose_reply(cfg, *probe, &reply, result);
+			verbose_reply(cfg, *scan_job, &reply, result);
 	}
 	else if (cfg->debug)
 		debug_invalid_packet(cfg, &reply, "Dropping Probeless Packet");

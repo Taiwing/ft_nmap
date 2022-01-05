@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/29 21:31:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:06:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ static void	print_port(t_port_job *port_job, uint16_t port_job_id,
 	for (int i = 0, j = 0; i < SCAN_COUNT && j < cfg->nscans; ++i)
 		if (cfg->scans[i])
 			results[j++] =
-				g_scan_results[port_job->scan_jobs[i] & E_STATE_SCAN_MASK];
+				g_scan_results[port_job->scan_status[i] & E_STATE_SCAN_MASK];
 	//TODO: use other service files or getservbyport()
 	//services = (char ***)g_tcp_services; //TEMP: pretend it's always TCP for now
 	if (!c)

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 08:01:16 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/19 05:59:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:26:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,34 +87,34 @@ static void set_icmp_port_filter(char *filter, char *buf, uint16_t args[7])
 }
 
 static void	build_port_filters(char *filter, uint16_t family,
-		t_nmap_config *cfg, t_probe *probe)
+		t_nmap_config *cfg, t_scan_job *scan_job)
 {
 	char		*layer4str = NULL;
 	uint16_t	layer4 = HAS_UDP | HAS_TCP;
 	char		buf[FILTER_MAXLEN + 1] = { 0 };
-	uint16_t	nprobes = cfg->nscans * cfg->nports;
+	uint16_t	nscan_jobs = cfg->nscans * cfg->nports;
 	uint16_t	dstp[2] = {
-		probe ? probe->dstp : cfg->ports[0], cfg->ports[cfg->nports - 1]
+		scan_job ? scan_job->dstp : cfg->ports[0], cfg->ports[cfg->nports - 1]
 	};
 	uint16_t	srcp[2] = {
-		probe ? probe->srcp : PORT_DEF, PORT_DEF + nprobes - 1
+		scan_job ? scan_job->srcp : PORT_DEF, PORT_DEF + nscan_jobs - 1
 	};
 
-	if (!cfg->scans[E_UDP] || (probe && probe->scan_type != E_UDP))
+	if (!cfg->scans[E_UDP] || (scan_job && scan_job->type != E_UDP))
 		layer4 = HAS_TCP;
-	else if (cfg->nscans == 1 || (probe && probe->scan_type == E_UDP))
+	else if (cfg->nscans == 1 || (scan_job && scan_job->type == E_UDP))
 		layer4 = HAS_UDP;
 	layer4str = layer4 == HAS_TCP ? "tcp" : layer4 == HAS_UDP ? "udp" : "";
 	ft_snprintf(buf, FILTER_MAXLEN,
-		probe ? LAYER4_PORT_FILTER : LAYER4_PORT_RANGE_FILTER,
+		scan_job ? LAYER4_PORT_FILTER : LAYER4_PORT_RANGE_FILTER,
 		layer4str, dstp[0], srcp[0], dstp[1], srcp[1]);
 	ft_strlcat(filter, " && (", FILTER_MAXLEN);
 	ft_strlcat(filter, buf, FILTER_MAXLEN);
-	set_icmp_port_filter(filter, buf, (uint16_t[7]){ !probe, family, layer4,
+	set_icmp_port_filter(filter, buf, (uint16_t[7]){ !scan_job, family, layer4,
 		dstp[0], dstp[1], srcp[0], srcp[1] });
 }
 
-void		set_filter(t_nmap_config *cfg, t_probe *probe)
+void		set_filter(t_nmap_config *cfg, t_scan_job *scan_job)
 {
 	t_ip		*src = &cfg->host_job.dev->ip, *dst = &cfg->host_job.ip;
 	uint16_t	family = cfg->host_job.family;
@@ -125,6 +125,6 @@ void		set_filter(t_nmap_config *cfg, t_probe *probe)
 		family == AF_INET ? "ip" : "ip6",
 		inet_ntop(family, ip_addr(dst), dstbuf, INET6_ADDRSTRLEN),
 		inet_ntop(family, ip_addr(src), srcbuf, INET6_ADDRSTRLEN));
-	build_port_filters(filter, family, cfg, probe);
+	build_port_filters(filter, family, cfg, scan_job);
 	set_filter_internal(filter, cfg);
 }

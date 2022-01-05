@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:08:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/01 11:37:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:33:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ int					print_nexthdr(void *iphdr, int domain,
 		return (!!ft_dprintf(2, "%s: %s: invalid domain '%d'\n",
 			exec, __func__, domain));
 	if (size < nexthdr_size)
-		return (!!ft_dprintf(2, "%s: %s: not enough data for next header '%d'\n",
+		return (!!ft_dprintf(2, "%s: %s: too small for next header '%d'\n",
 			exec, __func__, type));
 	size -= nexthdr_size;
 	if (type == IP_HEADER_ICMP || type == IP_HEADER_ICMP6)
