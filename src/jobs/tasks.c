@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 18:06:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 22:56:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ static void	task_listen(t_task *task, t_nmap_config *cfg)
 		debug_task(cfg, task, 0);
 	if (!cfg->speedup)
 	{
+		if (task->scan_job->retry < 0)
+			return ;
 		while (!cfg->end && cfg->current_scan_job >= 0)
 			ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
 	}
@@ -48,13 +50,16 @@ static void	task_probe(t_task *task, t_nmap_config *cfg)
 		debug_task(cfg, task, 0);
 	if (!cfg->speedup)
 	{
+		if (task->scan_job->retry < 0)
+			return ;
 		set_filter(cfg, task->scan_job);
 		cfg->current_scan_job = task->scan_job->srcp - PORT_DEF;
+		cfg->current_payload_index = task->payload_index;
 	}
 	if (cfg->verbose)
 		verbose_scan(cfg, task->scan_job,
-			&task->scan_job->packet, "Sending probe...");
-	send_probe(cfg, task->scan_job);
+			task->scan_job->probes[task->payload_index], "Sending probe...");
+	send_probe(cfg, task->scan_job, task->payload_index);
 }
 
 static void	task_reply(t_task *task, t_nmap_config *cfg)

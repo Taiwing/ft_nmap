@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/31 12:17:45 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/30 06:43:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 22:01:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,29 +14,19 @@
 
 static void				set_packet_size(t_packet *packet)
 {
-	size_t			size = 0;
-	enum e_iphdr	iphdr[2] = { packet->iphdr, packet->nextiphdr };
-	enum e_nexthdr	nexthdr[2] = { packet->nexthdr, packet->lasthdr };
+	size_t	size;
 
-	for (int i = 0; i < 2; ++i)
+	switch (packet->iphdr)
 	{
-		switch (iphdr[i])
-		{
-			case E_IH_V4: size += sizeof(struct iphdr);			break;
-			case E_IH_V6: size += sizeof(struct ipv6hdr);		break;
-			case E_IH_NONE: size += 0;							break;
-		}
-	}
-	for (int i = 0; i < 2; ++i)
-	{
-		switch (nexthdr[i])
-		{
-			case E_NH_ICMP: size += sizeof(struct icmphdr);		break;
-			case E_NH_ICMP6: size += sizeof(struct icmp6hdr);	break;
-			case E_NH_TCP: size += sizeof(struct tcphdr);		break;
-			case E_NH_UDP: size += sizeof(struct udphdr);		break;
-			case E_NH_NONE: size += 0;							break;
-		}
+		case E_IH_V4:
+			size = ntohs(packet->ip->v4.tot_len);
+			break;
+		case E_IH_V6:
+			size = ntohs(packet->ip->v6.payload_len) + sizeof(struct ipv6hdr);
+			break;
+		case E_IH_NONE:
+			size = 0;
+			break;
 	}
 	packet->size = size;
 }

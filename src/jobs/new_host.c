@@ -6,13 +6,42 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 19:22:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 20:50:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static t_scan_job	*init_task_probe(t_nmap_config *cfg, uint16_t scan_job_id,
+static t_packet		**init_scan_probes(t_nmap_config *cfg, t_scan_job *scan_job,
+	t_packet **probes)
+{
+	uint16_t	count = 0, port = scan_job->dstp, scan = scan_job->type;
+
+	if (!probes)
+	{
+		if (scan == E_UDP && cfg->udp_payloads[port])
+			while (cfg->udp_payloads[port][count])
+				++count;
+		if (!count)
+			++count;
+		probes = ft_memalloc((count + 1) * sizeof(t_packet *));
+		for (uint16_t i = 0; i < count; ++i)
+			probes[i] = ft_memalloc(sizeof(t_packet));
+	}
+	for (int i = 0; probes && probes[i]; ++i)
+	{
+		reset_packet(probes[i], NULL);
+		if (scan == E_UDP && cfg->udp_payloads[port])
+			build_probe_packet(probes[i], scan_job,
+				cfg->udp_payloads[port][i]->data,
+				cfg->udp_payloads[port][i]->size);
+		else
+			build_probe_packet(probes[i], scan_job, NULL, 0);
+	}
+	return (probes);
+}
+
+static t_scan_job	*init_scan_job(t_nmap_config *cfg, uint16_t scan_job_id,
 		uint16_t scan, uint16_t port)
 {
 	t_scan_job	*scan_job = &cfg->host_job.port_jobs[port].scan_jobs[scan];
@@ -25,8 +54,7 @@ static t_scan_job	*init_task_probe(t_nmap_config *cfg, uint16_t scan_job_id,
 	scan_job->host_job_id = cfg->host_job.host_job_id;
 	scan_job->port_job_id = port;
 	scan_job->type = scan;
-	reset_packet(&scan_job->packet, NULL);
-	build_probe_packet(scan_job, cfg->host_job.family == AF_INET ? 4 : 6);
+	scan_job->probes = init_scan_probes(cfg, scan_job, scan_job->probes);
 	scan_job->socket = (cfg->host_job.ip.family == AF_INET
 		? E_UDPV4 : E_UDPV6) + (scan != E_UDP);
 	scan_job->retry = 1 + MAX_RETRY;
@@ -47,10 +75,17 @@ static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nscan_jobs)
 			continue ;
 		for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
 		{
-			probe.scan_job = init_task_probe(cfg, id, scan, port);
-			ft_lst_push_back(&probe_tasks, &probe, sizeof(probe));
-			if (!cfg->speedup)
-				ft_lst_push_back(&probe_tasks, &listen, sizeof(listen));
+			probe.scan_job = init_scan_job(cfg, id, scan, port);
+			for (uint16_t i = 0; probe.scan_job->probes[i]; ++i)
+			{
+				probe.payload_index = i;
+				ft_lst_push_back(&probe_tasks, &probe, sizeof(probe));
+				if (!cfg->speedup)
+				{
+					listen.scan_job = probe.scan_job;
+					ft_lst_push_back(&probe_tasks, &listen, sizeof(listen));
+				}
+			}
 		}
 	}
 	*nscan_jobs = (int)id;

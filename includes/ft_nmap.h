@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 18:14:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 22:16:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 ** dstp: port to send probe to
 ** host_job_id: id of the host job for this scan_job
 ** port_job_id: index of the port_job in the host_job's port_jobs array
-** packet: scan_job packet
+** probes: scan_job probe packets
 ** socket: socket type
 */
 typedef struct				s_scan_job
@@ -106,7 +106,7 @@ typedef struct				s_scan_job
 	uint16_t				dstp;
 	uint16_t				host_job_id;
 	uint16_t				port_job_id;
-	t_packet				packet;
+	t_packet				**probes;
 	enum e_sockets			socket;
 }							t_scan_job;
 
@@ -191,6 +191,7 @@ typedef struct			s_host_job
 ** worker_tasks: tasks to be executed by worker threads
 ** pending_tasks: boolean set to true if worker_tasks is not empty
 ** current_scan_job: id of current scan_job for monothreaded runs
+** current_payload_index: id of current payload_index for monothreaded runs
 ** end: boolean signaling the end of ft_nmap's execution
 */
 typedef struct		s_nmap_config
@@ -231,6 +232,7 @@ typedef struct		s_nmap_config
 	t_list			*worker_tasks;
 	sig_atomic_t	pending_tasks;
 	sig_atomic_t	current_scan_job;
+	sig_atomic_t	current_payload_index;
 	sig_atomic_t	end;
 }					t_nmap_config;
 
@@ -239,14 +241,15 @@ typedef struct		s_nmap_config
 	{ 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
-	-1, 0\
+	-1, 0, 0\
 }
 
 /*
 ** Task structure: given to workers and main by next_task()
 **
 ** type: well, type of task (duh)
-** scan_job: scan_job in case the task is of type PROBE or REPLY (timeout)
+** scan_job: scan_job for type PROBE, REPLY (timeout), or LISTEN (monothread)
+** payload_index: index of the probe to send for PROBE tasks
 ** reply: scan reply bytes for REPLY task
 ** reply_size: scan reply packet size for REPLY task
 */
@@ -254,6 +257,7 @@ typedef struct		s_task
 {
 	enum e_tasks	type;
 	t_scan_job		*scan_job;
+	uint16_t		payload_index;
 	uint8_t			*reply;
 	size_t			reply_size;
 }					t_task;
@@ -305,8 +309,9 @@ void		get_network_info(t_nmap_config *cfg);
 int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 const char	*next_host(t_ip *ip, t_nmap_config *cfg);
 void		new_host(t_nmap_config *cfg);
-void		build_probe_packet(t_scan_job *scan_job, uint8_t version);
-void		send_probe(t_nmap_config *cfg, t_scan_job *scan_job);
+void		build_probe_packet(t_packet *dest, t_scan_job *scan_job,
+				uint8_t *layer5, uint16_t l5_len);
+void		send_probe(t_nmap_config *cfg, t_scan_job *scan_job, uint16_t i);
 void		pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
 int			ft_listen(t_packet *reply, pcap_t *descr,
