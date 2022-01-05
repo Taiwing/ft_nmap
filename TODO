@@ -1,10 +1,3 @@
-- Make it possible to have multiple probes per scans to
-  handle udp payloads. This means changing probe structure
-  to scan_job again and turn the packet field into a an
-  array of packets (or find a way to store multiple probe
-  packets for a scan). Every possible payload should be
-  sent when scanning a UDP port with an nmap-payloads
-  entry.
 - Try and fix ACK scan false 'positive' tests, meaning all
   the ports on which the scan result ends up randomly
   filtered where the original nmap always says unfiltered.
@@ -14,6 +7,29 @@
   unfiltered state, then sometimes it must not receive
   the RST response, or indeed any response at all. Either
   that or it gets an icmp packet out of the blue...
+- Fix UDP scans missing close results. Like for the ACK
+  scan, sometimes (actually most of the time for UDP),
+  ft_nmap seems to be missing some responses, and so the
+  UDP ports appear to be open|filtered when they should
+  be closed. The scan just timeouts for no reason. This
+  does not happen when the scan is done without speedup
+  or with a low speedup and a limited amount of ports.
+  Then this problem is probably has probably something
+  to do with pcap_handler. It looks like it misses some
+  responses when they come too close to one another.
+  This is also certainly responsible for the missing
+  unfiltered ACK scan results.
+- The SYN scan looks reliable enough. Although it
+  appears to fail some of the time too. It happened once
+  on an 'intra.42.fr' scan (missing ariel3 port), and on
+  'framasoft.org' it can happen too (saw it multiple
+  times). This is also probably the same problem as for
+  the ACK and UDP scans. The fact that it happens more
+  and more as we 'go up' the scan list (because SYN is 0
+  and UDP is 5 while ACK is in the middle, which is also
+  how often this problem appears on each scan type), is
+  probably be a hint to the root of the problem.
+
 - Also fix false 'positive' tests for SYN scan (example
   on framasoft.org for ports 137, 138 and 179). They
   also appear filtered when the original set them to
@@ -33,6 +49,7 @@
   IPv4 on ft_nmap its behavior is the same as the
   orginal nmap (port 179 is closed).
 - use IPv4 by default, not IPv6
+
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
   localhost, it works on the wifi local address, but not
