@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:40:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:50:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,7 @@ enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 /*
 ** t_scan_job: nmap scan_jobs
 **
+** status: scan_job status
 ** retry: counter of retries (MAX_RETRY then timeout, sig atomic too)
 ** type: scan_job's scan type
 ** srcip: ip to send probe to
@@ -96,6 +97,7 @@ enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 */
 typedef struct				s_scan_job
 {
+	uint8_t					status;
 	sig_atomic_t			retry;
 	_Atomic enum e_scans	type;
 	t_ip					*srcip;
@@ -112,16 +114,15 @@ typedef struct				s_scan_job
 ** Port job structure: this is the status of each scan_job on a given port
 **
 ** status: port_job status
-** done: counter of finished scan_status
-** scan_status: status of each scan_job
+** done: counter of finished scan_jobs
+** scan_jobs: status of each scan_job
 ** scan_locks: to avoid two receive tasks on a scan
 */
 typedef struct		s_port_job
 {
 	uint8_t			status;
 	_Atomic uint8_t	done;
-	t_scan_job		scan_jobs[SCAN_COUNT];//TEMP
-	uint8_t			scan_status[SCAN_COUNT];
+	t_scan_job		scan_jobs[SCAN_COUNT];
 	atomic_int		scan_locks[SCAN_COUNT];
 }					t_port_job;
 

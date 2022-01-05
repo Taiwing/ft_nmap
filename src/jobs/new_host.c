@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:26:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 16:49:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ static t_scan_job	*init_task_probe(t_nmap_config *cfg, uint16_t scan_job_id,
 	scan_job->socket = (cfg->host_job.ip.family == AF_INET
 		? E_UDPV4 : E_UDPV6) + (scan != E_UDP);
 	scan_job->retry = 1 + MAX_RETRY;
+	scan_job->status = 0;
 	return (scan_job);
 }
 
