@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:54:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 17:42:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static int	set_job_status(t_nmap_config *cfg, t_port_job *port_job)
+static int	end_job(t_nmap_config *cfg, t_port_job *port_job)
 {
 	int		i;
 	int		ret = 0;
@@ -42,7 +42,6 @@ static int	set_job_status(t_nmap_config *cfg, t_port_job *port_job)
 
 int		update_job(t_nmap_config *cfg, t_scan_job *scan_job, uint8_t result)
 {
-	static atomic_int	point_status = 0;
 	t_port_job			*port_job = NULL;
 	int					ret = 0;
 
@@ -53,15 +52,7 @@ int		update_job(t_nmap_config *cfg, t_scan_job *scan_job, uint8_t result)
 		return (ret);
 	scan_job->retry = -1;
 	scan_job->status |= E_STATE_DONE | result;
-	if (++port_job->done == cfg->nscans)
-	{
-		ft_printf("%s.", point_status++ ? "" : "\n\n" );
-		if ((ret = set_job_status(cfg, port_job)))
-		{
-			point_status = 0;
-			ft_putchar('\n');
-			print_host_job(&cfg->host_job, cfg);
-		}
-	}
+	if (++port_job->done == cfg->nscans && (ret = end_job(cfg, port_job)))
+		print_host_job(&cfg->host_job, cfg);
 	return (ret);
 }
