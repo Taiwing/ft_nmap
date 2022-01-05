@@ -25,6 +25,14 @@
   port set for some reason. For 179 (bgp), there is
   indeed a timeout for ft_nmap when there is a closed
   status for the original.
+  UPDATE2: For 179 the behavior is different because
+  ft_nmap scans the IPv6 address instead of the IPv4
+  like the original does by default. If we specifically
+  target the IPv6 address with the original nmap the
+  port is also filtered instead of closed. When we force
+  IPv4 on ft_nmap its behavior is the same as the
+  orginal nmap (port 179 is closed).
+- use IPv4 by default, not IPv6
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
   localhost, it works on the wifi local address, but not
