@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:50:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 18:14:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,7 +246,7 @@ typedef struct		s_nmap_config
 ** Task structure: given to workers and main by next_task()
 **
 ** type: well, type of task (duh)
-** scan_job: scan_job in case the task is of type PROBE
+** scan_job: scan_job in case the task is of type PROBE or REPLY (timeout)
 ** reply: scan reply bytes for REPLY task
 ** reply_size: scan reply packet size for REPLY task
 */
