@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 18:09:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 19:22:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,14 +43,15 @@ static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nscan_jobs)
 
 	for (uint16_t scan = 0; scan < SCAN_COUNT; ++scan)
 	{
-		if (cfg->scans[scan])
-			for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
-			{
-				probe.scan_job = init_task_probe(cfg, id, scan, port);
-				ft_lst_push_back(&probe_tasks, &probe, sizeof(probe));
-				if (!cfg->speedup)
-					ft_lst_push_back(&probe_tasks, &listen, sizeof(listen));
-			}
+		if (!cfg->scans[scan])
+			continue ;
+		for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
+		{
+			probe.scan_job = init_task_probe(cfg, id, scan, port);
+			ft_lst_push_back(&probe_tasks, &probe, sizeof(probe));
+			if (!cfg->speedup)
+				ft_lst_push_back(&probe_tasks, &listen, sizeof(listen));
+		}
 	}
 	*nscan_jobs = (int)id;
 	return (probe_tasks);
