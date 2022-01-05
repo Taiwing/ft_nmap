@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:26:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 18:06:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ static void	task_reply(t_task *task, t_nmap_config *cfg)
 {
 	t_list          *lst;
 	uint8_t         result;
-	t_scan_job			*scan_job = task->scan_job;
+	t_scan_job		*scan_job = task->scan_job;
 	t_task          new_task = { .type = E_TASK_NEW_HOST };
 
 	result = !scan_job ? parse_reply_packet(task, cfg, &scan_job)
