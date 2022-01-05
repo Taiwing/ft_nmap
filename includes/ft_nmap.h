@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/04 09:23:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 15:56:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,22 +81,6 @@ enum e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
 enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 
 /*
-** Task structure: this is the status of each scan_job on a given port
-**
-** status: port_job status
-** done: counter of finished scan_jobs
-** scan_jobs: status of each scan_job
-** scan_locks: to avoid two receive tasks on a scan
-*/
-typedef struct		s_port_job
-{
-	uint8_t			status;
-	_Atomic uint8_t	done;
-	uint8_t			scan_jobs[SCAN_COUNT];
-	atomic_int		scan_locks[SCAN_COUNT];
-}					t_port_job;
-
-/*
 ** t_probe: nmap probes
 **
 ** retry: counter of retries (MAX_RETRY then timeout, sig atomic too)
@@ -125,7 +109,24 @@ typedef struct				s_probe
 }							t_probe;
 
 /*
-** Job structure: this is the status of each tasks on a given host
+** Port job structure: this is the status of each scan_job on a given port
+**
+** status: port_job status
+** done: counter of finished scan_jobs
+** scan_jobs: status of each scan_job
+** scan_locks: to avoid two receive tasks on a scan
+*/
+typedef struct		s_port_job
+{
+	uint8_t			status;
+	_Atomic uint8_t	done;
+	t_probe			probes[SCAN_COUNT];//TEMP
+	uint8_t			scan_jobs[SCAN_COUNT];
+	atomic_int		scan_locks[SCAN_COUNT];
+}					t_port_job;
+
+/*
+** Host job structure: this is the status of each port_job on a given host
 **
 ** host_job_id: job counter and identification
 ** host: host string
@@ -223,7 +224,7 @@ typedef struct		s_nmap_config
 	t_udp_payload	**udp_payloads[PORTS_COUNT];
 	// Modified during execution
 	t_host_job		host_job;
-	t_probe			probes[MAX_PROBE];
+	t_probe			*probes[MAX_PROBE];
 	sig_atomic_t	nprobes;
 	t_list			*main_tasks;
 	t_list			*worker_tasks;
@@ -236,7 +237,7 @@ typedef struct		s_nmap_config
 	ft_exec_name(*argv), 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 }, 0,\
 	{ 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
-	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, {{ 0 }}, 0, NULL, NULL, 0,\
+	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
 	-1, 0\
 }
 

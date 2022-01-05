@@ -30,7 +30,7 @@ static void	set_probe_timeout(t_probe *probe)
 
 static void	alarm_handler(int sig)
 {
-	t_probe	*probe = g_cfg->probes;
+	t_probe	**probe = g_cfg->probes;
 	int		current_probe = g_cfg->current_probe;
 	int		nprobes = g_cfg->speedup ? g_cfg->nprobes : current_probe + 1;
 
@@ -43,12 +43,12 @@ static void	alarm_handler(int sig)
 	}
 	for (int i = g_cfg->speedup ? 0 : current_probe; i < nprobes; ++i)
 	{
-		if (probe[i].retry <= 0)
+		if (probe[i]->retry <= 0)
 			continue ;
-		if (--probe[i].retry > 0)
-			init_probe_task(probe + i);
+		if (--probe[i]->retry > 0)
+			init_probe_task(probe[i]);
 		else
-			set_probe_timeout(probe + i);
+			set_probe_timeout(probe[i]);
 	}
 	alarm(1);
 }

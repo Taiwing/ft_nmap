@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/12 20:43:03 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/04 09:18:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 15:50:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,9 @@ static t_probe	*get_probe(t_packet *reply, t_nmap_config *cfg)
 		default:
 			return (NULL);
 	}
-	if (sport < PORT_DEF || cfg->probes[sport - PORT_DEF].dstp != dport)
+	if (sport < PORT_DEF || cfg->probes[sport - PORT_DEF]->dstp != dport)
 		return (NULL);
-	return (cfg->probes + sport - PORT_DEF);
+	return (cfg->probes[sport - PORT_DEF]);
 }
 
 static uint8_t	*check_link_layer(t_task *task, t_nmap_config *cfg,

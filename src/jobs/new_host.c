@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/04 09:11:53 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/05 15:49:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,9 @@
 static t_probe	*init_task_probe(t_nmap_config *cfg, uint16_t probe_id,
 		uint16_t scan, uint16_t port)
 {
-	t_probe	*probe = cfg->probes + probe_id;
+	t_probe	*probe = &cfg->host_job.port_jobs[port].probes[scan];
 
+	cfg->probes[probe_id] = probe;
 	probe->srcip = &cfg->host_job.dev->ip;
 	probe->dstip = &cfg->host_job.ip;
 	probe->srcp = PORT_DEF + probe_id;
