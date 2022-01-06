@@ -29,6 +29,41 @@
   and UDP is 5 while ACK is in the middle, which is also
   how often this problem appears on each scan type), is
   probably be a hint to the root of the problem.
+  UPDATE: It looks like each scan works as expected if
+  executed individually (except maybe UDP, which is more
+  complicated than the others as it takes at least 20min
+  on a full 1024 ports scan for  the original nmap).
+  The scans should probably be done consecutively,
+  meaning that each scan type and their retries should
+  be done on every port before the next scan type. This
+  looks like the problem is caused by crossing the
+  streams as the ghost busters would put it. If we try
+  a lot of scans of different types at the same time,
+  it just fails, probably because of firewall rules or
+  of network overload.
+  UPDATE2: For UDP and the closed/filtered states and
+  for NULL/FIN/XMAS and the filtered state, the problem
+  is that the linux kernel caps outgoing icmp packets to
+  1 per second. This is why the UDP scan takes around 20
+  minutes for on 1024 ports. There is no workaround for
+  this. The only way is to scan once per second and limit
+  retries to one. An other way to accelerate the process
+  would be start with the ports where there are probes
+  defined in nmap-payloads, as they have at least a
+  chance to instantly return a UDP response (although,
+  the time earned would be very small compared to the
+  total time the scan would take).
+
+- Rework the monothread logic so that ft_nmap is able to
+  execute multiple scans at the same time. The solution
+  might be to send multiple probes in a row in the alarm
+  handler after the listening function has been called.
+  This looks dirty, but it might be the only solution to
+  pass the first test on the correction sheet, because
+  with the original nmap I can justify a runtime of 20min
+  for the UDP scan only not 8 hours. So ft_nmap, with
+  every scan flag and no speedup should take around 20min
+  too.
 
 - Also fix false 'positive' tests for SYN scan (example
   on framasoft.org for ports 137, 138 and 179). They
@@ -49,6 +84,10 @@
   IPv4 on ft_nmap its behavior is the same as the
   orginal nmap (port 179 is closed).
 - use IPv4 by default, not IPv6
+
+- Try to fix the fact that some probes are sent/received
+  after the result has been printed. It's not a big deal
+  so if there is no way to do that cleanly, just dont.
 
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
