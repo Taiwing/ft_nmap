@@ -88,6 +88,10 @@
 - Try to fix the fact that some probes are sent/received
   after the result has been printed. It's not a big deal
   so if there is no way to do that cleanly, just dont.
+  UPDATE: It may be a bigger problem than expected. On
+  some 1024-port scans, there are some open ports that
+  are often missed at the end of the list (like rsync).
+  This might be the cause.
 
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
