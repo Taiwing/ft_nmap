@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 13:54:43 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 17:49:36 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,7 +168,7 @@ typedef struct			s_host_job
 ** ports_to_scan: boolean array representing every port given as arguments
 ** ports: compressed list with the first MAX_PORTS ports of ports_to_scan
 ** nports: number of ports to scan in ports array
-** hosts: hosts list given by cmd argument
+** hosts: hosts list given by cmd arguments (argv + first_arg_index)
 ** hosts_file: file containing a list of hosts
 ** dev: interface on which to listen to given by user
 ** scans: scans to perform as an array of booleans
@@ -216,7 +216,7 @@ typedef struct		s_nmap_config
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
 	uint16_t		nports;
-	const char		*hosts;
+	char			**hosts;
 	const char		*hosts_file;
 	const char		*dev;
 	uint8_t			scans[SCAN_COUNT];
@@ -256,8 +256,8 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	ft_exec_name(*argv), 0, 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 },\
-	0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
+	*argv, 0, 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 }, 0, { 0 }, -1,\
+	0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
 	-1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0\
@@ -326,7 +326,7 @@ void		init_sockets(t_nmap_config *cfg);
 void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
 int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
-const char	*next_host(t_ip *ip, t_nmap_config *cfg);
+char		*next_host(t_ip *ip, t_nmap_config *cfg);
 void		new_host(t_nmap_config *cfg);
 void		build_probe_packet(t_packet *dest, t_scan_job *scan_job,
 				uint8_t *layer5, uint16_t l5_len);

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 20:50:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 17:18:50 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,12 +92,12 @@ static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nscan_jobs)
 	return (probe_tasks);
 }
 
-static void	set_host_job_data(t_host_job *host_job, const char *host,
+static void	set_host_job_data(t_host_job *host_job, char *host,
 		t_nmap_config *cfg)
 {
 	++host_job->host_job_id;
 	ft_memdel((void **)&host_job->host);
-	host_job->host = ft_strdup(host);
+	host_job->host = host;
 	if (gettimeofday(&host_job->start_ts, NULL) < 0)
 		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	host_job->family = host_job->ip.family;
@@ -117,7 +117,7 @@ static void	set_host_job_data(t_host_job *host_job, const char *host,
 void	new_host(t_nmap_config *cfg)
 {
 	int			nscan_jobs = 0;
-	const char	*host = NULL;
+	char		*host = NULL;
 	t_list		*probe_tasks = NULL;
 
 	cfg->nscan_jobs = 0;

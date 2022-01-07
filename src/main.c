@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 11:51:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 17:51:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ static void	main_thread_cleanup(void)
 
 static void	check_config(t_nmap_config *cfg)
 {
-	if (!cfg->hosts && !cfg->hosts_file)
+	if (!*cfg->hosts && !cfg->hosts_file)
 		ft_exit(EXIT_FAILURE, "target host missing (use --help for more info)");
 	if (!cfg->nports)
 	{
@@ -71,6 +71,7 @@ int	main(int argc, char **argv)
 {
 	t_nmap_config	cfg = CONFIG_DEF;
 
+	ft_strcpy(argv[0], ft_exec_name(argv[0]));
 	init_config(&cfg, argc, argv);
 	init_tasks(&cfg);
 	if (gettimeofday(&cfg.start_ts, NULL) < 0)

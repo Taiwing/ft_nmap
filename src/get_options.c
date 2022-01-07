@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 14:00:47 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 17:19:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"df:hi:p:S:s:t:v46"
+#define	FT_NMAP_OPT	"df:hi:p:S:s:v46"
 
 t_opt	g_nmap_opt[] = {
 	{ "complete",	0,	NULL,	'c' },
@@ -23,7 +23,6 @@ t_opt	g_nmap_opt[] = {
 	{ "ports",		1,	NULL,	'p'	},
 	{ "speedup",	1,	NULL,	'S'	},
 	{ "scan",		1,	NULL,	's'	},
-	{ "target",		1,	NULL,	't'	},
 	{ "verbose",	0,	NULL,	'v'	},
 	{ "ipv4",		0,	NULL,	'4'	},
 	{ "ipv6",		0,	NULL,	'6'	},
@@ -43,8 +42,6 @@ char	*g_nmap_help[] = {
 	"Scans to perform specified as a comma separated list. Possible values:\n"
 	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). It is possible to only\n"
 	"\t\tuse one letter by scan (eg: '-sA' for ACK). Does them all by default.",
-	"Hosts to scan specified as a comma separated list of IPv4-IPv6 addresses\n"
-	"\t\tor hostnames (eg: localhost,192.168.1.0,example.com,2001::ffff).",
 	"Show probe packets, replies and timeouts.",
 	"Use only IPv4.",
 	"Use only IPv6.",
@@ -52,13 +49,16 @@ char	*g_nmap_help[] = {
 };
 
 char	*g_nmap_usage[] = {
-	"[-cdhv46] [-f path] [-p list] [-S number] [-s list] [-i iface] -t list",
-	"[-cdhv46] [-t list] [-p list] [-S number] [-s list] [-i iface] -f path",
+	"[-cdhv46] [-f path] [-p list] [-S number] [-s list] [-i iface] host ...",
 	NULL,
 };
 
 char	*g_description =
-"\tEach scan type given in scan list is a column in the final host report\n"
+"\tThe host arguments can either be IPv4, IPv6 addresses, hosts as defined\n"
+"\tin the /etc/hosts file or domain names. ft_nmap will loop on them until\n"
+"\tno argument is left. Then it will look at the --file option value if it\n"
+"\twas given and do the same. The host file format is one host per line.\n"
+"\n\tEach scan type given in scan list is a column in the final host report\n"
 "\tand a series of letters is used to describe the result of a port scan:\n\n"
 "\tO --> Open\n"
 "\tC --> Closed\n"
@@ -152,14 +152,12 @@ const char		*parse_comma_list(const char *str)
 void		get_options(t_nmap_config *cfg, int argc, char **argv)
 {
 	int			opt;
-	char		**args;
 	t_optdata	o = { 0 };
 
 	init_getopt(&o, FT_NMAP_OPT, g_nmap_opt, NULL);
-	args = ft_memalloc((argc + 1) * sizeof(char *));
-	ft_memcpy((void *)args, (void *)argv, argc * sizeof(char *));
-	*args = (char *)cfg->exec;
-	while ((opt = ft_getopt_long(argc, args, &o)) >= 0)
+	if (ft_strlen(cfg->exec) <= ft_strlen(argv[0]))
+		ft_strcpy(argv[0], cfg->exec);
+	while ((opt = ft_getopt_long(argc, argv, &o)) >= 0)
 		switch (opt)
 		{
 			case 'c': ++cfg->complete;									break;
@@ -169,11 +167,10 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'p': parse_ports(cfg, o.optarg, set_scan_ports, NULL);	break;
 			case 'S': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
 			case 's': scan_option(cfg, &o);								break;
-			case 't': cfg->hosts = o.optarg;							break;
 			case 'v': ++cfg->verbose;									break;
 			case '4': cfg->ip_mode = E_IPV4;							break;
 			case '6': cfg->ip_mode = E_IPV6;							break;
 			default: usage(cfg->exec, opt != 'h');
 		}
-	ft_memdel((void **)&args);
+	cfg->hosts = argv + o.optind;
 }
