@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 12:06:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 13:20:13 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,6 @@
 # define	MAX_LST_ELM_LEN				1024	// biggest possible comma list element
 # define	PORTS_COUNT					0x10000	// Number of ports (USHRT_MAX + 1)
 # define	MAX_RETRY					4		// Number of retries for sending probe
-# define	SCAN_COUNT					6
-# define	SOCKET_COUNT				4
-# define	TASK_COUNT					7
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
 
 // Print format constants
@@ -48,9 +45,10 @@
 # define	PORT_FIELD					5
 # define	SERVICE_FIELD				SERVICE_NAME_MAXLEN
 # define	SCAN_FIELD					5
+# define	MAX_PRINT_PORTS				26
 
 // Job states
-enum e_states {
+enum		e_states {
 	E_STATE_PENDING			= 0x00,	// Not started yet
 	E_STATE_DONE			= 0x01,	// Finished
 	E_STATE_OPEN			= 0x02,
@@ -60,9 +58,11 @@ enum e_states {
 	E_STATE_NONE			= 0x20, // Invalid reply packet
 	E_STATE_SCAN_MASK		= 0x1e	// Mask for scan_job status
 };
+# define	MAX_PORT_STATUS				(E_STATE_OPEN | E_STATE_FILTERED)
 
 // Tasks
-enum e_tasks {
+# define	TASK_COUNT		7
+enum		e_tasks {
 	E_TASK_THREAD_SPAWN = 0,
 	E_TASK_LISTEN,
 	E_TASK_NEW_HOST,
@@ -73,12 +73,14 @@ enum e_tasks {
 };
 
 // Scans
-enum e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, E_UDP };
+# define	SCAN_COUNT		6
+enum		e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, E_UDP };
 
 // IP modes
 enum e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
 
 // Sockets
+# define	SOCKET_COUNT	4
 enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 
 /*
@@ -349,6 +351,7 @@ int			update_job(t_nmap_config *cfg, t_scan_job *scan_job,
 				uint8_t result);
 void		print_config(t_nmap_config *cfg);
 void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
+void		default_print(t_host_job *host_job, t_nmap_config *cfg);
 void		push_tasks(t_list **dest, t_list *tasks,
 				t_nmap_config *cfg, int prio);
 t_task		*pop_task(t_list **src, t_nmap_config *cfg, int prio);
@@ -370,6 +373,9 @@ double		ts_msdiff(struct timeval *a, struct timeval *b);
 extern const taskf		g_tasks[TASK_COUNT];
 extern const char		*g_nmap_task_strings[TASK_COUNT];
 extern const char		*g_nmap_scan_strings[SCAN_COUNT];
+extern const char		g_sep_line[JOB_LINE + 1];
+extern const char		*g_scan_results[MAX_PORT_STATUS + 1];
+extern const char		*g_port_status[MAX_PORT_STATUS + 1];
 extern const char		*g_tcp_services[PORTS_COUNT][2];
 extern const char		*g_udp_services[PORTS_COUNT][2];
 extern const char		*g_sctp_services[PORTS_COUNT][2];

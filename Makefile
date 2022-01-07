@@ -22,6 +22,7 @@ SRCC			=	debug.c\
 					main.c\
 					print.c\
 					stats.c\
+					default_print.c\
 					verbose.c\
 					get_options.c\
 
@@ -91,6 +92,7 @@ task_utils.o: ft_nmap.h network.h libft.h
 tasks.o: ft_nmap.h network.h libft.h
 print.o: ft_nmap.h network.h libft.h
 stats.o: ft_nmap.h network.h libft.h
+default_print.o: ft_nmap.h network.h libft.h
 filter.o: ft_nmap.h network.h libft.h
 next_host.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h
