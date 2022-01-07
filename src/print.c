@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 17:46:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 12:01:45 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,21 +32,6 @@ const char	*g_port_status[PORT_STATUS_MAX + 1] = {
 	[E_STATE_FILTERED] = "Filtered",
 	[E_STATE_OPEN | E_STATE_FILTERED] = "Open|Filtered",
 };
-
-/*
-** ts_msdiff: timestamp ms substraction
-**
-** Substracts b from a and returns the result in ms.
-*/
-static double	ts_msdiff(struct timeval *a, struct timeval *b)
-{
-	double s;
-	double us;
-
-	s = ((double)(a->tv_sec - b->tv_sec)) * 1000.0;
-	us = ((double)(a->tv_usec - b->tv_usec)) / 1000.0;
-	return (s + us);
-}
 
 //TODO: switch services array in function of type (tcp/udp/sctp)
 static void	print_port(t_port_job *port_job, uint16_t port_job_id,

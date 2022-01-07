@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 09:59:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 11:51:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,8 @@ int	main(int argc, char **argv)
 
 	init_config(&cfg, argc, argv);
 	init_tasks(&cfg);
+	if (gettimeofday(&cfg.start_ts, NULL) < 0)
+		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	worker(&cfg);
 	ft_exit(EXIT_SUCCESS, NULL);
 	return (EXIT_SUCCESS);

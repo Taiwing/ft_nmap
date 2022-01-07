@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 22:16:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 12:06:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@
 # define	MAX_RETRY					4		// Number of retries for sending probe
 # define	SCAN_COUNT					6
 # define	SOCKET_COUNT				4
-# define	TASK_COUNT					6
+# define	TASK_COUNT					7
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
 
 // Print format constants
@@ -69,6 +69,7 @@ enum e_tasks {
 	E_TASK_PROBE,
 	E_TASK_REPLY,
 	E_TASK_THREAD_WAIT,
+	E_TASK_PRINT_STATS,
 };
 
 // Scans
@@ -193,6 +194,13 @@ typedef struct			s_host_job
 ** current_scan_job: id of current scan_job for monothreaded runs
 ** current_payload_index: id of current payload_index for monothreaded runs
 ** end: boolean signaling the end of ft_nmap's execution
+** start_ts: ft_nmap start timestamp (after tasks initialization)
+** end_ts: ft_nmap end timestamp (after thread_wait/listen)
+** host_count: number of hosts given by the user
+** received_packet_count: count of received packets handled by pcap
+** listen_breaks_total: total count of listen loop breaks
+** listen_breaks_manual: times where pcap_breakloop() was used
+** listen_breaks_zero_packet: listen breaks with 0 packet found
 */
 typedef struct		s_nmap_config
 {
@@ -234,6 +242,13 @@ typedef struct		s_nmap_config
 	sig_atomic_t	current_scan_job;
 	sig_atomic_t	current_payload_index;
 	sig_atomic_t	end;
+	struct timeval	start_ts;
+	struct timeval	end_ts;
+	int				host_count;
+	int				received_packet_count;
+	int				listen_breaks_total;
+	int				listen_breaks_manual;
+	int				listen_breaks_zero_packet;
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
@@ -241,7 +256,7 @@ typedef struct		s_nmap_config
 	{ 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
-	-1, 0, 0\
+	-1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0\
 }
 
 /*
@@ -339,6 +354,14 @@ void		push_tasks(t_list **dest, t_list *tasks,
 t_task		*pop_task(t_list **src, t_nmap_config *cfg, int prio);
 void		push_reply_task(t_task *task);
 void		init_tasks(t_nmap_config *cfg);
+void		stats_listen(t_nmap_config *cfg, int packet_count);
+
+/*
+** Utils
+*/
+
+void		shitty_usleep(uint64_t ms);
+double		ts_msdiff(struct timeval *a, struct timeval *b);
 
 /*
 ** ft_nmap constants

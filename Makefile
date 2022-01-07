@@ -18,8 +18,10 @@ SERVICESDIR		=	services
 
 SRCC			=	debug.c\
 					options.c\
+					utils.c\
 					main.c\
 					print.c\
+					stats.c\
 					verbose.c\
 					get_options.c\
 
@@ -79,6 +81,7 @@ $(SUB1D)/libft.a:
 
 debug.o: ft_nmap.h network.h libft.h ft_printf_internal.h
 options.o: ft_nmap.h network.h libft.h
+utils.o: ft_nmap.h network.h libft.h
 main.o: ft_nmap.h network.h libft.h
 update_job.o: ft_nmap.h network.h libft.h
 mutex.o: ft_nmap.h network.h libft.h
@@ -87,6 +90,7 @@ new_host.o: ft_nmap.h network.h libft.h
 task_utils.o: ft_nmap.h network.h libft.h
 tasks.o: ft_nmap.h network.h libft.h
 print.o: ft_nmap.h network.h libft.h
+stats.o: ft_nmap.h network.h libft.h
 filter.o: ft_nmap.h network.h libft.h
 next_host.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h

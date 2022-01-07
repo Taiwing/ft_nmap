@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/04 09:14:13 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 11:53:18 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,8 @@ void	init_tasks(t_nmap_config *cfg)
 		task.type = E_TASK_THREAD_WAIT;
 		ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
 	}
+	task.type = E_TASK_PRINT_STATS;
+	ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
 	cfg->main_tasks = main;
 	cfg->worker_tasks = workers;
 }

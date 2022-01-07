@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 09:02:59 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/29 09:11:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 11:43:20 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ static const char	*get_target(t_nmap_config *cfg)
 	else if (!cfg->hosts && cfg->hosts_fd >= 0)
 	{
 		if (ret)
-			ft_memdel((void *)&ret);
+			ft_memdel((void **)&ret);
 		if (get_next_line(cfg->hosts_fd, (char **)&ret) < 0)
 			ft_exit(EXIT_FAILURE, "get_next_line: unknown error");
 	}
@@ -38,7 +38,10 @@ const char			*next_host(t_ip *ip, t_nmap_config *cfg)
 	const char	*target = NULL;
 
 	while ((target = get_target(cfg)))
+	{
+		++cfg->host_count;
 		if (!get_destinfo(ip, target, cfg))
 			break ;
+	}
 	return (target);
 }

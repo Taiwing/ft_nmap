@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:25:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 11:30:53 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ const char	*g_nmap_task_strings[TASK_COUNT] = {
 	"PROBE",
 	"REPLY",
 	"THREAD_WAIT",
+	"PRINT_STATS",
 };
 
 const char	*g_nmap_state_strings[] = {

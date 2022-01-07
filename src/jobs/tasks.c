@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 22:56:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 12:10:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ static void	task_thread_spawn(t_task *task, t_nmap_config *cfg)
 
 static void	task_listen(t_task *task, t_nmap_config *cfg)
 {
+	int	packet_count;
+
 	if (cfg->debug > 1)
 		debug_task(cfg, task, 0);
 	if (!cfg->speedup)
@@ -28,12 +30,18 @@ static void	task_listen(t_task *task, t_nmap_config *cfg)
 		if (task->scan_job->retry < 0)
 			return ;
 		while (!cfg->end && cfg->current_scan_job >= 0)
-			ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
+		{
+			packet_count = ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
+			stats_listen(cfg, packet_count);
+		}
 	}
 	else
 	{
 		while (!cfg->end)
-			ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
+		{
+			packet_count = ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
+			stats_listen(cfg, packet_count);
+		}
 	}
 }
 
@@ -91,6 +99,26 @@ static void	task_thread_wait(t_task *task, t_nmap_config *cfg)
 	wait_workers(cfg);
 }
 
+static void	task_print_stats(t_task *task, t_nmap_config *cfg)
+{
+	double	total_time;
+
+	if (cfg->debug > 1)
+		debug_task(cfg, task, 0);
+	if (gettimeofday(&cfg->end_ts, NULL) < 0)
+		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
+	total_time = ts_msdiff(&cfg->end_ts, &cfg->start_ts);
+	ft_printf("\n--- ft_nmap done ---\n%d address%s scanned in %g seconds\n",
+		cfg->host_count, cfg->host_count > 1 ? "es" : "", total_time / 1000.0);
+	debug_print(cfg,
+		"pcap received packet count: %d\n"
+		"total listen breaks: %d\n"
+		"manual listen breaks: %d\n"
+		"listen breaks with 0 packet received: %d\n",
+		cfg->received_packet_count, cfg->listen_breaks_total,
+		cfg->listen_breaks_manual, cfg->listen_breaks_zero_packet);
+}
+
 const taskf	g_tasks[TASK_COUNT] = {
 	[E_TASK_THREAD_SPAWN] = task_thread_spawn,
 	[E_TASK_LISTEN] = task_listen,
@@ -98,4 +126,5 @@ const taskf	g_tasks[TASK_COUNT] = {
 	[E_TASK_PROBE] = task_probe,
 	[E_TASK_REPLY] = task_reply,
 	[E_TASK_THREAD_WAIT] = task_thread_wait,
+	[E_TASK_PRINT_STATS] = task_print_stats,
 };

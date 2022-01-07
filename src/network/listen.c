@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/18 08:01:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/06 01:00:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,5 +37,5 @@ int			ft_listen(t_packet *reply, pcap_t *descr,
 		ft_exit(EXIT_FAILURE, "pcap_dispatch: pcap error");
 	else if (r == PCAP_ERROR_BREAK)
 		return (-1);
-	return (0);
+	return (r);
 }
