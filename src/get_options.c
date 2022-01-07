@@ -42,7 +42,7 @@ char	*g_nmap_help[] = {
 	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). It is possible to only\n"
 	"\t\tuse one letter by scan (eg: '-sA' for ACK). Does them all by default.",
 	"Hosts to scan specified as a comma separated list of IPv4-IPv6 addresses\n"
-	"\t\tor hostnames (eg: localhost,192.168.1.0/24,2001::ffff).",
+	"\t\tor hostnames (eg: localhost,192.168.1.0,example.com,2001::ffff).",
 	"Show probe packets, replies and timeouts.",
 	"Use only IPv4.",
 	"Use only IPv6.",
@@ -60,8 +60,26 @@ char	*g_description =
 "\tand a series of letters is used to describe the result of a port scan:\n\n"
 "\tO --> Open\n"
 "\tC --> Closed\n"
+"\tU --> Unfiltered\n"
 "\tF --> Filtered\n"
-"\tU --> Unfiltered\n";
+"\tOF --> Open|Filtered\n\n"
+"\tPossible responses and states by scan type:\n"
+"\n\tSYN:\n"
+"\tOpen --> tcp SYN or tcp SYN/ACK\n"
+"\tClosed --> tcp RST\n"
+"\tFiltered --> icmp type 3 code 0/1/2/3/9/10/13 or timeout\n"
+"\n\tACK:\n"
+"\tUnfiltered --> tcp RST\n"
+"\tFiltered --> icmp type 3 code 0/1/2/3/9/10/13 or timeout\n"
+"\n\tUDP:\n"
+"\tOpen --> udp\n"
+"\tClosed --> icmp type 3 code 3\n"
+"\tFiltered --> icmp type 3 code 0/1/2/9/10/13\n"
+"\tOpen|Filetered --> timeout\n"
+"\n\tNULL, FIN, XMAS:\n"
+"\tClosed --> tcp RST\n"
+"\tFiltered --> icmp type 3 code 0/1/2/3/9/10/13\n"
+"\tOpen|Filetered --> timeout\n";
 
 static void	usage(const char *exec, int exit_value)
 {
