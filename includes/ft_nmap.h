@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 13:20:13 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 13:54:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,6 +164,7 @@ typedef struct			s_host_job
 ** speedup: number of parallel threads to use
 ** verbose: additional printing option
 ** debug: even more optional additional printing
+** complete: option to show every port and scan type
 ** ports_to_scan: boolean array representing every port given as arguments
 ** ports: compressed list with the first MAX_PORTS ports of ports_to_scan
 ** nports: number of ports to scan in ports array
@@ -211,6 +212,7 @@ typedef struct		s_nmap_config
 	int				speedup;
 	int				verbose;
 	int				debug;
+	int				complete;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
 	uint16_t		nports;
@@ -254,8 +256,8 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	ft_exec_name(*argv), 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 }, 0,\
-	{ 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
+	ft_exec_name(*argv), 0, 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 },\
+	0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
 	-1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0\

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 09:45:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 14:00:47 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #define	FT_NMAP_OPT	"df:hi:p:S:s:t:v46"
 
 t_opt	g_nmap_opt[] = {
+	{ "complete",	0,	NULL,	'c' },
 	{ "debug",		0,	NULL,	'd' },
 	{ "file",		1,	NULL,	'f'	},
 	{ "help",		0,	NULL,	'h'	},
@@ -30,6 +31,7 @@ t_opt	g_nmap_opt[] = {
 };
 
 char	*g_nmap_help[] = {
+	"Show every port and scan type in the final host report",
 	"Show debugging information about pcap filters and posix threads. Also\n"
 	"\t\tprint packets that do not match any valid probe (filter failure).",
 	"File containing a list of hosts to scan (1 per line).",
@@ -50,8 +52,8 @@ char	*g_nmap_help[] = {
 };
 
 char	*g_nmap_usage[] = {
-	"[-dhv46] [-f path] [-p list] [-S number] [-s list] [-i iface] -t list",
-	"[-dhv46] [-t list] [-p list] [-S number] [-s list] [-i iface] -f path",
+	"[-cdhv46] [-f path] [-p list] [-S number] [-s list] [-i iface] -t list",
+	"[-cdhv46] [-t list] [-p list] [-S number] [-s list] [-i iface] -f path",
 	NULL,
 };
 
@@ -160,6 +162,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 	while ((opt = ft_getopt_long(argc, args, &o)) >= 0)
 		switch (opt)
 		{
+			case 'c': ++cfg->complete;									break;
 			case 'd': ++cfg->debug;										break;
 			case 'f': cfg->hosts_file = o.optarg;						break;
 			case 'i': cfg->dev = o.optarg;								break;

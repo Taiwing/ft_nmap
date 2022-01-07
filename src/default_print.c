@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 13:06:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 13:17:13 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/07 13:29:13 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,8 @@ static void		print_port_by_status(t_host_job *host_job, t_nmap_config *cfg,
 	uint8_t	c = 0;
 	uint8_t	status = E_STATE_OPEN;
 
-	while (!cfg->verbose && !cfg->debug && ++status < MAX_PORT_STATUS + 1)
+	while (!cfg->verbose && !cfg->debug && !cfg->complete
+			&& ++status < MAX_PORT_STATUS + 1)
 		if (g_port_status[status] && count[status] > MAX_PRINT_PORTS)
 			ft_printf("%s%hu %s", !c++ ? "Ports not shown: " : ", ",
 				count[status], g_port_status[status]);
@@ -59,7 +60,7 @@ static void		print_port_by_status(t_host_job *host_job, t_nmap_config *cfg,
 	{
 		if (g_port_status[status] && count[status]
 			&& (count[status] <= MAX_PRINT_PORTS || status == E_STATE_OPEN
-			|| cfg->verbose || cfg->debug))
+			|| cfg->verbose || cfg->debug || cfg->complete))
 		{
 			ft_printf("\n%s ports:", g_port_status[status]);
 			for (uint16_t i = 0; i < count[status]; ++i)
