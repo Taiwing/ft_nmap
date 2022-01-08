@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/08 04:50:11 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/08 23:56:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/09 00:24:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 //TODO:
 //- add port numbers on the sides as a reference
 //- if complete is set show an independant heatmap for each scan type
+//- add a color legend for available the different states on the map
 
 #define WIDTH_FROM_N(n)	(n > 768 ? 64 : n > 448 ? 48 : n > 160 ? 32 : 16)
 

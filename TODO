@@ -104,3 +104,9 @@
   the same as the original nmap and that it does not
   take too much time to execute
 - then stress-test the shit out of this program (really)
+
+- Implement a "watch" mode for the heatmap option where
+  ft_nmap would be continuously scanning the target
+  ports on a regular interval. Updating the map as it
+  eventually changes and notifying the user when they
+  do occur.
