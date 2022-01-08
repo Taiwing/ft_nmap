@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 17:19:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/08 04:27:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ t_opt	g_nmap_opt[] = {
 	{ "help",		0,	NULL,	'h'	},
 	{ "interface",	1,	NULL,	'i'	},
 	{ "ports",		1,	NULL,	'p'	},
+	{ "range",		0,	NULL,	'r'	},
 	{ "speedup",	1,	NULL,	'S'	},
 	{ "scan",		1,	NULL,	's'	},
 	{ "verbose",	0,	NULL,	'v'	},
@@ -38,6 +39,8 @@ char	*g_nmap_help[] = {
 	"Select interface on which to listen on.",
 	"Ports to scan specified as a comma separated list of individual ports or\n"
 	"\t\tranges (eg: 80,22,1024-2048). The default is 1-1024.",
+	"Range report. This will show each scan as a range of ports on every\n"
+	"\t\toutcome state instead of the default port table.",
 	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
 	"Scans to perform specified as a comma separated list. Possible values:\n"
 	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). It is possible to only\n"
@@ -49,7 +52,7 @@ char	*g_nmap_help[] = {
 };
 
 char	*g_nmap_usage[] = {
-	"[-cdhv46] [-f path] [-p list] [-S number] [-s list] [-i iface] host ...",
+	"[-cdhrv46] [-f path] [-p list] [-S number] [-s list] [-i iface] host ...",
 	NULL,
 };
 
@@ -165,6 +168,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'f': cfg->hosts_file = o.optarg;						break;
 			case 'i': cfg->dev = o.optarg;								break;
 			case 'p': parse_ports(cfg, o.optarg, set_scan_ports, NULL);	break;
+			case 'r': cfg->report = E_REPORT_RANGE;						break;
 			case 'S': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
 			case 's': scan_option(cfg, &o);								break;
 			case 'v': ++cfg->verbose;									break;

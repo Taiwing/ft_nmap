@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 17:49:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/08 03:03:37 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,11 +77,14 @@ enum		e_tasks {
 enum		e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, E_UDP };
 
 // IP modes
-enum e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
+enum		e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
 
 // Sockets
 # define	SOCKET_COUNT	4
-enum e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
+enum		e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
+
+// Reports
+enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE };
 
 /*
 ** t_scan_job: nmap scan_jobs
@@ -213,6 +216,7 @@ typedef struct		s_nmap_config
 	int				verbose;
 	int				debug;
 	int				complete;
+	enum e_reports	report;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
 	uint16_t		nports;
@@ -256,8 +260,8 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	*argv, 0, 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 }, 0, { 0 }, -1,\
-	0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
+	*argv, 0, 0, 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 }, 0, { 0 },\
+	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
 	-1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0\
@@ -353,7 +357,8 @@ int			update_job(t_nmap_config *cfg, t_scan_job *scan_job,
 				uint8_t result);
 void		print_config(t_nmap_config *cfg);
 void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
-void		default_print(t_host_job *host_job, t_nmap_config *cfg);
+void		port_report(t_host_job *host_job, t_nmap_config *cfg);
+void		range_report(t_host_job *host_job, t_nmap_config *cfg);
 void		push_tasks(t_list **dest, t_list *tasks,
 				t_nmap_config *cfg, int prio);
 t_task		*pop_task(t_list **src, t_nmap_config *cfg, int prio);

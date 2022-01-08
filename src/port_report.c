@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   default_print.c                                    :+:      :+:    :+:   */
+/*   port_report.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/01/07 13:06:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 13:29:13 by yforeau          ###   ########.fr       */
+/*   Created: 2022/01/08 02:54:02 by yforeau           #+#    #+#             */
+/*   Updated: 2022/01/08 02:54:18 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ static void		print_port_by_status(t_host_job *host_job, t_nmap_config *cfg,
 	}
 }
 
-void		default_print(t_host_job *host_job, t_nmap_config *cfg)
+void		port_report(t_host_job *host_job, t_nmap_config *cfg)
 {
 	uint16_t	count[MAX_PORT_STATUS + 1] = { 0 };
 	uint16_t	port_id[MAX_PORT_STATUS + 1][MAX_PORTS] = { 0 };

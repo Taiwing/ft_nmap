@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 13:17:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/08 03:02:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,11 +23,11 @@ const char	*g_scan_results[MAX_PORT_STATUS + 1] = {
 };
 
 const char	*g_port_status[MAX_PORT_STATUS + 1] = {
-	[E_STATE_OPEN] = "Open",
-	[E_STATE_CLOSED] = "Closed",
-	[E_STATE_UNFILTERED] = "Unfiltered",
-	[E_STATE_FILTERED] = "Filtered",
-	[E_STATE_OPEN | E_STATE_FILTERED] = "Open|Filtered",
+	[ E_STATE_OPEN ] = "Open",
+	[ E_STATE_CLOSED ] = "Closed",
+	[ E_STATE_UNFILTERED ] = "Unfiltered",
+	[ E_STATE_FILTERED ] = "Filtered",
+	[ E_STATE_OPEN | E_STATE_FILTERED ] = "Open|Filtered",
 };
 
 void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
@@ -40,12 +40,11 @@ void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 	ft_printf("\nHost: %s\nScan took %g seconds\nIP address: %s\n",
 		host_job->host, scan_time / 1000.0, inet_ntop(host_job->ip.family,
 		ip_addr(&host_job->ip), ipbuf, INET6_ADDRSTRLEN));
-	/*
-	if (cfg->summary)
-		summary_print(host_job, cfg);
-	else
-	*/
-		default_print(host_job, cfg);
+	switch (cfg->report)
+	{
+		case E_REPORT_PORT: port_report(host_job, cfg);		break;
+		case E_REPORT_RANGE: range_report(host_job, cfg);	break;
+	}
 	if (cfg->speedup && (cfg->verbose || cfg->debug))
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }
