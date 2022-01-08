@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/08 03:03:37 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/08 04:50:01 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ enum		e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
 enum		e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
 
 // Reports
-enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE };
+enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE, E_REPORT_HEATMAP };
 
 /*
 ** t_scan_job: nmap scan_jobs
@@ -359,6 +359,7 @@ void		print_config(t_nmap_config *cfg);
 void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
 void		port_report(t_host_job *host_job, t_nmap_config *cfg);
 void		range_report(t_host_job *host_job, t_nmap_config *cfg);
+void		heatmap_report(t_host_job *host_job, t_nmap_config *cfg);
 void		push_tasks(t_list **dest, t_list *tasks,
 				t_nmap_config *cfg, int prio);
 t_task		*pop_task(t_list **src, t_nmap_config *cfg, int prio);

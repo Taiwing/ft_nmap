@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/08 03:02:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/08 04:49:35 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,9 @@ void	print_host_job(t_host_job *host_job, t_nmap_config *cfg)
 		ip_addr(&host_job->ip), ipbuf, INET6_ADDRSTRLEN));
 	switch (cfg->report)
 	{
-		case E_REPORT_PORT: port_report(host_job, cfg);		break;
-		case E_REPORT_RANGE: range_report(host_job, cfg);	break;
+		case E_REPORT_PORT: port_report(host_job, cfg);			break;
+		case E_REPORT_RANGE: range_report(host_job, cfg);		break;
+		case E_REPORT_HEATMAP: heatmap_report(host_job, cfg);	break;
 	}
 	if (cfg->speedup && (cfg->verbose || cfg->debug))
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);

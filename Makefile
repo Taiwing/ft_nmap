@@ -21,6 +21,7 @@ SRCC			=	debug.c\
 					port_report.c\
 					utils.c\
 					main.c\
+					heatmap_report.c\
 					print.c\
 					range_report.c\
 					stats.c\
@@ -86,6 +87,7 @@ options.o: ft_nmap.h network.h libft.h
 port_report.o: ft_nmap.h network.h libft.h
 utils.o: ft_nmap.h network.h libft.h
 main.o: ft_nmap.h network.h libft.h
+heatmap_report.o: ft_nmap.h network.h libft.h
 update_job.o: ft_nmap.h network.h libft.h
 mutex.o: ft_nmap.h network.h libft.h
 worker.o: ft_nmap.h network.h libft.h

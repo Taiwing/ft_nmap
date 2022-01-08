@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/08 04:27:17 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/08 04:53:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"df:hi:p:S:s:v46"
+#define	FT_NMAP_OPT	"df:hi:mp:S:s:v46"
 
 t_opt	g_nmap_opt[] = {
 	{ "complete",	0,	NULL,	'c' },
@@ -20,6 +20,7 @@ t_opt	g_nmap_opt[] = {
 	{ "file",		1,	NULL,	'f'	},
 	{ "help",		0,	NULL,	'h'	},
 	{ "interface",	1,	NULL,	'i'	},
+	{ "heatmap",	0,	NULL,	'm' },
 	{ "ports",		1,	NULL,	'p'	},
 	{ "range",		0,	NULL,	'r'	},
 	{ "speedup",	1,	NULL,	'S'	},
@@ -31,12 +32,14 @@ t_opt	g_nmap_opt[] = {
 };
 
 char	*g_nmap_help[] = {
-	"Show every port and scan type in the final host report",
+	"Show every port and scan type in the final host report.",
 	"Show debugging information about pcap filters and posix threads. Also\n"
 	"\t\tprint packets that do not match any valid probe (filter failure).",
 	"File containing a list of hosts to scan (1 per line).",
 	"Print this and exit.",
 	"Select interface on which to listen on.",
+	"Heatmap report. Shows a heat map of every port in a grid. Ports go from\n"
+	"\t\tred to green depending on how filtered or open they are.",
 	"Ports to scan specified as a comma separated list of individual ports or\n"
 	"\t\tranges (eg: 80,22,1024-2048). The default is 1-1024.",
 	"Range report. This will show each scan as a range of ports on every\n"
@@ -52,7 +55,7 @@ char	*g_nmap_help[] = {
 };
 
 char	*g_nmap_usage[] = {
-	"[-cdhrv46] [-f path] [-p list] [-S number] [-s list] [-i iface] host ...",
+	"[-cdhmrv46] [-f path] [-p list] [-S number] [-s list] [-i iface] host ...",
 	NULL,
 };
 
@@ -167,6 +170,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'd': ++cfg->debug;										break;
 			case 'f': cfg->hosts_file = o.optarg;						break;
 			case 'i': cfg->dev = o.optarg;								break;
+			case 'm': cfg->report = E_REPORT_HEATMAP;					break;
 			case 'p': parse_ports(cfg, o.optarg, set_scan_ports, NULL);	break;
 			case 'r': cfg->report = E_REPORT_RANGE;						break;
 			case 'S': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
