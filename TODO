@@ -92,6 +92,21 @@
   some 1024-port scans, there are some open ports that
   are often missed at the end of the list (like rsync).
   This might be the cause.
+  UPDATE2: Well it also leads to a segfault when a
+  worker tries to send a probe after the host scan has
+  ended. It rarely happens normally, but it almost
+  always does on multiple target scans when we set a
+  wait time in between probes. This is obviously a big
+  problem now. This has to be fixed. Either by making it
+  impossible to have task execute after the host scan is
+  over (which I don't know how to do since they both
+  happen in a worker task and also depend on the alarm
+  handler) or by keeping track of the task associated
+  with a host and delaying host printing while there are
+  some tasks being executed. This looks like the easiest
+  solution but maybe not the cleanest. This also will
+  possibly change because the probe execution order will
+  probably be modified.
 
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
