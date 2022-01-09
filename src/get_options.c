@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/08 04:53:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/09 04:07:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,8 @@ t_opt	g_nmap_opt[] = {
 };
 
 char	*g_nmap_help[] = {
-	"Show every port and scan type in the final host report.",
+	"Show every port and scan type in the final host report. It has no effect\n"
+	"\t\tif used with an other report mode than the default.",
 	"Show debugging information about pcap filters and posix threads. Also\n"
 	"\t\tprint packets that do not match any valid probe (filter failure).",
 	"File containing a list of hosts to scan (1 per line).",
