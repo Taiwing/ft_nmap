@@ -65,26 +65,6 @@
   every scan flag and no speedup should take around 20min
   too.
 
-- Also fix false 'positive' tests for SYN scan (example
-  on framasoft.org for ports 137, 138 and 179). They
-  also appear filtered when the original set them to
-  closed. As for the ACK scan, it's probably because the
-  probe timeouts when it should not. It somehow does not
-  see the icmp response from framasoft.
-  UPDATE: For 137 and 138, the behavior is normal, this
-  is just because they are not part of the nmap default
-  port set for some reason. For 179 (bgp), there is
-  indeed a timeout for ft_nmap when there is a closed
-  status for the original.
-  UPDATE2: For 179 the behavior is different because
-  ft_nmap scans the IPv6 address instead of the IPv4
-  like the original does by default. If we specifically
-  target the IPv6 address with the original nmap the
-  port is also filtered instead of closed. When we force
-  IPv4 on ft_nmap its behavior is the same as the
-  orginal nmap (port 179 is closed).
-- use IPv4 by default, not IPv6
-
 - Try to fix the fact that some probes are sent/received
   after the result has been printed. It's not a big deal
   so if there is no way to do that cleanly, just dont.

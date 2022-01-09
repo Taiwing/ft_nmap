@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 20:28:02 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/28 07:49:03 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/09 04:34:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,7 @@ static int	handle_error(const char *target, t_nmap_config *cfg, int ret)
 int		get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg)
 {
 	int					ret;
-	struct addrinfo		hints = { 0 };
-	struct addrinfo		*destinfo = NULL;
+	struct addrinfo		hints = { 0 }, *destinfo = NULL, *host;
 
 	hints.ai_family = cfg->ip_mode == E_IPV4 ? AF_INET
 		: cfg->ip_mode == E_IPV6 ? AF_INET6 : AF_UNSPEC;
@@ -39,8 +38,17 @@ int		get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg)
 		&& destinfo->ai_family != AF_INET && destinfo->ai_family != AF_INET6)
 		ret = EAI_FAMILY;
 	if (!ret)
-		ft_memcpy((void *)dest_ip, (void *)destinfo->ai_addr,
-			destinfo->ai_addrlen);
+	{
+		host = destinfo;
+		if (cfg->ip_mode == E_IPALL)
+		{
+			while (host->ai_family != AF_INET && host->ai_next)
+				host = host->ai_next;
+			if (host->ai_family != AF_INET)
+				host = destinfo;
+		}
+		ft_memcpy((void *)dest_ip, (void *)host->ai_addr, host->ai_addrlen);
+	}
 	if (destinfo)
 		freeaddrinfo(destinfo);
 	if (ret)
