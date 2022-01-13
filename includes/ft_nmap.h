@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/08 04:50:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/13 07:09:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@
 # define	MAX_PORTS					1024	// maximum number of ports to scan
 # define	MAX_LST_ELM_LEN				1024	// biggest possible comma list element
 # define	PORTS_COUNT					0x10000	// Number of ports (USHRT_MAX + 1)
-# define	MAX_RETRY					4		// Number of retries for sending probe
+# define	MAX_RETRY					1		// Number of retries for sending probe
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
 
 // Print format constants
@@ -61,12 +61,13 @@ enum		e_states {
 # define	MAX_PORT_STATUS				(E_STATE_OPEN | E_STATE_FILTERED)
 
 // Tasks
-# define	TASK_COUNT		7
+# define	TASK_COUNT		8
 enum		e_tasks {
 	E_TASK_THREAD_SPAWN = 0,
 	E_TASK_LISTEN,
 	E_TASK_NEW_HOST,
 	E_TASK_PROBE,
+	E_TASK_PROBE_ALL,
 	E_TASK_REPLY,
 	E_TASK_THREAD_WAIT,
 	E_TASK_PRINT_STATS,

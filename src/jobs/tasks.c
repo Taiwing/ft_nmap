@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 12:10:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/13 07:08:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,8 @@ static void	task_new_host(t_task *task, t_nmap_config *cfg)
 	new_host(cfg);
 }
 
+pthread_mutex_t g_shitty_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static void	task_probe(t_task *task, t_nmap_config *cfg)
 {
 	if (cfg->debug > 1)
@@ -67,7 +69,43 @@ static void	task_probe(t_task *task, t_nmap_config *cfg)
 	if (cfg->verbose)
 		verbose_scan(cfg, task->scan_job,
 			task->scan_job->probes[task->payload_index], "Sending probe...");
+	//TEMP
+	ft_mutex_lock(&g_shitty_mutex);
 	send_probe(cfg, task->scan_job, task->payload_index);
+	//shitty_usleep(1);
+	struct timespec	sleep_time = { .tv_sec = 0, .tv_nsec = 500000 };
+	nanosleep(&sleep_time, NULL);
+	ft_mutex_unlock(&g_shitty_mutex);
+	//TEMP
+	//send_probe(cfg, task->scan_job, task->payload_index);
+}
+
+static void	task_probe_all(t_task *task, t_nmap_config *cfg)
+{
+	t_scan_job		*scan_job;
+	uint16_t		sent_count = 0;
+	struct timeval	start_ts = { 0 }, end_ts = { 0 };
+
+	(void)task;
+	if (gettimeofday(&start_ts, NULL) < 0)
+		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
+	for (uint16_t scan = 0; scan < SCAN_COUNT; ++scan)
+	{
+		if (!cfg->scans[scan])
+			continue ;
+		for (uint16_t port = 0; port < cfg->nports; ++port)
+		{
+			scan_job = &cfg->host_job.port_jobs[port].scan_jobs[scan];
+			if (scan_job->status & E_STATE_DONE)
+				continue ;
+			for (uint16_t i = 0; scan_job->probes[i]; ++i, ++sent_count)
+				send_probe(cfg, scan_job, i);
+		}
+	}
+	if (gettimeofday(&end_ts, NULL) < 0)
+		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
+	double time = ts_msdiff(&end_ts, &start_ts);
+	ft_printf("time TASK_PROBE_ALL: %hu probes sent in %g ms\n", sent_count, time);
 }
 
 static void	task_reply(t_task *task, t_nmap_config *cfg)
@@ -124,6 +162,7 @@ const taskf	g_tasks[TASK_COUNT] = {
 	[E_TASK_LISTEN] = task_listen,
 	[E_TASK_NEW_HOST] = task_new_host,
 	[E_TASK_PROBE] = task_probe,
+	[E_TASK_PROBE_ALL] = task_probe_all,
 	[E_TASK_REPLY] = task_reply,
 	[E_TASK_THREAD_WAIT] = task_thread_wait,
 	[E_TASK_PRINT_STATS] = task_print_stats,

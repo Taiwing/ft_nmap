@@ -6,18 +6,22 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 20:36:49 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/13 07:06:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
+pthread_mutex_t g_local_shitty_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 void		send_probe(t_nmap_config *cfg, t_scan_job *scan_job, uint16_t i)
 {
+	//ft_mutex_lock(&g_local_shitty_mutex);
 	if (sendto(cfg->socket[scan_job->socket], scan_job->probes[i]->raw_data,
 		scan_job->probes[i]->size, 0, (struct sockaddr *)scan_job->dstip,
 		ip_sock_size(scan_job->dstip)) < 0)
 		ft_exit(EXIT_FAILURE, "sendto: %s", strerror(errno));
+	//ft_mutex_unlock(&g_local_shitty_mutex);
 }
 
 static void	set_tcpflags(t_tcph_args *args, enum e_scans scan)

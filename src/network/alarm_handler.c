@@ -61,12 +61,24 @@ static void	alarm_handler(int sig)
 			pcap_breakloop(g_cfg->descr);
 		return;
 	}
+
 	for (int i = g_cfg->speedup ? 0 : current_scan_job; i < nscan_jobs; ++i)
 	{
 		if (scan_job[i]->retry <= 0)
 			continue ;
 		if (--scan_job[i]->retry > 0)
-			init_probe_task(scan_job[i], current_payload_index);
+		{
+			t_task		probe = { .type = E_TASK_PROBE_ALL };
+
+			if (g_cfg->speedup)
+				push_tasks(&g_cfg->worker_tasks,
+					ft_lstnew(&probe, sizeof(probe)), g_cfg, 1);
+			else
+				push_tasks(&g_cfg->main_tasks,
+					ft_lstnew(&probe, sizeof(probe)), g_cfg, 0);
+			break;
+			//init_probe_task(scan_job[i], current_payload_index);
+		}
 		else
 			set_scan_job_timeout(scan_job[i], current_payload_index);
 	}

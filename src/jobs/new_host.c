@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 17:18:50 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/13 06:33:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nscan_jobs)
 {
 	uint16_t	id = 0;
 	t_list		*probe_tasks = NULL;
-	t_task		probe = { .type = E_TASK_PROBE };
+	t_task		probe = { .type = E_TASK_PROBE_ALL };
 	t_task		listen = { .type = E_TASK_LISTEN };
 
 	for (uint16_t scan = 0; scan < SCAN_COUNT; ++scan)
@@ -75,6 +75,8 @@ static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nscan_jobs)
 			continue ;
 		for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
 		{
+			init_scan_job(cfg, id, scan, port);
+			/*
 			probe.scan_job = init_scan_job(cfg, id, scan, port);
 			for (uint16_t i = 0; probe.scan_job->probes[i]; ++i)
 			{
@@ -86,8 +88,10 @@ static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nscan_jobs)
 					ft_lst_push_back(&probe_tasks, &listen, sizeof(listen));
 				}
 			}
+			*/
 		}
 	}
+	ft_lst_push_back(&probe_tasks, &probe, sizeof(probe));
 	*nscan_jobs = (int)id;
 	return (probe_tasks);
 }
