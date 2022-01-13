@@ -92,6 +92,9 @@
   8080 on the local network host address (it works on
   localhost, it works on the wifi local address, but not
   on the default ethernet lan address)
+  UPDATE: This does not happen when the drake simulator
+  server is not lauched. It makes sense as it listens on
+  the 8080 port.
 - check other scan results too
 - adapt the filter to ipv6 for the icmp part (also maybe
   clean the function/divide it because it's messy)
