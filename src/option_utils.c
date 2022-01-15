@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   options.c                                          :+:      :+:    :+:   */
+/*   option_utils.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 22:43:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:51:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 void		usage(const char *exec, int exit_value)
 {
-	t_opt	*opts = g_nmap_opt;
-	char	**help = g_nmap_help;
-	char	**usage = g_nmap_usage;
+	const t_opt	*opts = g_nmap_opt;
+	const char	**help = g_nmap_help;
+	const char	**usage = g_nmap_usage;
 
 	ft_printf("Usage:\n");
 	while (*usage)

@@ -17,7 +17,6 @@ NETWORKDIR		=	network
 SERVICESDIR		=	services
 
 SRCC			=	debug.c\
-					options.c\
 					port_report.c\
 					utils.c\
 					main.c\
@@ -25,6 +24,7 @@ SRCC			=	debug.c\
 					print.c\
 					range_report.c\
 					stats.c\
+					option_utils.c\
 					verbose.c\
 					get_options.c\
 
@@ -83,7 +83,6 @@ $(SUB1D)/libft.a:
 	make -C $(SUB1D)
 
 debug.o: ft_nmap.h network.h libft.h ft_printf_internal.h
-options.o: ft_nmap.h network.h libft.h
 port_report.o: ft_nmap.h network.h libft.h
 utils.o: ft_nmap.h network.h libft.h
 main.o: ft_nmap.h network.h libft.h
@@ -97,6 +96,7 @@ tasks.o: ft_nmap.h network.h libft.h
 print.o: ft_nmap.h network.h libft.h
 range_report.o: ft_nmap.h network.h libft.h
 stats.o: ft_nmap.h network.h libft.h
+option_utils.o: ft_nmap.h network.h libft.h
 filter.o: ft_nmap.h network.h libft.h
 next_host.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h
