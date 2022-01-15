@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/08 04:50:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 16:14:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,6 +207,7 @@ typedef struct			s_host_job
 ** listen_breaks_total: total count of listen loop breaks
 ** listen_breaks_manual: times where pcap_breakloop() was used
 ** listen_breaks_zero_packet: listen breaks with 0 packet found
+** icmp_count: count of icmp response packets
 */
 typedef struct		s_nmap_config
 {
@@ -257,6 +258,7 @@ typedef struct		s_nmap_config
 	int				listen_breaks_total;
 	int				listen_breaks_manual;
 	int				listen_breaks_zero_packet;
+	sig_atomic_t	icmp_count;
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
@@ -264,7 +266,7 @@ typedef struct		s_nmap_config
 	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
-	-1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0\
+	-1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0\
 }
 
 /*

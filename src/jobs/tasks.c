@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 12:10:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 16:19:22 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,9 +114,11 @@ static void	task_print_stats(t_task *task, t_nmap_config *cfg)
 		"pcap received packet count: %d\n"
 		"total listen breaks: %d\n"
 		"manual listen breaks: %d\n"
-		"listen breaks with 0 packet received: %d\n",
+		"listen breaks with 0 packet received: %d\n"
+		"icmp packets received: %d (%g per second)\n",
 		cfg->received_packet_count, cfg->listen_breaks_total,
-		cfg->listen_breaks_manual, cfg->listen_breaks_zero_packet);
+		cfg->listen_breaks_manual, cfg->listen_breaks_zero_packet,
+		cfg->icmp_count, cfg->icmp_count / (total_time / 1000.0));
 }
 
 const taskf	g_tasks[TASK_COUNT] = {

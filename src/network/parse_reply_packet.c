@@ -6,28 +6,34 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/12 20:43:03 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:26:53 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 16:20:00 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
+static int			is_icmp(t_packet *reply)
+{
+	return (reply
+		&& (reply->nexthdr == E_NH_ICMP || reply->nexthdr == E_NH_ICMP6));
+}
+
 static t_scan_job	*get_scan_job(t_packet *reply, t_nmap_config *cfg)
 {
-	int				is_icmp = reply->nexthdr && reply->nexthdr < E_NH_TCP;
-	enum e_nexthdr	type = is_icmp ? reply->lasthdr : reply->nexthdr;
-	t_nexthdr		*hdr = is_icmp ? reply->last : reply->next;
+	int				icmp = is_icmp(reply);
+	enum e_nexthdr	type = icmp ? reply->lasthdr : reply->nexthdr;
+	t_nexthdr		*hdr = icmp ? reply->last : reply->next;
 	uint16_t		dport, sport;
 
 	switch (type)
 	{
 		case E_NH_UDP:
-			sport = ntohs(is_icmp ? hdr->udp.uh_sport : hdr->udp.uh_dport);
-			dport = ntohs(is_icmp ? hdr->udp.uh_dport : hdr->udp.uh_sport);
+			sport = ntohs(icmp ? hdr->udp.uh_sport : hdr->udp.uh_dport);
+			dport = ntohs(icmp ? hdr->udp.uh_dport : hdr->udp.uh_sport);
 			break ;
 		case E_NH_TCP:
-			sport = ntohs(is_icmp ? hdr->tcp.th_sport : hdr->tcp.th_dport);
-			dport = ntohs(is_icmp ? hdr->tcp.th_dport : hdr->tcp.th_sport);
+			sport = ntohs(icmp ? hdr->tcp.th_sport : hdr->tcp.th_dport);
+			dport = ntohs(icmp ? hdr->tcp.th_dport : hdr->tcp.th_sport);
 			break ;
 		default:
 			return (NULL);
@@ -73,6 +79,8 @@ uint8_t			parse_reply_packet(t_task *task, t_nmap_config *cfg,
 
 	bytes = check_link_layer(task, cfg, &iph, &size);
 	init_packet(&reply, iph, (uint8_t *)bytes);
+	if (is_icmp(&reply))
+		++cfg->icmp_count;
 	if (reply.size > size)
 	{
 		if (cfg->debug)
