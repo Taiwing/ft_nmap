@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 18:20:27 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:11:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"df:hi:mp:S:s:v46"
+#define	FT_NMAP_OPT	"df:hi:mp:S:s:t:v46"
 
 t_opt	g_nmap_opt[] = {
 	{ "complete",	0,	NULL,	'c' },
@@ -25,6 +25,7 @@ t_opt	g_nmap_opt[] = {
 	{ "range",		0,	NULL,	'r'	},
 	{ "speedup",	1,	NULL,	'S'	},
 	{ "scan",		1,	NULL,	's'	},
+	{ "tries",		1,	NULL,	't'	},
 	{ "verbose",	0,	NULL,	'v'	},
 	{ "ipv4",		0,	NULL,	'4'	},
 	{ "ipv6",		0,	NULL,	'6'	},
@@ -45,10 +46,13 @@ char	*g_nmap_help[] = {
 	"\t\tranges (eg: 80,22,1024-2048). The default is 1-1024.",
 	"Range report. This will show each scan as a range of ports on every\n"
 	"\t\toutcome state instead of the default port table.",
-	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
+	"Number of parallel threads to use (def: " xstr(DEF_SPEEDUP)
+	", min: " xstr(MIN_SPEEDUP) ", max: " xstr(MAX_SPEEDUP) ").",
 	"Scans to perform specified as a comma separated list. Possible values:\n"
 	"\t\t'SYN/ACK/NULL/FIN/XMAS/UDP' (eg: SYN,UDP). It is possible to only\n"
 	"\t\tuse one letter by scan (eg: '-sA' for ACK). Does them all by default.",
+	"Set number of tries to for sending a probe (def: " xstr(DEF_TRIES)
+	", min: " xstr(MIN_TRIES) ", max: " xstr(MAX_TRIES) ").",
 	"Show probe packets, replies and timeouts.",
 	"Use only IPv4.",
 	"Use only IPv6.",
@@ -56,7 +60,8 @@ char	*g_nmap_help[] = {
 };
 
 char	*g_nmap_usage[] = {
-	"[-cdhmrv46] [-f path] [-p list] [-S number] [-s list] [-i iface] host ...",
+	"[-cdhmrv46] [-f file_path] [-p port_list] [-S speedup] [-s scan_list]\n"
+	"\t\t[-t tries] [-i interface] host ...",
 	NULL,
 };
 
@@ -174,8 +179,11 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'm': cfg->report = E_REPORT_HEATMAP;					break;
 			case 'p': parse_ports(cfg, o.optarg, set_scan_ports, NULL);	break;
 			case 'r': cfg->report = E_REPORT_RANGE;						break;
-			case 'S': intopt(&cfg->speedup, o.optarg, 0, MAX_SPEEDUP);	break;
+			case 'S': intopt(&cfg->speedup, o.optarg, MIN_SPEEDUP, MAX_SPEEDUP);
+																		break;
 			case 's': scan_option(cfg, &o);								break;
+			case 't': intopt(&cfg->tries, o.optarg, MIN_TRIES, MAX_TRIES);
+																		break;
 			case 'v': ++cfg->verbose;									break;
 			case '4': cfg->ip_mode = E_IPV4;							break;
 			case '6': cfg->ip_mode = E_IPV6;							break;

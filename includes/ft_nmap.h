@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 20:30:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:02:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,15 +26,19 @@
 ** ft_nmap macros and enums
 */
 
-# define	xstr(s)						str(s)	// stringify macro value
+# define	xstr(s)						str(s)	// Stringify macro value
 # define	str(s)						#s
 
-# define	MAX_SPEEDUP					250		// max number of additional threads
-# define	MAX_THREADS					(MAX_SPEEDUP + 1)	// counts main thread
-# define	MAX_PORTS					1024	// maximum number of ports to scan
-# define	MAX_LST_ELM_LEN				1024	// biggest possible comma list element
+# define	DEF_SPEEDUP					0		// Default number of additional threads
+# define	MIN_SPEEDUP					0		// Minimum number of additional threads
+# define	MAX_SPEEDUP					250		// Maximum number of additional threads
+# define	MAX_THREADS					(MAX_SPEEDUP + 1)	// Counts main thread
+# define	MAX_PORTS					1024	// Maximum number of ports to scan
+# define	MAX_LST_ELM_LEN				1024	// Biggest possible comma list element
 # define	PORTS_COUNT					0x10000	// Number of ports (USHRT_MAX + 1)
-# define	MAX_TRIES					5		// Number of tries for sending probe
+# define	DEF_TRIES					4		// Default number of tries for sending probe
+# define	MIN_TRIES					1		// Minimum number of tries for sending probe
+# define	MAX_TRIES					128		// Maximum number of tries for sending probe
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
 
 // Print format constants
@@ -264,9 +268,9 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	*argv, 0, 0, 0, 0, MAX_TRIES, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 },\
-	0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
-	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
+	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_TRIES, 0, { 0 }, { 0 }, 0, NULL, NULL,\
+	NULL, { 0 }, 0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 },\
+	{{ 0 }}, 0, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
 	-1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0\
 }
