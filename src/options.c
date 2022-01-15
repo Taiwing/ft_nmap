@@ -6,14 +6,14 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 08:10:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 18:19:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
 const char		*g_nmap_scan_strings[SCAN_COUNT] = {
-	"SYN", "NULL", "ACK", "FIN", "XMAS", "UDP"
+	"SYN", "ACK", "NULL", "FIN", "XMAS", "UDP"
 };
 
 void		set_scan_ports(t_nmap_config *cfg, int porta, int portb, void *data)

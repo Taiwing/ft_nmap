@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/09 04:07:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 18:20:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ char	*g_nmap_help[] = {
 	"\t\toutcome state instead of the default port table.",
 	"Number of parallel threads to use (def: 0, max: " xstr(MAX_SPEEDUP) ").",
 	"Scans to perform specified as a comma separated list. Possible values:\n"
-	"\t\t'SYN/NULL/FIN/XMAS/ACK/UDP' (eg: SYN,UDP). It is possible to only\n"
+	"\t\t'SYN/ACK/NULL/FIN/XMAS/UDP' (eg: SYN,UDP). It is possible to only\n"
 	"\t\tuse one letter by scan (eg: '-sA' for ACK). Does them all by default.",
 	"Show probe packets, replies and timeouts.",
 	"Use only IPv4.",

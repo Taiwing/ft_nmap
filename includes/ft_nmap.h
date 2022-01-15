@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 16:14:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 18:18:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ enum		e_tasks {
 
 // Scans
 # define	SCAN_COUNT		6
-enum		e_scans { E_SYN = 0, E_NULL, E_ACK, E_FIN, E_XMAS, E_UDP };
+enum		e_scans { E_SYN = 0, E_ACK, E_NULL, E_FIN, E_XMAS, E_UDP };
 
 // IP modes
 enum		e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
