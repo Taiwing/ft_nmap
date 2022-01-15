@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 22:22:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:47:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -301,6 +301,7 @@ typedef void		(*taskf)(t_task *task, t_nmap_config *cfg);
 ** Option functions
 */
 
+void		usage(const char *exec, int exit_value);
 void		intopt(int *dest, const char *arg, int min, int max);
 const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
@@ -387,6 +388,10 @@ double		ts_msdiff(struct timeval *a, struct timeval *b);
 ** ft_nmap constants
 */
 
+extern const t_opt		g_nmap_opt[];
+extern const char		*g_nmap_help[];
+extern const char		*g_nmap_usage[];
+extern const char		*g_description;
 extern const taskf		g_tasks[TASK_COUNT];
 extern const char		*g_nmap_task_strings[TASK_COUNT];
 extern const char		*g_nmap_scan_strings[SCAN_COUNT];

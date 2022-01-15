@@ -6,13 +6,17 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 14:52:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/08 04:49:35 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:43:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
 const char	g_sep_line[JOB_LINE + 1] = { [0 ... JOB_LINE - 1] = '-' };
+
+const char	*g_nmap_scan_strings[SCAN_COUNT] = {
+	"SYN", "ACK", "NULL", "FIN", "XMAS", "UDP"
+};
 
 const char	*g_scan_results[MAX_PORT_STATUS + 1] = {
 	[ E_STATE_OPEN ] = "O",

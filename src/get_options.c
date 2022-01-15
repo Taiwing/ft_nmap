@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 22:11:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:48:50 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 #define	FT_NMAP_OPT	"df:hi:mp:S:s:t:v46"
 
-t_opt	g_nmap_opt[] = {
+const t_opt	g_nmap_opt[] = {
 	{ "complete",	0,	NULL,	'c' },
 	{ "debug",		0,	NULL,	'd' },
 	{ "file",		1,	NULL,	'f'	},
@@ -32,7 +32,7 @@ t_opt	g_nmap_opt[] = {
 	{ NULL,			0,	NULL,	0	},
 };
 
-char	*g_nmap_help[] = {
+const char	*g_nmap_help[] = {
 	"Show every port and scan type in the final host report. It has no effect\n"
 	"\t\tif used with an other report mode than the default.",
 	"Show debugging information about pcap filters and posix threads. Also\n"
@@ -59,13 +59,13 @@ char	*g_nmap_help[] = {
 	NULL,
 };
 
-char	*g_nmap_usage[] = {
+const char	*g_nmap_usage[] = {
 	"[-cdhmrv46] [-f file_path] [-p port_list] [-S speedup] [-s scan_list]\n"
 	"\t\t[-t tries] [-i interface] host ...",
 	NULL,
 };
 
-char	*g_description =
+const char	*g_description =
 "\tThe host arguments can either be IPv4, IPv6 addresses, hosts as defined\n"
 "\tin the /etc/hosts file or domain names. ft_nmap will loop on them until\n"
 "\tno argument is left. Then it will look at the --file option value if it\n"
@@ -95,78 +95,12 @@ char	*g_description =
 "\tFiltered --> icmp type 3 code 0/1/2/3/9/10/13\n"
 "\tOpen|Filetered --> timeout\n";
 
-static void	usage(const char *exec, int exit_value)
-{
-	t_opt	*opts = g_nmap_opt;
-	char	**help = g_nmap_help;
-	char	**usage = g_nmap_usage;
-
-	ft_printf("Usage:\n");
-	while (*usage)
-	{
-		ft_printf("\t%s %s\n", exec, *usage);
-		++usage;
-	}
-	ft_printf("\nOptions:\n");
-	while (opts->name && *help)
-	{
-		ft_printf("\t-%c, --%s\n", opts->val, opts->name);
-		ft_printf("\t\t%s\n", *help);
-		++opts;
-		++help;
-	}
-	ft_printf("\nDescription:\n%s", g_description);
-	ft_exit(exit_value, NULL);
-}
-
-
-void		intopt(int *dest, const char *arg, int min, int max)
-{
-	int	ret;
-
-	if ((ret = ft_secatoi(dest, min, max, arg)))
-	{
-		if (ret == FT_E_NOT_A_NUMBER)
-			ft_exit(EXIT_FAILURE, "invalid argument: '%s'", arg);
-		else
-			ft_exit(EXIT_FAILURE, "invalid argument: '%s': "
-				"out of range: %d <= value <= %d", arg, min, max);
-	}
-}
-
-const char		*parse_comma_list(const char *str)
-{
-	static char			buf[MAX_LST_ELM_LEN + 1] = { 0 };
-	static const char	*list = NULL;
-	const char			*end = NULL;
-	static const char	*p = NULL;
-	size_t				len;
-
-	if (str != list)
-		list = p = str;
-	else if (p && *p == ',' && p[1])
-		++p;
-	end = p;
-	while (end && !ft_strchr(",", *end))
-		++end;
-	if (!p || ((!*p && p == list) || *p == ',')
-		|| (len = end - p) > MAX_LST_ELM_LEN)
-	{
-		list = p = NULL;
-		return (NULL);
-	}
-	ft_strncpy(buf, p, len);
-	buf[len] = 0;
-	p = end;
-	return ((const char *)buf);
-}
-
 void		get_options(t_nmap_config *cfg, int argc, char **argv)
 {
 	int			opt;
 	t_optdata	o = { 0 };
 
-	init_getopt(&o, FT_NMAP_OPT, g_nmap_opt, NULL);
+	init_getopt(&o, FT_NMAP_OPT, (t_opt *)g_nmap_opt, NULL);
 	if (ft_strlen(cfg->exec) <= ft_strlen(argv[0]))
 		ft_strcpy(argv[0], cfg->exec);
 	while ((opt = ft_getopt_long(argc, argv, &o)) >= 0)
