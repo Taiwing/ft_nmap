@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 16:36:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:20:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ static void	worker_exit(void)
 	nmap_mutex_unlock(&g_cfg->print_mutex, &g_print_locked);
 	nmap_mutex_unlock(&g_cfg->high_mutex, &g_high_locked);
 	nmap_mutex_unlock(&g_cfg->low_mutex, &g_low_locked);
+	nmap_mutex_unlock(&g_cfg->send_mutex, &g_send_locked);
 	if (g_cfg->debug > 1)
 		debug_print(g_cfg, "worker_exit - worker %llu (%llx)!\n",
 			ft_thread_self(), pthread_self());

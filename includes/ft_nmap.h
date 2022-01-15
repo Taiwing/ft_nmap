@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 22:02:17 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:22:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,6 +245,7 @@ typedef struct		s_nmap_config
 	pthread_mutex_t	print_mutex;
 	pthread_mutex_t	high_mutex;
 	pthread_mutex_t	low_mutex;
+	pthread_mutex_t	send_mutex;
 	pcap_t			*descr;
 	t_udp_payload	**udp_payloads[PORTS_COUNT];
 	// Modified during execution
@@ -271,8 +272,8 @@ typedef struct		s_nmap_config
 	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_TRIES, 0, { 0 }, { 0 }, 0, NULL, NULL,\
 	NULL, { 0 }, 0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 },\
 	{{ 0 }}, 0, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
-	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
-	-1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0\
+	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 },\
+	{ 0 }, 0, NULL, NULL, 0, -1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0\
 }
 
 /*
@@ -403,6 +404,7 @@ extern const char		*g_sctp_services[PORTS_COUNT][2];
 extern __thread int			g_print_locked;
 extern __thread int			g_high_locked;
 extern __thread int			g_low_locked;
+extern __thread int			g_send_locked;
 extern t_nmap_config		*g_cfg;
 
 #endif

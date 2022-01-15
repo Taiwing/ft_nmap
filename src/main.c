@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 17:51:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:21:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ static void	main_thread_cleanup(void)
 	nmap_mutex_unlock(&g_cfg->print_mutex, &g_print_locked);
 	nmap_mutex_unlock(&g_cfg->high_mutex, &g_high_locked);
 	nmap_mutex_unlock(&g_cfg->low_mutex, &g_low_locked);
+	nmap_mutex_unlock(&g_cfg->send_mutex, &g_send_locked);
 	alarm(0);
 	if (g_cfg->ifap)
 		freeifaddrs(g_cfg->ifap);

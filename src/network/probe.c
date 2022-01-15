@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 20:36:49 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 22:24:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,14 @@
 
 void		send_probe(t_nmap_config *cfg, t_scan_job *scan_job, uint16_t i)
 {
+	if (cfg->speedup)
+		nmap_mutex_lock(&cfg->send_mutex, &g_send_locked);
 	if (sendto(cfg->socket[scan_job->socket], scan_job->probes[i]->raw_data,
 		scan_job->probes[i]->size, 0, (struct sockaddr *)scan_job->dstip,
 		ip_sock_size(scan_job->dstip)) < 0)
 		ft_exit(EXIT_FAILURE, "sendto: %s", strerror(errno));
+	if (cfg->speedup)
+		nmap_mutex_unlock(&cfg->send_mutex, &g_send_locked);
 }
 
 static void	set_tcpflags(t_tcph_args *args, enum e_scans scan)
