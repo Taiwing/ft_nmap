@@ -35,7 +35,7 @@ static void	set_scan_job_timeout(t_scan_job *scan_job,
 	{
 		g_cfg->current_scan_job = -1;
 		g_cfg->current_payload_index = -1;
-		scan_job->retry = 1 + g_cfg->retries;
+		scan_job->tries = g_cfg->tries;
 		pcap_breakloop(g_cfg->descr);
 	}
 	else
@@ -63,9 +63,9 @@ static void	alarm_handler(int sig)
 	}
 	for (int i = g_cfg->speedup ? 0 : current_scan_job; i < nscan_jobs; ++i)
 	{
-		if (scan_job[i]->retry <= 0)
+		if (scan_job[i]->tries <= 0)
 			continue ;
-		if (--scan_job[i]->retry > 0)
+		if (--scan_job[i]->tries > 0)
 			init_probe_task(scan_job[i], current_payload_index);
 		else
 			set_scan_job_timeout(scan_job[i], current_payload_index);

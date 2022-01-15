@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 16:19:22 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 20:32:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ static void	task_listen(t_task *task, t_nmap_config *cfg)
 		debug_task(cfg, task, 0);
 	if (!cfg->speedup)
 	{
-		if (task->scan_job->retry < 0)
+		if (task->scan_job->tries < 0)
 			return ;
 		while (!cfg->end && cfg->current_scan_job >= 0)
 		{
@@ -58,7 +58,7 @@ static void	task_probe(t_task *task, t_nmap_config *cfg)
 		debug_task(cfg, task, 0);
 	if (!cfg->speedup)
 	{
-		if (task->scan_job->retry < 0)
+		if (task->scan_job->tries < 0)
 			return ;
 		set_filter(cfg, task->scan_job);
 		cfg->current_scan_job = task->scan_job->srcp - PORT_DEF;

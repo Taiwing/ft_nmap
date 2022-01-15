@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 18:49:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 20:30:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@
 # define	MAX_PORTS					1024	// maximum number of ports to scan
 # define	MAX_LST_ELM_LEN				1024	// biggest possible comma list element
 # define	PORTS_COUNT					0x10000	// Number of ports (USHRT_MAX + 1)
-# define	MAX_RETRY					4		// Number of retries for sending probe
+# define	MAX_TRIES					5		// Number of tries for sending probe
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
 
 // Print format constants
@@ -90,7 +90,7 @@ enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE, E_REPORT_HEATMAP };
 ** t_scan_job: nmap scan_jobs
 **
 ** status: scan_job status
-** retry: counter of retries (cfg->retries then timeout, sig atomic too)
+** tries: counter of tries (cfg->tries then timeout, sig atomic too)
 ** type: scan_job's scan type
 ** srcip: ip to send probe to
 ** dstip: ip to send probe to
@@ -104,7 +104,7 @@ enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE, E_REPORT_HEATMAP };
 typedef struct				s_scan_job
 {
 	uint8_t					status;
-	sig_atomic_t			retry;
+	sig_atomic_t			tries;
 	_Atomic enum e_scans	type;
 	t_ip					*srcip;
 	t_ip					*dstip;
@@ -168,7 +168,7 @@ typedef struct			s_host_job
 ** verbose: additional printing option
 ** debug: even more optional additional printing
 ** complete: option to show every port and scan type
-** retries: number of retries per scan probe
+** tries: number of tries per scan probe
 ** ports_to_scan: boolean array representing every port given as arguments
 ** ports: compressed list with the first MAX_PORTS ports of ports_to_scan
 ** nports: number of ports to scan in ports array
@@ -218,7 +218,7 @@ typedef struct		s_nmap_config
 	int				verbose;
 	int				debug;
 	int				complete;
-	int				retries;
+	int				tries;
 	enum e_reports	report;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
@@ -264,7 +264,7 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	*argv, 0, 0, 0, 0, MAX_RETRY, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 },\
+	*argv, 0, 0, 0, 0, MAX_TRIES, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 },\
 	0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
