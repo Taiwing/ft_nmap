@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 18:18:29 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/15 18:49:01 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE, E_REPORT_HEATMAP };
 ** t_scan_job: nmap scan_jobs
 **
 ** status: scan_job status
-** retry: counter of retries (MAX_RETRY then timeout, sig atomic too)
+** retry: counter of retries (cfg->retries then timeout, sig atomic too)
 ** type: scan_job's scan type
 ** srcip: ip to send probe to
 ** dstip: ip to send probe to
@@ -168,6 +168,7 @@ typedef struct			s_host_job
 ** verbose: additional printing option
 ** debug: even more optional additional printing
 ** complete: option to show every port and scan type
+** retries: number of retries per scan probe
 ** ports_to_scan: boolean array representing every port given as arguments
 ** ports: compressed list with the first MAX_PORTS ports of ports_to_scan
 ** nports: number of ports to scan in ports array
@@ -217,6 +218,7 @@ typedef struct		s_nmap_config
 	int				verbose;
 	int				debug;
 	int				complete;
+	int				retries;
 	enum e_reports	report;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
@@ -262,8 +264,8 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	*argv, 0, 0, 0, 0, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 }, 0, { 0 },\
-	-1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
+	*argv, 0, 0, 0, 0, MAX_RETRY, 0, { 0 }, { 0 }, 0, NULL, NULL, NULL, { 0 },\
+	0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 }, { 0 }, 0, NULL, NULL, 0,\
 	-1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0\
