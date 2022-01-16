@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 16:38:10 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 22:17:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,18 +39,36 @@ void		usage(const char *exec, int exit_value)
 	ft_exit(exit_value, NULL);
 }
 
-void		intopt(int *dest, const char *arg, int min, int max)
+int			parse_int(const char *str, int min, int max, const char *type)
 {
-	int	ret;
+	int	ret, result = 0;
 
-	if ((ret = ft_secatoi(dest, min, max, arg)))
+	if ((ret = ft_secatoi(&result, min, max, str)))
 	{
 		if (ret == FT_E_NOT_A_NUMBER)
-			ft_exit(EXIT_FAILURE, "invalid argument: '%s'", arg);
+			ft_exit(EXIT_FAILURE, "invalid %s: '%s'", type, str);
 		else
-			ft_exit(EXIT_FAILURE, "invalid argument: '%s': "
-				"out of range: %d <= value <= %d", arg, min, max);
+			ft_exit(EXIT_FAILURE, "invalid %s: '%s': "
+				"out of range: %d <= value <= %d", type, str, min, max);
 	}
+	return (result);
+}
+
+// This is largely big enough to detect overflow from integer string
+#define	PARSE_INT_BUF	64
+
+int			parse_int_prefix(const char *str, int min, int max,
+		const char *type)
+{
+	int		i;
+	char	buf[PARSE_INT_BUF + 1] = { 0 };
+
+	ft_strncpy(buf, str, PARSE_INT_BUF);
+	for (i = 0; buf[i] && ft_isdigit(buf[i]); ++i);
+	if (i == PARSE_INT_BUF && ft_isdigit(str[i]))
+		ft_exit(EXIT_FAILURE, "invalid %s: '%s'", type, str);
+	buf[i] = 0;
+	return (parse_int(buf, min, max, type));
 }
 
 const char	*parse_comma_list(const char *str)

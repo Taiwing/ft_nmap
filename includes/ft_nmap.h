@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 17:09:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 22:23:47 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,6 +223,7 @@ typedef struct		s_nmap_config
 	int				debug;
 	int				complete;
 	int				retries;
+	struct timespec	scan_delay;
 	enum e_reports	report;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
@@ -261,6 +262,7 @@ typedef struct		s_nmap_config
 	struct timeval	start_ts;
 	struct timeval	end_ts;
 	int				host_count;
+	int				sent_packet_count;
 	int				received_packet_count;
 	int				listen_breaks_total;
 	int				listen_breaks_manual;
@@ -269,11 +271,11 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_RETRIES, 0, { 0 }, { 0 }, 0, NULL, NULL,\
-	NULL, { 0 }, 0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 },\
-	{{ 0 }}, 0, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
+	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_RETRIES, { 0 }, 0, { 0 }, { 0 }, 0, NULL,\
+	NULL, NULL, { 0 }, 0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 },\
+	{ 0 }, {{ 0 }}, 0, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 },\
-	{ 0 }, 0, NULL, NULL, 0, -1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0\
+	{ 0 }, 0, NULL, NULL, 0, -1, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0, 0\
 }
 
 /*
@@ -302,7 +304,9 @@ typedef void		(*taskf)(t_task *task, t_nmap_config *cfg);
 */
 
 void		usage(const char *exec, int exit_value);
-void		intopt(int *dest, const char *arg, int min, int max);
+int			parse_int(const char *str, int min, int max, const char *type);
+int			parse_int_prefix(const char *str, int min, int max,
+				const char *type);
 const char	*parse_comma_list(const char *str);
 void		get_options(t_nmap_config *cfg, int argc, char **argv);
 void		ports_option(t_nmap_config *cfg, t_optdata *optd);
@@ -383,6 +387,7 @@ void		stats_listen(t_nmap_config *cfg, int packet_count);
 
 void		shitty_usleep(uint64_t ms);
 double		ts_msdiff(struct timeval *a, struct timeval *b);
+void		str_to_timespec(struct timespec *time, const char *str);
 
 /*
 ** ft_nmap constants

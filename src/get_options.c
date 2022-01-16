@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 17:29:03 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 22:22:47 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,8 +116,8 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'f': cfg->hosts_file = o.optarg;						break;
 			case 'i': cfg->dev = o.optarg;								break;
 			case 'p': parse_ports(cfg, o.optarg, set_scan_ports, NULL);	break;
-			case 'S': intopt(&cfg->speedup, o.optarg, MIN_SPEEDUP, MAX_SPEEDUP);
-																		break;
+			case 'S': cfg->speedup = parse_int(o.optarg, MIN_SPEEDUP,
+				MAX_SPEEDUP, "argument");								break;
 			case 's': scan_option(cfg, &o);								break;
 			case 'v': ++cfg->verbose;									break;
 			case '4': cfg->ip_mode = E_IPV4;							break;
@@ -125,9 +125,9 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 1: ++cfg->complete;									break;
 			case 2: cfg->report = E_REPORT_HEATMAP;						break;
 			case 3: cfg->report = E_REPORT_RANGE;						break;
-			case 4: intopt(&cfg->retries, o.optarg, MIN_RETRIES, MAX_RETRIES);
-																		break;
-			case 5: ft_printf("DELAY OPTION!!!!\n");					break;
+			case 4: cfg->retries = parse_int(o.optarg, MIN_RETRIES,
+				MAX_RETRIES, "argument");								break;
+			case 5: str_to_timespec(&cfg->scan_delay, o.optarg);		break;
 			default: usage(cfg->exec, opt != 'h');
 		}
 	cfg->hosts = argv + o.optind;

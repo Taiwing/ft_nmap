@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 04:59:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 18:10:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,11 +111,13 @@ static void	task_print_stats(t_task *task, t_nmap_config *cfg)
 	ft_printf("\n--- ft_nmap done ---\n%d address%s scanned in %g seconds\n",
 		cfg->host_count, cfg->host_count > 1 ? "es" : "", total_time);
 	debug_print(cfg,
+		"total packets sent: %d (%g per second)\n"
 		"icmp packets received: %d (%g per second)\n"
 		"total packets received: %d (%g per second)\n"
 		"total listen breaks: %d\n"
 		"manual listen breaks: %d\n"
 		"listen breaks with 0 packet received: %d\n",
+		cfg->sent_packet_count, cfg->sent_packet_count / total_time,
 		cfg->icmp_count, cfg->icmp_count / total_time,
 		cfg->received_packet_count, cfg->received_packet_count / total_time,
 		cfg->listen_breaks_total, cfg->listen_breaks_manual,
