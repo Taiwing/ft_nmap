@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 22:47:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 17:09:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,9 +36,9 @@
 # define	MAX_PORTS					1024	// Maximum number of ports to scan
 # define	MAX_LST_ELM_LEN				1024	// Biggest possible comma list element
 # define	PORTS_COUNT					0x10000	// Number of ports (USHRT_MAX + 1)
-# define	DEF_TRIES					4		// Default number of tries for sending probe
-# define	MIN_TRIES					1		// Minimum number of tries for sending probe
-# define	MAX_TRIES					128		// Maximum number of tries for sending probe
+# define	DEF_RETRIES					5		// Default number of tries for sending probe
+# define	MIN_RETRIES					0		// Minimum number of tries for sending probe
+# define	MAX_RETRIES					100		// Maximum number of tries for sending probe
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
 
 // Print format constants
@@ -172,7 +172,7 @@ typedef struct			s_host_job
 ** verbose: additional printing option
 ** debug: even more optional additional printing
 ** complete: option to show every port and scan type
-** tries: number of tries per scan probe
+** retries: number of retries per scan probe
 ** ports_to_scan: boolean array representing every port given as arguments
 ** ports: compressed list with the first MAX_PORTS ports of ports_to_scan
 ** nports: number of ports to scan in ports array
@@ -222,7 +222,7 @@ typedef struct		s_nmap_config
 	int				verbose;
 	int				debug;
 	int				complete;
-	int				tries;
+	int				retries;
 	enum e_reports	report;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
@@ -269,7 +269,7 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_TRIES, 0, { 0 }, { 0 }, 0, NULL, NULL,\
+	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_RETRIES, 0, { 0 }, { 0 }, 0, NULL, NULL,\
 	NULL, { 0 }, 0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 }, { 0 },\
 	{{ 0 }}, 0, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, NULL, { 0 }, { 0 },\

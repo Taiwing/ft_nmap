@@ -6,30 +6,30 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 16:52:14 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 17:09:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"df:hi:p:S:s:t:v46"
+#define	FT_NMAP_OPT	"df:hi:p:S:s:v46"
 
 const t_opt	g_nmap_opt[] = {
-	{ "debug",		0,	NULL,	'd'	},
-	{ "file",		1,	NULL,	'f'	},
-	{ "help",		0,	NULL,	'h'	},
-	{ "interface",	1,	NULL,	'i'	},
-	{ "ports",		1,	NULL,	'p'	},
-	{ "speedup",	1,	NULL,	'S'	},
-	{ "scan",		1,	NULL,	's'	},
-	{ "tries",		1,	NULL,	't'	},
-	{ "verbose",	0,	NULL,	'v'	},
-	{ "ipv4",		0,	NULL,	'4'	},
-	{ "ipv6",		0,	NULL,	'6'	},
-	{ "complete",	0,	NULL,	1	},
-	{ "heatmap",	0,	NULL,	2	},
-	{ "range",		0,	NULL,	3	},
-	{ NULL,			0,	NULL,	0	},
+	{ "debug",			0,	NULL,	'd'	},
+	{ "file",			1,	NULL,	'f'	},
+	{ "help",			0,	NULL,	'h'	},
+	{ "interface",		1,	NULL,	'i'	},
+	{ "ports",			1,	NULL,	'p'	},
+	{ "speedup",		1,	NULL,	'S'	},
+	{ "scan",			1,	NULL,	's'	},
+	{ "verbose",		0,	NULL,	'v'	},
+	{ "ipv4",			0,	NULL,	'4'	},
+	{ "ipv6",			0,	NULL,	'6'	},
+	{ "complete",		0,	NULL,	1	},
+	{ "heatmap",		0,	NULL,	2	},
+	{ "range",			0,	NULL,	3	},
+	{ "max-retries",	1,	NULL,	4	},
+	{ NULL,				0,	NULL,	0	},
 };
 
 const char	*g_nmap_help[] = {
@@ -45,8 +45,6 @@ const char	*g_nmap_help[] = {
 	"Scans to perform specified as a comma separated list. Possible values:\n"
 	"\t\t'SYN/ACK/NULL/FIN/XMAS/UDP' (eg: SYN,UDP). It is possible to only\n"
 	"\t\tuse one letter by scan (eg: '-sA' for ACK). Does them all by default.",
-	"Set number of tries to for sending a probe (def: " xstr(DEF_TRIES)
-	", min: " xstr(MIN_TRIES) ", max: " xstr(MAX_TRIES) ").",
 	"Show probe packets, replies and timeouts.",
 	"Use only IPv4.",
 	"Use only IPv6.",
@@ -56,12 +54,15 @@ const char	*g_nmap_help[] = {
 	"\t\tred to green depending on how filtered or open they are.",
 	"Range report. This will show each scan as a range of ports on every\n"
 	"\t\toutcome state instead of the default port table.",
+	"Set max number of retries to for sending a probe (def: " xstr(DEF_RETRIES)
+	", min: " xstr(MIN_RETRIES) ", max: " xstr(MAX_RETRIES) ").",
 	NULL,
 };
 
 const char	*g_nmap_usage[] = {
 	"[-dhv46] [-f file_path] [-i interface] [-p port_list] [-S speedup]\n"
-	"\t\t[-s scan_list] [-t tries] [--complete | --heatmap | --range] host ...",
+	"\t\t[-s scan_list] [--complete | --heatmap | --range]\n"
+	"\t\t[--max-retries retries] host ...",
 	NULL,
 };
 
@@ -113,14 +114,14 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'S': intopt(&cfg->speedup, o.optarg, MIN_SPEEDUP, MAX_SPEEDUP);
 																		break;
 			case 's': scan_option(cfg, &o);								break;
-			case 't': intopt(&cfg->tries, o.optarg, MIN_TRIES, MAX_TRIES);
-																		break;
 			case 'v': ++cfg->verbose;									break;
 			case '4': cfg->ip_mode = E_IPV4;							break;
 			case '6': cfg->ip_mode = E_IPV6;							break;
 			case 1: ++cfg->complete;									break;
 			case 2: cfg->report = E_REPORT_HEATMAP;						break;
 			case 3: cfg->report = E_REPORT_RANGE;						break;
+			case 4: intopt(&cfg->retries, o.optarg, MIN_RETRIES, MAX_RETRIES);
+																		break;
 			default: usage(cfg->exec, opt != 'h');
 		}
 	cfg->hosts = argv + o.optind;

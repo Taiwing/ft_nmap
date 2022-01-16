@@ -35,7 +35,7 @@ static void	set_scan_job_timeout(t_scan_job *scan_job,
 	{
 		g_cfg->current_scan_job = -1;
 		g_cfg->current_payload_index = -1;
-		scan_job->tries = g_cfg->tries;
+		scan_job->tries = 1 + g_cfg->retries;
 		pcap_breakloop(g_cfg->descr);
 	}
 	else
