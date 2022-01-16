@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 20:32:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 04:59:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,18 +107,19 @@ static void	task_print_stats(t_task *task, t_nmap_config *cfg)
 		debug_task(cfg, task, 0);
 	if (gettimeofday(&cfg->end_ts, NULL) < 0)
 		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
-	total_time = ts_msdiff(&cfg->end_ts, &cfg->start_ts);
+	total_time = ts_msdiff(&cfg->end_ts, &cfg->start_ts) / 1000.0;
 	ft_printf("\n--- ft_nmap done ---\n%d address%s scanned in %g seconds\n",
-		cfg->host_count, cfg->host_count > 1 ? "es" : "", total_time / 1000.0);
+		cfg->host_count, cfg->host_count > 1 ? "es" : "", total_time);
 	debug_print(cfg,
-		"pcap received packet count: %d\n"
+		"icmp packets received: %d (%g per second)\n"
+		"total packets received: %d (%g per second)\n"
 		"total listen breaks: %d\n"
 		"manual listen breaks: %d\n"
-		"listen breaks with 0 packet received: %d\n"
-		"icmp packets received: %d (%g per second)\n",
-		cfg->received_packet_count, cfg->listen_breaks_total,
-		cfg->listen_breaks_manual, cfg->listen_breaks_zero_packet,
-		cfg->icmp_count, cfg->icmp_count / (total_time / 1000.0));
+		"listen breaks with 0 packet received: %d\n",
+		cfg->icmp_count, cfg->icmp_count / total_time,
+		cfg->received_packet_count, cfg->received_packet_count / total_time,
+		cfg->listen_breaks_total, cfg->listen_breaks_manual,
+		cfg->listen_breaks_zero_packet);
 }
 
 const taskf	g_tasks[TASK_COUNT] = {
