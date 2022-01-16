@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 17:09:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 17:29:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ const t_opt	g_nmap_opt[] = {
 	{ "heatmap",		0,	NULL,	2	},
 	{ "range",			0,	NULL,	3	},
 	{ "max-retries",	1,	NULL,	4	},
+	{ "scan-delay",		1,	NULL,	5	},
 	{ NULL,				0,	NULL,	0	},
 };
 
@@ -56,13 +57,17 @@ const char	*g_nmap_help[] = {
 	"\t\toutcome state instead of the default port table.",
 	"Set max number of retries to for sending a probe (def: " xstr(DEF_RETRIES)
 	", min: " xstr(MIN_RETRIES) ", max: " xstr(MAX_RETRIES) ").",
+	"Adjust delay between probes. As for every options that take a 'time'\n"
+	"\t\targument, it can be specified as an integer which will be in seconds\n"
+	"\t\tby default, or be appended a time unit ('ms' for milliseconds,\n"
+	"\t\t's' for seconds, 'm' for minutes and 'h' for hours).",
 	NULL,
 };
 
 const char	*g_nmap_usage[] = {
 	"[-dhv46] [-f file_path] [-i interface] [-p port_list] [-S speedup]\n"
 	"\t\t[-s scan_list] [--complete | --heatmap | --range]\n"
-	"\t\t[--max-retries retries] host ...",
+	"\t\t[--max-retries retries] [--scan-delay time] host ...",
 	NULL,
 };
 
@@ -122,6 +127,7 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 3: cfg->report = E_REPORT_RANGE;						break;
 			case 4: intopt(&cfg->retries, o.optarg, MIN_RETRIES, MAX_RETRIES);
 																		break;
+			case 5: ft_printf("DELAY OPTION!!!!\n");					break;
 			default: usage(cfg->exec, opt != 'h');
 		}
 	cfg->hosts = argv + o.optind;
