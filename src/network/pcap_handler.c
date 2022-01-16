@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 08:21:27 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:16:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 16:00:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ void			pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 	t_task			task = { .type = E_TASK_REPLY };
 
 	(void)u;
+	++g_cfg->received_packet_count;
 	task.reply = ft_memdup(bytes, h->len);
 	task.reply_size = h->len;
 	push_reply_task(&task);
