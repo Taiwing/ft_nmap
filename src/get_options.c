@@ -6,46 +6,40 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 22:48:50 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 16:52:14 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define	FT_NMAP_OPT	"df:hi:mp:S:s:t:v46"
+#define	FT_NMAP_OPT	"df:hi:p:S:s:t:v46"
 
 const t_opt	g_nmap_opt[] = {
-	{ "complete",	0,	NULL,	'c' },
-	{ "debug",		0,	NULL,	'd' },
+	{ "debug",		0,	NULL,	'd'	},
 	{ "file",		1,	NULL,	'f'	},
 	{ "help",		0,	NULL,	'h'	},
 	{ "interface",	1,	NULL,	'i'	},
-	{ "heatmap",	0,	NULL,	'm' },
 	{ "ports",		1,	NULL,	'p'	},
-	{ "range",		0,	NULL,	'r'	},
 	{ "speedup",	1,	NULL,	'S'	},
 	{ "scan",		1,	NULL,	's'	},
 	{ "tries",		1,	NULL,	't'	},
 	{ "verbose",	0,	NULL,	'v'	},
 	{ "ipv4",		0,	NULL,	'4'	},
 	{ "ipv6",		0,	NULL,	'6'	},
+	{ "complete",	0,	NULL,	1	},
+	{ "heatmap",	0,	NULL,	2	},
+	{ "range",		0,	NULL,	3	},
 	{ NULL,			0,	NULL,	0	},
 };
 
 const char	*g_nmap_help[] = {
-	"Show every port and scan type in the final host report. It has no effect\n"
-	"\t\tif used with an other report mode than the default.",
 	"Show debugging information about pcap filters and posix threads. Also\n"
 	"\t\tprint packets that do not match any valid probe (filter failure).",
 	"File containing a list of hosts to scan (1 per line).",
 	"Print this and exit.",
 	"Select interface on which to listen on.",
-	"Heatmap report. Shows a heat map of every port in a grid. Ports go from\n"
-	"\t\tred to green depending on how filtered or open they are.",
 	"Ports to scan specified as a comma separated list of individual ports or\n"
 	"\t\tranges (eg: 80,22,1024-2048). The default is 1-1024.",
-	"Range report. This will show each scan as a range of ports on every\n"
-	"\t\toutcome state instead of the default port table.",
 	"Number of parallel threads to use (def: " xstr(DEF_SPEEDUP)
 	", min: " xstr(MIN_SPEEDUP) ", max: " xstr(MAX_SPEEDUP) ").",
 	"Scans to perform specified as a comma separated list. Possible values:\n"
@@ -56,12 +50,18 @@ const char	*g_nmap_help[] = {
 	"Show probe packets, replies and timeouts.",
 	"Use only IPv4.",
 	"Use only IPv6.",
+	"Show every port and scan type in the final host report. It has no effect\n"
+	"\t\tif used with an other report mode than the default.",
+	"Heatmap report. Shows a heat map of every port in a grid. Ports go from\n"
+	"\t\tred to green depending on how filtered or open they are.",
+	"Range report. This will show each scan as a range of ports on every\n"
+	"\t\toutcome state instead of the default port table.",
 	NULL,
 };
 
 const char	*g_nmap_usage[] = {
-	"[-cdhmrv46] [-f file_path] [-p port_list] [-S speedup] [-s scan_list]\n"
-	"\t\t[-t tries] [-i interface] host ...",
+	"[-dhv46] [-f file_path] [-i interface] [-p port_list] [-S speedup]\n"
+	"\t\t[-s scan_list] [-t tries] [--complete | --heatmap | --range] host ...",
 	NULL,
 };
 
@@ -106,13 +106,10 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 	while ((opt = ft_getopt_long(argc, argv, &o)) >= 0)
 		switch (opt)
 		{
-			case 'c': ++cfg->complete;									break;
 			case 'd': ++cfg->debug;										break;
 			case 'f': cfg->hosts_file = o.optarg;						break;
 			case 'i': cfg->dev = o.optarg;								break;
-			case 'm': cfg->report = E_REPORT_HEATMAP;					break;
 			case 'p': parse_ports(cfg, o.optarg, set_scan_ports, NULL);	break;
-			case 'r': cfg->report = E_REPORT_RANGE;						break;
 			case 'S': intopt(&cfg->speedup, o.optarg, MIN_SPEEDUP, MAX_SPEEDUP);
 																		break;
 			case 's': scan_option(cfg, &o);								break;
@@ -121,6 +118,9 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 'v': ++cfg->verbose;									break;
 			case '4': cfg->ip_mode = E_IPV4;							break;
 			case '6': cfg->ip_mode = E_IPV6;							break;
+			case 1: ++cfg->complete;									break;
+			case 2: cfg->report = E_REPORT_HEATMAP;						break;
+			case 3: cfg->report = E_REPORT_RANGE;						break;
 			default: usage(cfg->exec, opt != 'h');
 		}
 	cfg->hosts = argv + o.optind;

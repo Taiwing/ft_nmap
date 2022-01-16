@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 22:51:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/16 16:38:10 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,10 @@ void		usage(const char *exec, int exit_value)
 	ft_printf("\nOptions:\n");
 	while (opts->name && *help)
 	{
-		ft_printf("\t-%c, --%s\n", opts->val, opts->name);
+		if (ft_isalnum(opts->val))
+			ft_printf("\t-%c, --%s\n", opts->val, opts->name);
+		else
+			ft_printf("\t--%s\n", opts->name);
 		ft_printf("\t\t%s\n", *help);
 		++opts;
 		++help;
