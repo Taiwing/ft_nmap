@@ -88,6 +88,41 @@
   possibly change because the probe execution order will
   probably be modified.
 
+- Do not use alarm_handler for setting timeouts. This is
+  bad because sig_atomic_t variables are not atomic (yeah
+  I know, wtf???). This means that the variables being
+  changed inside the alarm_handler and across threads
+  are not protected. They all should be replaced with
+  _Atomic versions of their respective types, mostly int.
+  Anyway, the retries/timeouts should be handled the new
+  "timestamped tasks" system. This will delay tasks until
+  their timestamp is passed. Replies and other tasks will
+  have a NULL/zeroed-out timestamp for immediate execution
+  but some send tasks will have this timestamp for wait
+  time between retries. I guess each probe task will add
+  its next one after it has sent its probe. The last retry
+  will add a timeout reply task instead of a probe task.
+  So these replies will need to have a timestamp too. This
+  will work well for multithreading. But monothreaded mode
+  is an other story. I think the "probe_all" tactic will
+  be necessary. Basically probes will be sent in bursts in
+  the alarm handler while the listen task is waiting for
+  the replies (this also mean that the same filter will be
+  used as for multithreaded mode). I still do not know how
+  to handle the retries/timeout there, this will have be
+  thought about.
+
+- If multiple scans are given and ACK is one of them, do
+  it first. This is because it can be used to guess wich
+  ports are most likely to respond to the other scans. For
+  example if every port is filtered except for 80, 443 and
+  995 in the ACK scan, then the SYN scan can begin by
+  probing these ports. This will minimize the problem of
+  missing open ports at the end of the list. These are
+  probably/possibly due to rate limiting on the host end.
+  By being scan first these ports are less likely to be
+  rate-limited.
+
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
   localhost, it works on the wifi local address, but not
