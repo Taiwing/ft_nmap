@@ -112,8 +112,8 @@
   to handle the retries/timeout there, this will have be
   thought about.
 
-- If multiple scans are given and ACK is one of them, do
-  it first. This is because it can be used to guess wich
+- MAYBE: If multiple scans are given and ACK is one of them,
+  do it first. This is because it can be used to guess wich
   ports are most likely to respond to the other scans. For
   example if every port is filtered except for 80, 443 and
   995 in the ACK scan, then the SYN scan can begin by
@@ -122,6 +122,39 @@
   probably/possibly due to rate limiting on the host end.
   By being scan first these ports are less likely to be
   rate-limited.
+
+- FIX ALL THAT SHIT
+  1: Use timestamps for retry probe tasks and timeout
+  replies. Do not use the alarm handler anymore in multi-
+  threaded mode. Use it in mono-threaded mode as a dumb
+  multi-threading replacement (really really dumb) for
+  probe tasks. This means that pcap filtering will have to
+  be the same as for multithreaded runs since ft_nmap will
+  be handling multiple probes at a time. Replies will be
+  handled directly in the pcap_handler. So adapt the worker
+  function for these two execution contexts. Probe sending
+  will have to be batched so that it takes less time than
+  half of a RTT for a probe (use a default value for that
+  right now). If there is some time left before the alarm
+  and that all the probes of the batch have been replied
+  to/have timed out, send the next batch directly in the
+  pcap_handler (this will not be a problem because ft_nmap
+  will not be waiting for any response from the preceding
+  batch at this moment, so it will not miss any).
+  2: Keep track of the probe/reply tasks being executed
+  for a host so that they can be waited for in multi-
+  threaded mode to fix that damned segfault.
+  3: Add a function/task to detect rate-limiting for ICMP
+  or RST responses (and maybe any type of response for
+  that matter). Then, only send one probe at a time and
+  wait for the rate-limit each time (so once per second
+  most of the time).
+  4: The RTT of a response are very different from a host
+  to an other. So execute a ping first, then wait for 10
+  responses and use the average RTT as a basis for
+  computing the timeout of probes. This will also say if
+  the host is up or not, so ft_nmap will skip scanning
+  all together if the host is down (like the original).
 
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
