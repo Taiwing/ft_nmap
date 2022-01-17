@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/17 19:12:14 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/17 20:35:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ static void	task_probe(t_task *task, t_nmap_config *cfg)
 	{
 		if (task->scan_job->tries < 0)
 			return ;
-		set_filter(cfg, task->scan_job);
 		cfg->current_scan_job = task->scan_job->srcp - PORT_DEF;
 		cfg->current_payload_index = task->payload_index;
 	}

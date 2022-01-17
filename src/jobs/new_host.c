@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 17:06:31 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/17 20:51:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,8 +129,7 @@ void	new_host(t_nmap_config *cfg)
 	}
 	set_host_job_data(&cfg->host_job, host, cfg);
 	probe_tasks = build_probe_tasks(cfg, &nscan_jobs);
-	if (cfg->speedup)
-		set_filter(cfg, NULL);
+	set_filter(cfg);
 	cfg->host_job.done = 0;
 	cfg->nscan_jobs = nscan_jobs;
 	if (cfg->speedup)

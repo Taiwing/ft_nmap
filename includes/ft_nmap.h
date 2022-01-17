@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/17 18:38:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/17 20:47:30 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@
 # define	MIN_RETRIES					0		// Minimum number of tries for sending probe
 # define	MAX_RETRIES					100		// Maximum number of tries for sending probe
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
+# define	DEF_TIMEOUT					256		// Default timeout of a probe (in milliseconds)
 
 // Print format constants
 # define	SERVICE_NAME_MAXLEN			20
@@ -353,7 +354,7 @@ void		pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 				const uint8_t *bytes);
 int			ft_listen(t_packet *reply, pcap_t *descr,
 				pcap_handler callback, int cnt);
-void		set_filter(t_nmap_config *cfg, t_scan_job *scan_job);
+void		set_filter(t_nmap_config *cfg);
 uint8_t		scan_result(enum e_scans type, t_packet *reply);
 uint8_t		parse_reply_packet(t_task *task, t_nmap_config *cfg,
 				t_scan_job **scan_job);
