@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 22:23:47 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/17 18:38:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,12 +67,12 @@ enum		e_states {
 // Tasks
 # define	TASK_COUNT		7
 enum		e_tasks {
-	E_TASK_THREAD_SPAWN = 0,
-	E_TASK_LISTEN,
+	E_TASK_WORKER_SPAWN = 0,
 	E_TASK_NEW_HOST,
+	E_TASK_LISTEN,
 	E_TASK_PROBE,
 	E_TASK_REPLY,
-	E_TASK_THREAD_WAIT,
+	E_TASK_WORKER_WAIT,
 	E_TASK_PRINT_STATS,
 };
 
@@ -364,8 +364,8 @@ uint8_t		parse_reply_packet(t_task *task, t_nmap_config *cfg,
 
 void		nmap_mutex_lock(pthread_mutex_t *mutex, int *locked);
 void		nmap_mutex_unlock(pthread_mutex_t *mutex, int *locked);
-void		start_workers(t_nmap_config *cfg);
-void		wait_workers(t_nmap_config *cfg);
+void		start_worker_threads(t_nmap_config *cfg);
+void		wait_worker_threads(t_nmap_config *cfg);
 void		*worker(void *ptr);
 int			update_job(t_nmap_config *cfg, t_scan_job *scan_job,
 				uint8_t result);

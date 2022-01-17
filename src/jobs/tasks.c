@@ -6,17 +6,40 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 18:10:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/17 19:12:14 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static void	task_thread_spawn(t_task *task, t_nmap_config *cfg)
+static void	task_worker_spawn(t_task *task, t_nmap_config *cfg)
 {
 	if (cfg->debug > 1)
 		debug_task(cfg, task, 0);
-	start_workers(cfg);
+	if (cfg->speedup)
+		start_worker_threads(cfg);
+	//TODO: when we get rid of the alarm_handler for timeouts (remove
+	//set_alarm_handler() call from main.c)
+	/*
+	else
+		set_alarm_handler();
+	*/
+}
+
+static void	task_new_host(t_task *task, t_nmap_config *cfg)
+{
+	t_task          new_task = { .type = E_TASK_LISTEN };
+
+	if (cfg->debug > 1)
+		debug_task(cfg, task, 0);
+	new_host(cfg);
+	//TODO: remove 'cfg->speedup' in condition (when we will be using the same
+	//pcap filter in monothreaded runs as in multithreaded runs) and replace
+	//'!cfg->end' by checking the return of new_host (make it return something
+	//obvioulsy).
+	if (!cfg->end && cfg->speedup)
+		push_tasks(&cfg->main_tasks,
+			ft_lstnew(&new_task, sizeof(new_task)), cfg, 0);
 }
 
 static void	task_listen(t_task *task, t_nmap_config *cfg)
@@ -37,19 +60,12 @@ static void	task_listen(t_task *task, t_nmap_config *cfg)
 	}
 	else
 	{
-		while (!cfg->end)
+		while (!cfg->end && !(cfg->host_job.status & E_STATE_DONE))
 		{
 			packet_count = ft_listen(NULL, cfg->descr, pcap_handlerf, 0);
 			stats_listen(cfg, packet_count);
 		}
 	}
-}
-
-static void	task_new_host(t_task *task, t_nmap_config *cfg)
-{
-	if (cfg->debug > 1)
-		debug_task(cfg, task, 0);
-	new_host(cfg);
 }
 
 static void	task_probe(t_task *task, t_nmap_config *cfg)
@@ -83,20 +99,26 @@ static void	task_reply(t_task *task, t_nmap_config *cfg)
 		debug_task(cfg, task, result);
 	if (result != E_STATE_NONE && update_job(cfg, scan_job, result))
 	{
-		lst = ft_lstnew(&new_task, sizeof(t_task));
+		lst = ft_lstnew(&new_task, sizeof(new_task));
+		push_tasks(&cfg->main_tasks, lst, cfg, 0);
+		//TODO: remove condition when only one LISTEN task in monothread mode
 		if (cfg->speedup)
-			push_tasks(&cfg->worker_tasks, lst, cfg, 1);
-		else
-			push_tasks(&cfg->main_tasks, lst, cfg, 0);
+			pcap_breakloop(cfg->descr);
 	}
 	ft_memdel((void **)&task->reply);
 }
 
-static void	task_thread_wait(t_task *task, t_nmap_config *cfg)
+static void	task_worker_wait(t_task *task, t_nmap_config *cfg)
 {
 	if (cfg->debug > 1)
 		debug_task(cfg, task, 0);
-	wait_workers(cfg);
+	if (cfg->speedup)
+		wait_worker_threads(cfg);
+	//TODO: uncomment when we get rid of alarm_handler for multithreaded runs
+	/*
+	else
+		alarm(0);
+	*/
 }
 
 static void	task_print_stats(t_task *task, t_nmap_config *cfg)
@@ -125,11 +147,11 @@ static void	task_print_stats(t_task *task, t_nmap_config *cfg)
 }
 
 const taskf	g_tasks[TASK_COUNT] = {
-	[E_TASK_THREAD_SPAWN] = task_thread_spawn,
-	[E_TASK_LISTEN] = task_listen,
+	[E_TASK_WORKER_SPAWN] = task_worker_spawn,
 	[E_TASK_NEW_HOST] = task_new_host,
+	[E_TASK_LISTEN] = task_listen,
 	[E_TASK_PROBE] = task_probe,
 	[E_TASK_REPLY] = task_reply,
-	[E_TASK_THREAD_WAIT] = task_thread_wait,
+	[E_TASK_WORKER_WAIT] = task_worker_wait,
 	[E_TASK_PRINT_STATS] = task_print_stats,
 };

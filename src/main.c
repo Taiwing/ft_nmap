@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 22:21:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/17 18:17:53 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ static void	main_thread_cleanup(void)
 	alarm(0);
 	if (g_cfg->ifap)
 		freeifaddrs(g_cfg->ifap);
-	wait_workers(g_cfg);
+	wait_worker_threads(g_cfg);
 	if (g_cfg->hosts_fd >= 0)
 		close(g_cfg->hosts_fd);
 	close_sockets(g_cfg);

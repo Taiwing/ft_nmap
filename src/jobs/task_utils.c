@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/07 11:53:18 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/17 18:38:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,22 +62,16 @@ t_task	*pop_task(t_list **src, t_nmap_config *cfg, int prio)
 
 void	init_tasks(t_nmap_config *cfg)
 {
-	t_task	task = { .type = E_TASK_NEW_HOST };
+	t_task	task = { .type = E_TASK_WORKER_SPAWN };
 	t_list	*main = NULL;
-	t_list	*workers = NULL;
 
 	main = ft_lstnew(&task, sizeof(task));
-	if (cfg->speedup)
-	{
-		task.type = E_TASK_THREAD_SPAWN;
-		ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
-		task.type = E_TASK_LISTEN;
-		ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
-		task.type = E_TASK_THREAD_WAIT;
-		ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
-	}
+	task.type = E_TASK_NEW_HOST;
+	ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
+	task.type = E_TASK_WORKER_WAIT;
+	ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
 	task.type = E_TASK_PRINT_STATS;
 	ft_lst_last(main)->next = ft_lstnew(&task, sizeof(task));
 	cfg->main_tasks = main;
-	cfg->worker_tasks = workers;
+	cfg->worker_tasks = NULL;
 }

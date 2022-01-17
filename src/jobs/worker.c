@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 22:20:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/17 18:17:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ static void	worker_exit(void)
 	ft_thread_exit();
 }
 
-void		wait_workers(t_nmap_config *cfg)
+void		wait_worker_threads(t_nmap_config *cfg)
 {
 	cfg->end = 1;
 	while (cfg->nthreads)
@@ -33,7 +33,7 @@ void		wait_workers(t_nmap_config *cfg)
 	cfg->speedup = 0;
 }
 
-void		start_workers(t_nmap_config *cfg)
+void		start_worker_threads(t_nmap_config *cfg)
 {
 	int					e;
 
