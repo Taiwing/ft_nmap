@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/19 08:18:52 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/19 22:13:13 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,9 +66,6 @@ void		*worker(void *ptr)
 		if (wcfg->type == E_WORKER_PSEUDO_THREAD
 			&& is_passed(&wcfg->expiry, NULL))
 			break ;
-		if (wcfg->type != E_WORKER_MAIN
-			&& gettimeofday(&task_match.exec_time, NULL) < 0)
-			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	}
 	if (wcfg->type == E_WORKER_MAIN || wcfg->type == E_WORKER_THREAD)
 		ft_atexit(NULL);

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/06 04:35:54 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/18 11:35:49 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/19 21:54:55 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,15 +76,47 @@ void	str_to_timespec(struct timespec *time, const char *str)
 	time->tv_nsec = (ms_value - time->tv_sec * 1000) * 1000000;
 }
 
+/*
+** is_passed: check if date has passed expiry
+**
+** More precisely, this function returns 1 (true) if the timestamp of date is
+** equal or greater to that of the expiry. If date or expiry is NULL, it is
+** gonna be replace by gettimeofday output.
+**
+** So here are the possibilies:
+**
+** -- Basic cases --
+** A: date > expiry --> 1
+** B: date == expiry --> 1
+** C: date < expiry --> 0
+**
+** -- NULL case --
+** D: date == NULL && expiry == NULL --> 1
+**
+** -- NULL expiry (expiry == now) --
+** E: date == yesterday && expiry == NULL --> 0
+** F: date == now && expiry == NULL --> 1
+** G: date == tomorrow && expiry == NULL --> 1
+**
+** -- NULL date (date == now) --
+** H: date == NULL && expiry == yesterday --> 1
+** I: date == NULL && expiry == now --> 1
+** J: date == NULL && expiry == tomorrow --> 0
+**
+** Simple, right ?
+*/
 int		is_passed(struct timeval *date, struct timeval *expiry)
 {
 	struct timeval	now = { 0 };
 
-	if (!expiry)
+	if (!date && !expiry)
+		return (1);
+	else if (!expiry || !date)
 	{
-		expiry = &now;
-		if (gettimeofday(expiry, NULL) < 0)
+		if (gettimeofday(&now, NULL) < 0)
 			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
+		date = !date ? &now : date;
+		expiry = !expiry ? &now : expiry;
 	}
 	if (expiry->tv_sec == date->tv_sec)
 		return (expiry->tv_usec <= date->tv_usec);
