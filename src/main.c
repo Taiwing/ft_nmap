@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/17 18:17:53 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/19 08:18:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,8 @@ static void	check_config(t_nmap_config *cfg)
 static void	init_config(t_nmap_config *cfg, int argc, char **argv)
 {
 	g_cfg = cfg;
+	cfg->worker_main_config.task_list = &cfg->main_tasks;
+	cfg->worker_thread_config.task_list = &cfg->thread_tasks;
 	ft_exitmsg((char *)cfg->exec);
 	ft_atexit(main_thread_cleanup);
 	ft_first_exit();
@@ -62,7 +64,6 @@ static void	init_config(t_nmap_config *cfg, int argc, char **argv)
 	open_device(cfg, HEADER_MAXSIZE, 1);
 	if (cfg->scans[E_UDP])
 		init_udp_payloads(cfg);
-	set_alarm_handler();
 	print_config(cfg);
 }
 
@@ -77,7 +78,7 @@ int	main(int argc, char **argv)
 	init_tasks(&cfg);
 	if (gettimeofday(&cfg.start_ts, NULL) < 0)
 		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
-	worker(&cfg);
+	worker(&cfg.worker_main_config);
 	ft_exit(EXIT_SUCCESS, NULL);
 	return (EXIT_SUCCESS);
 }

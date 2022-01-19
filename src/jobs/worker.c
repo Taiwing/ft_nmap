@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/17 18:17:27 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/19 08:18:52 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,35 +35,42 @@ void		wait_worker_threads(t_nmap_config *cfg)
 
 void		start_worker_threads(t_nmap_config *cfg)
 {
-	int					e;
+	int				error = 0;
 
-	while (cfg->nthreads < cfg->speedup && !cfg->end)
+	if (gettimeofday(&cfg->worker_thread_config.task_match.exec_time, NULL) < 0)
+		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
+	while (!error && cfg->nthreads < cfg->speedup && !cfg->end)
+		error = ft_thread_create(cfg->thread + ++cfg->nthreads,
+			NULL, worker, &cfg->worker_thread_config);
+	if (error)
 	{
-		e = ft_thread_create(cfg->thread + ++cfg->nthreads, NULL, worker, cfg);
-		if (e)
-		{
-			--cfg->nthreads;
-			ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(e));
-		}
+		--cfg->nthreads;
+		ft_exit(EXIT_FAILURE, "pthread_create: %s", strerror(error));
 	}
 }
 
 void		*worker(void *ptr)
 {
-	t_nmap_config	*cfg;
-	t_list			**task_list;
+	t_task_match	task_match;
 	t_task			*task = NULL;
-	uint64_t		is_worker_thread;
+	t_worker_config	*wcfg = (t_worker_config *)ptr;
 
-	cfg = (t_nmap_config *)ptr;
-	if ((is_worker_thread = ft_thread_self()))
+	ft_memcpy(&task_match, &wcfg->task_match, sizeof(task_match));
+	if (wcfg->type == E_WORKER_THREAD)
 		ft_atexit(worker_exit);
-	task_list = is_worker_thread ? &cfg->worker_tasks : &cfg->main_tasks;
-	while ((task = pop_task(task_list, cfg, is_worker_thread)))
+	while ((task = pop_task(wcfg->task_list, g_cfg,
+		wcfg->type == E_WORKER_THREAD, &task_match)))
 	{
-		g_tasks[task->type](task, cfg);
+		g_tasks[task->type](task);
 		ft_memdel((void **)&task);
+		if (wcfg->type == E_WORKER_PSEUDO_THREAD
+			&& is_passed(&wcfg->expiry, NULL))
+			break ;
+		if (wcfg->type != E_WORKER_MAIN
+			&& gettimeofday(&task_match.exec_time, NULL) < 0)
+			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	}
-	ft_atexit(NULL);
+	if (wcfg->type == E_WORKER_MAIN || wcfg->type == E_WORKER_THREAD)
+		ft_atexit(NULL);
 	return (NULL);
 }

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/17 20:51:31 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/19 07:25:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,9 @@ static t_packet		**init_scan_probes(t_nmap_config *cfg, t_scan_job *scan_job,
 		probes = ft_memalloc((count + 1) * sizeof(t_packet *));
 		for (uint16_t i = 0; i < count; ++i)
 			probes[i] = ft_memalloc(sizeof(t_packet));
+		scan_job->probe_count = count;
 	}
-	for (int i = 0; probes && probes[i]; ++i)
+	for (int i = 0; i < scan_job->probe_count; ++i)
 	{
 		reset_packet(probes[i], NULL);
 		if (scan == E_UDP && cfg->udp_payloads[port])
@@ -57,39 +58,20 @@ static t_scan_job	*init_scan_job(t_nmap_config *cfg, uint16_t scan_job_id,
 	scan_job->probes = init_scan_probes(cfg, scan_job, scan_job->probes);
 	scan_job->socket = (cfg->host_job.ip.family == AF_INET
 		? E_UDPV4 : E_UDPV6) + (scan != E_UDP);
-	scan_job->tries = 1 + cfg->retries;
+	scan_job->tries = (1 + cfg->retries) * scan_job->probe_count;
 	scan_job->status = 0;
 	return (scan_job);
 }
 
-static t_list	*build_probe_tasks(t_nmap_config *cfg, int *nscan_jobs)
+static void		build_probe_tasks(t_nmap_config *cfg)
 {
-	uint16_t	id = 0;
-	t_list		*probe_tasks = NULL;
-	t_task		probe = { .type = E_TASK_PROBE };
-	t_task		listen = { .type = E_TASK_LISTEN };
-
-	for (uint16_t scan = 0; scan < SCAN_COUNT; ++scan)
+	for (uint16_t scan = 0, id = 0; scan < SCAN_COUNT; ++scan)
 	{
 		if (!cfg->scans[scan])
 			continue ;
 		for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
-		{
-			probe.scan_job = init_scan_job(cfg, id, scan, port);
-			for (uint16_t i = 0; probe.scan_job->probes[i]; ++i)
-			{
-				probe.payload_index = i;
-				ft_lst_push_back(&probe_tasks, &probe, sizeof(probe));
-				if (!cfg->speedup)
-				{
-					listen.scan_job = probe.scan_job;
-					ft_lst_push_back(&probe_tasks, &listen, sizeof(listen));
-				}
-			}
-		}
+			init_scan_job_probes(cfg, init_scan_job(cfg, id, scan, port), NULL);
 	}
-	*nscan_jobs = (int)id;
-	return (probe_tasks);
 }
 
 static void	set_host_job_data(t_host_job *host_job, char *host,
@@ -114,26 +96,19 @@ static void	set_host_job_data(t_host_job *host_job, char *host,
 	host_job->status = 0;
 }
 
-void	new_host(t_nmap_config *cfg)
+int		new_host(t_nmap_config *cfg)
 {
-	int			nscan_jobs = 0;
 	char		*host = NULL;
-	t_list		*probe_tasks = NULL;
 
-	cfg->nscan_jobs = 0;
 	cfg->host_job.done = cfg->nports;
 	if (!(host = next_host(&cfg->host_job.ip, cfg)))
 	{
 		cfg->end = 1;
-		return ;
+		return (0);
 	}
 	set_host_job_data(&cfg->host_job, host, cfg);
-	probe_tasks = build_probe_tasks(cfg, &nscan_jobs);
 	set_filter(cfg);
 	cfg->host_job.done = 0;
-	cfg->nscan_jobs = nscan_jobs;
-	if (cfg->speedup)
-		push_tasks(&cfg->worker_tasks, probe_tasks, cfg, 1);
-	else
-		push_tasks(&cfg->main_tasks, probe_tasks, cfg, 0);
+	build_probe_tasks(cfg);
+	return (1);
 }

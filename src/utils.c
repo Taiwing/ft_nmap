@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/06 04:35:54 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 22:20:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/18 11:35:49 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,4 +74,19 @@ void	str_to_timespec(struct timespec *time, const char *str)
 	ms_value = (double)value * g_nmap_time_units[i];
 	time->tv_sec = ms_value / 1000;
 	time->tv_nsec = (ms_value - time->tv_sec * 1000) * 1000000;
+}
+
+int		is_passed(struct timeval *date, struct timeval *expiry)
+{
+	struct timeval	now = { 0 };
+
+	if (!expiry)
+	{
+		expiry = &now;
+		if (gettimeofday(expiry, NULL) < 0)
+			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
+	}
+	if (expiry->tv_sec == date->tv_sec)
+		return (expiry->tv_usec <= date->tv_usec);
+	return (expiry->tv_sec < date->tv_sec);
 }

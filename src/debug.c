@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/17 18:25:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/18 10:13:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,14 +40,14 @@ void	debug_invalid_packet(t_nmap_config *cfg, t_packet *packet, char *action)
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
 }
 
-const char	*g_nmap_task_strings[TASK_COUNT] = {
-	"WORKER_SPAWN",
-	"NEW_HOST",
-	"LISTEN",
-	"PROBE",
-	"REPLY",
-	"WORKER_WAIT",
-	"PRINT_STATS",
+const char	*g_nmap_task_strings[] = {
+	[E_TASK_WORKER_SPAWN]	= "WORKER_SPAWN",
+	[E_TASK_NEW_HOST]		= "NEW_HOST",
+	[E_TASK_LISTEN]			= "LISTEN",
+	[E_TASK_PROBE]			= "PROBE",
+	[E_TASK_REPLY]			= "REPLY",
+	[E_TASK_WORKER_WAIT]	= "WORKER_WAIT",
+	[E_TASK_PRINT_STATS]	= "PRINT_STATS",
 };
 
 const char	*g_nmap_state_strings[] = {

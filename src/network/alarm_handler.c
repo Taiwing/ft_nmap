@@ -1,74 +1,24 @@
 #include "ft_nmap.h"
 
-static void	init_probe_task(t_scan_job *scan_job, int current_payload_index)
-{
-	t_list	*new_task = NULL;
-	t_task	task = { .type = E_TASK_PROBE, .scan_job = scan_job };
-
-	if (!g_cfg->speedup)
-	{
-		task.payload_index = current_payload_index;
-		new_task = ft_lstnew(&task, sizeof(task));
-		task.type = E_TASK_LISTEN;
-		new_task->next = ft_lstnew(&task, sizeof(task));
-		push_tasks(&g_cfg->main_tasks, new_task, g_cfg, 0);
-		g_cfg->current_scan_job = -1;
-		pcap_breakloop(g_cfg->descr);
-	}
-	else
-	{
-		for (uint16_t i = 0; task.scan_job->probes[i]; ++i)
-		{
-			task.payload_index = i;
-			ft_lst_push_back(&new_task, &task, sizeof(task));
-		}
-		push_tasks(&g_cfg->worker_tasks, new_task, g_cfg, 1);
-	}
-}
-
-static void	set_scan_job_timeout(t_scan_job *scan_job,
-		int current_payload_index)
-{
-	t_task			task = { .type = E_TASK_REPLY, .scan_job = scan_job };
-
-	if (!g_cfg->speedup && scan_job->probes[current_payload_index + 1])
-	{
-		g_cfg->current_scan_job = -1;
-		g_cfg->current_payload_index = -1;
-		scan_job->tries = 1 + g_cfg->retries;
-		pcap_breakloop(g_cfg->descr);
-	}
-	else
-	{
-		if (g_cfg->verbose)
-			verbose_reply(g_cfg, scan_job, NULL, 0);
-		push_reply_task(&task);
-	}
-}
-
+//TODO: check that this setup works, if it does not, just break the pcap loop
+//here and lauch a pseudo worker in the main thread instead of here (maybe
+//do it in the listen hander or create a dedicated task ?)
 static void	alarm_handler(int sig)
 {
-	t_scan_job	**scan_job = g_cfg->scan_jobs;
-	int			current_scan_job = g_cfg->current_scan_job;
-	int			current_payload_index = g_cfg->current_payload_index;
-	int			nscan_jobs = g_cfg->speedup ?
-		g_cfg->nscan_jobs : current_scan_job + 1;
+	t_worker_config	wcfg = {
+		.type = E_WORKER_PSEUDO_THREAD,
+		.task_list = &g_cfg->thread_tasks,
+		.task_match = { .task_types = WORKER_TASKS },
+	};
 
 	(void)sig;
-	if (g_cfg->end || (!g_cfg->speedup && current_scan_job < 0))
+	if (!g_cfg->pcap_worker_is_working)
 	{
-		if (g_cfg->end)
-			pcap_breakloop(g_cfg->descr);
-		return;
-	}
-	for (int i = g_cfg->speedup ? 0 : current_scan_job; i < nscan_jobs; ++i)
-	{
-		if (scan_job[i]->tries <= 0)
-			continue ;
-		if (--scan_job[i]->tries > 0)
-			init_probe_task(scan_job[i], current_payload_index);
-		else
-			set_scan_job_timeout(scan_job[i], current_payload_index);
+		if (gettimeofday(&wcfg.task_match.exec_time, NULL) < 0)
+			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
+		wcfg.expiry.tv_sec = wcfg.task_match.exec_time.tv_sec
+			+ ((DEF_TIMEOUT / 1000) / 2);
+		worker(&wcfg);
 	}
 	alarm(1);
 }

@@ -30,6 +30,7 @@ SRCC			=	debug.c\
 
 JOBSC			=	update_job.c\
 					mutex.c\
+					probe_retry.c\
 					worker.c\
 					new_host.c\
 					task_utils.c\
@@ -89,6 +90,7 @@ main.o: ft_nmap.h network.h libft.h
 heatmap_report.o: ft_nmap.h network.h libft.h
 update_job.o: ft_nmap.h network.h libft.h
 mutex.o: ft_nmap.h network.h libft.h
+probe_retry.o: ft_nmap.h network.h libft.h
 worker.o: ft_nmap.h network.h libft.h
 new_host.o: ft_nmap.h network.h libft.h
 task_utils.o: ft_nmap.h network.h libft.h
