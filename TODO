@@ -156,6 +156,18 @@
   the host is up or not, so ft_nmap will skip scanning
   all together if the host is down (like the original).
 
+- fix infinite loop at the end of this scan:
+  sudo ./ft_nmap -sS --max-retries 1 --range
+  -S250 google.com
+  It appeared once, I had to Ctrl+C ft_nmap to make it
+  end. I tried the same command like 10 times after that
+  but I could not reproduce it. This is a sneaky one and
+  it will have to be fixed. The result appeared, and but
+  not the stats. So it could be because of the remaining
+  probe tasks after the host scan has ended, or maybe
+  because the end condition is not properly set in one
+  case that I did not think about (or both).
+
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
   localhost, it works on the wifi local address, but not
