@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 08:21:27 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/19 08:18:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/21 15:46:24 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,9 @@ static void		start_pcap_worker(void)
 	if (gettimeofday(&wcfg.task_match.exec_time, NULL) < 0)
 		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	wcfg.expiry.tv_sec = wcfg.task_match.exec_time.tv_sec
-		+ ((DEF_TIMEOUT / 1000) / 2);
+		+ g_cfg->max_rtt_timeout.tv_sec / 10;
+	wcfg.expiry.tv_usec = wcfg.task_match.exec_time.tv_usec
+		+ (g_cfg->max_rtt_timeout.tv_nsec / 1000) / 10;
 	worker(&wcfg);
 	g_cfg->pcap_worker_is_working = 0;
 }

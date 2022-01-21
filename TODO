@@ -164,6 +164,10 @@
 - when all this is done, check that the scan results are
   the same as the original nmap and that it does not
   take too much time to execute
+- Make sure time options (and options in general) cannot
+  be given values that would make ft_nmap lose its mind.
+  Like, what happens if the max_rtt_timeout value makes
+  the probe_retry_time overflow on the expiry timestamp?
 - then stress-test the shit out of this program (really)
 
 - Implement a "watch" mode for the heatmap option where

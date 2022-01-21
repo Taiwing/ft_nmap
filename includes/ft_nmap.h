@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/19 18:15:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/21 15:40:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,18 +29,19 @@
 # define	xstr(s)						str(s)	// Stringify macro value
 # define	str(s)						#s
 
-# define	DEF_SPEEDUP					0		// Default number of additional threads
-# define	MIN_SPEEDUP					0		// Minimum number of additional threads
-# define	MAX_SPEEDUP					250		// Maximum number of additional threads
-# define	MAX_THREADS					(MAX_SPEEDUP + 1)	// Counts main thread
-# define	MAX_PORTS					1024	// Maximum number of ports to scan
-# define	MAX_LST_ELM_LEN				1024	// Biggest possible comma list element
-# define	PORTS_COUNT					0x10000	// Number of ports (USHRT_MAX + 1)
-# define	DEF_RETRIES					5		// Default number of tries for sending probe
-# define	MIN_RETRIES					0		// Minimum number of tries for sending probe
-# define	MAX_RETRIES					100		// Maximum number of tries for sending probe
+# define	DEF_SPEEDUP					0
+# define	MIN_SPEEDUP					0
+# define	MAX_SPEEDUP					250
+# define	MAX_THREADS					(MAX_SPEEDUP + 1)
+# define	MAX_PORTS					1024
+# define	MAX_LST_ELM_LEN				1024
+# define	PORTS_COUNT					0x10000
+# define	DEF_RETRIES					5
+# define	MIN_RETRIES					0
+# define	MAX_RETRIES					100
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
-# define	DEF_TIMEOUT					256		// Default timeout of a probe (in milliseconds)
+# define	DEF_TIMEOUT_MS				256
+# define	DEF_TIMEOUT					{ 0, DEF_TIMEOUT_MS * 1000000 }
 
 // Print format constants
 # define	SERVICE_NAME_MAXLEN			20
@@ -237,6 +238,9 @@ typedef struct		s_worker_config
 ** debug: even more optional additional printing
 ** complete: option to show every port and scan type
 ** retries: number of retries per scan probe
+** scan_delay: wait time between probes (def: 0)
+** max_rtt_timeout: time before probe retry or timeout (def: 256ms)
+** report: type of report output
 ** ports_to_scan: boolean array representing every port given as arguments
 ** ports: compressed list with the first MAX_PORTS ports of ports_to_scan
 ** nports: number of ports to scan in ports array
@@ -258,6 +262,7 @@ typedef struct		s_worker_config
 ** print_mutex: mutex for synchronizing printing
 ** high_mutex: high priority mutex access to tasks list
 ** low_mutex: low priority mutex access to tasks list
+** send_mutex: mutex for sending probes
 ** descr: pcap handle for reading incoming packets
 ** udp_payloads: structure to fetch the udp payloads by port
 ** worker_main_config: configuration of the main worker
@@ -267,17 +272,17 @@ typedef struct		s_worker_config
 ** main_tasks: tasks to be executed by worker main
 ** thread_tasks: tasks to be executed by worker threads
 ** pending_tasks: boolean set to true if thread_tasks is not empty
-** current_scan_job: id of current scan_job for monothreaded runs
-** current_payload_index: id of current payload_index for monothreaded runs
 ** end: boolean signaling the end of ft_nmap's execution
 ** start_ts: ft_nmap start timestamp (after tasks initialization)
 ** end_ts: ft_nmap end timestamp (after thread_wait/listen)
 ** host_count: number of hosts given by the user
+** sent_packet_count: number of packets sent
 ** received_packet_count: count of received packets handled by pcap
 ** listen_breaks_total: total count of listen loop breaks
 ** listen_breaks_manual: times where pcap_breakloop() was used
 ** listen_breaks_zero_packet: listen breaks with 0 packet found
 ** icmp_count: count of icmp response packets
+** pcap_worker_is_working: boolean set to true if pcap_worker has started
 */
 typedef struct		s_nmap_config
 {
@@ -289,6 +294,7 @@ typedef struct		s_nmap_config
 	int				complete;
 	int				retries;
 	struct timespec	scan_delay;
+	struct timespec	max_rtt_timeout;
 	enum e_reports	report;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
@@ -336,10 +342,11 @@ typedef struct		s_nmap_config
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
-	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_RETRIES, { 0 }, 0, { 0 }, { 0 }, 0, NULL,\
-	NULL, NULL, { 0 }, 0, { 0 }, -1, 0, 0, NULL, E_IPALL, { -1, -1, -1, -1 },\
-	{ 0 }, {{ 0 }}, 0, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
-	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, NULL, { 0 },\
+	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_RETRIES, { 0 }, DEF_TIMEOUT, 0, { 0 },\
+	{ 0 }, 0, NULL, NULL, NULL, { 0 }, 0, { 0 }, -1, 0, 0, NULL, E_IPALL,\
+	{ -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0, PTHREAD_MUTEX_INITIALIZER,\
+	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
+	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 },\
 	{ .type = E_WORKER_MAIN, .task_match = { .task_types = MAIN_TASKS }},\
 	{ .type = E_WORKER_THREAD, .task_match = { .task_types = WORKER_TASKS }},\
 	{ 0 }, { 0 }, NULL, NULL, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0\

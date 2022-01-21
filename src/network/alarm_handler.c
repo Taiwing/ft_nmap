@@ -17,7 +17,9 @@ static void	alarm_handler(int sig)
 		if (gettimeofday(&wcfg.task_match.exec_time, NULL) < 0)
 			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 		wcfg.expiry.tv_sec = wcfg.task_match.exec_time.tv_sec
-			+ ((DEF_TIMEOUT / 1000) / 2);
+			+ g_cfg->max_rtt_timeout.tv_sec / 10;
+		wcfg.expiry.tv_usec = wcfg.task_match.exec_time.tv_usec
+			+ (g_cfg->max_rtt_timeout.tv_nsec / 1000) / 10;
 		worker(&wcfg);
 	}
 	alarm(1);
