@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 08:21:27 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/21 15:46:24 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/21 18:09:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,25 +27,6 @@ void			push_reply_task(t_nmap_config *cfg, t_task *task,
 	}
 }
 
-static void		start_pcap_worker(void)
-{
-	t_worker_config	wcfg = {
-		.type = E_WORKER_PSEUDO_THREAD,
-		.task_list = &g_cfg->thread_tasks,
-		.task_match = { .task_types = WORKER_TASKS },
-	};
-
-	g_cfg->pcap_worker_is_working = 1;
-	if (gettimeofday(&wcfg.task_match.exec_time, NULL) < 0)
-		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
-	wcfg.expiry.tv_sec = wcfg.task_match.exec_time.tv_sec
-		+ g_cfg->max_rtt_timeout.tv_sec / 10;
-	wcfg.expiry.tv_usec = wcfg.task_match.exec_time.tv_usec
-		+ (g_cfg->max_rtt_timeout.tv_nsec / 1000) / 10;
-	worker(&wcfg);
-	g_cfg->pcap_worker_is_working = 0;
-}
-
 void			pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 	const uint8_t *bytes)
 {
@@ -57,5 +38,9 @@ void			pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
 	task.reply_size = h->len;
 	push_reply_task(g_cfg, &task, NULL);
 	if (!g_cfg->speedup)
-		start_pcap_worker();
+	{
+		g_cfg->pcap_worker_is_working = 1;
+		pseudo_thread_worker();
+		g_cfg->pcap_worker_is_working = 0;
+	}
 }

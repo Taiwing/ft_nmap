@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/21 15:40:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/21 18:29:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,6 +283,7 @@ typedef struct		s_worker_config
 ** listen_breaks_zero_packet: listen breaks with 0 packet found
 ** icmp_count: count of icmp response packets
 ** pcap_worker_is_working: boolean set to true if pcap_worker has started
+** listen_breakloop: call pcap_breakloop in alarm_handler to end LISTEN task
 */
 typedef struct		s_nmap_config
 {
@@ -339,6 +340,7 @@ typedef struct		s_nmap_config
 	int				listen_breaks_zero_packet;
 	_Atomic int		icmp_count;
 	int				pcap_worker_is_working;
+	_Atomic int		listen_breakloop;
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
@@ -349,7 +351,7 @@ typedef struct		s_nmap_config
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 },\
 	{ .type = E_WORKER_MAIN, .task_match = { .task_types = MAIN_TASKS }},\
 	{ .type = E_WORKER_THREAD, .task_match = { .task_types = WORKER_TASKS }},\
-	{ 0 }, { 0 }, NULL, NULL, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0\
+	{ 0 }, { 0 }, NULL, NULL, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0\
 }
 
 /*
@@ -444,6 +446,7 @@ void		set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,
 				struct timeval *exec_time);
 void		init_scan_job_probes(t_nmap_config *cfg, t_scan_job *scan_job,
 				struct timeval *exec_time);
+void		pseudo_thread_worker(void);
 
 /*
 ** Utils

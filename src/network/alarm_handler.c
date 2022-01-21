@@ -5,23 +5,14 @@
 //do it in the listen hander or create a dedicated task ?)
 static void	alarm_handler(int sig)
 {
-	t_worker_config	wcfg = {
-		.type = E_WORKER_PSEUDO_THREAD,
-		.task_list = &g_cfg->thread_tasks,
-		.task_match = { .task_types = WORKER_TASKS },
-	};
-
 	(void)sig;
-	if (!g_cfg->pcap_worker_is_working)
+	if (g_cfg->listen_breakloop)
 	{
-		if (gettimeofday(&wcfg.task_match.exec_time, NULL) < 0)
-			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
-		wcfg.expiry.tv_sec = wcfg.task_match.exec_time.tv_sec
-			+ g_cfg->max_rtt_timeout.tv_sec / 10;
-		wcfg.expiry.tv_usec = wcfg.task_match.exec_time.tv_usec
-			+ (g_cfg->max_rtt_timeout.tv_nsec / 1000) / 10;
-		worker(&wcfg);
+		g_cfg->listen_breakloop = 0;
+		pcap_breakloop(g_cfg->descr);
 	}
+	else if (!g_cfg->speedup && !g_cfg->pcap_worker_is_working)
+		pseudo_thread_worker();
 	alarm(1);
 }
 

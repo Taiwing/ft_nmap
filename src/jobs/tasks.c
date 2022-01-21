@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/19 08:00:50 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/21 18:29:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,7 @@ static void	task_worker_spawn(t_task *task)
 		debug_task(g_cfg, task, 0);
 	if (g_cfg->speedup)
 		start_worker_threads(g_cfg);
-	else
-		set_alarm_handler();
+	set_alarm_handler();
 }
 
 static void	task_new_host(t_task *task)
@@ -35,11 +34,11 @@ static void	task_new_host(t_task *task)
 
 static void	task_listen(t_task *task)
 {
-	int	packet_count;
+	int	packet_count = 0;
 
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
-	while (!g_cfg->end && !(g_cfg->host_job.status & E_STATE_DONE))
+	while (!g_cfg->end && packet_count >= 0)
 	{
 		packet_count = ft_listen(NULL, g_cfg->descr, pcap_handlerf, 0);
 		stats_listen(g_cfg, packet_count);
@@ -52,17 +51,20 @@ static void	task_probe(t_task *task)
 
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
+	if (task->scan_job->tries < 0)
+		return ;
+	else
+		--task->scan_job->tries;
 	if (g_cfg->verbose)
 		verbose_scan(g_cfg, task->scan_job,
 			task->scan_job->probes[task->payload_index], "Sending probe...");
-	--task->scan_job->tries;
 	send_probe(g_cfg, task->scan_job, task->payload_index);
 	if (!task->payload_index)
 	{
 		probe_retry_time(&exec_time);
-		if (task->scan_job->tries)
+		if (task->scan_job->tries > 0)
 			init_scan_job_probes(g_cfg, task->scan_job, &exec_time);
-		else
+		else if (!task->scan_job->tries)
 			set_scan_job_timeout(g_cfg, task->scan_job, &exec_time);
 	}
 }
@@ -82,7 +84,7 @@ static void	task_reply(t_task *task)
 	{
 		lst = ft_lstnew(&new_task, sizeof(new_task));
 		push_front_tasks(&g_cfg->main_tasks, lst, g_cfg, !!g_cfg->speedup);
-		pcap_breakloop(g_cfg->descr);
+		g_cfg->listen_breakloop = 1;
 	}
 	ft_memdel((void **)&task->reply);
 }

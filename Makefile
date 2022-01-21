@@ -29,6 +29,7 @@ SRCC			=	debug.c\
 					get_options.c\
 
 JOBSC			=	update_job.c\
+					pseudo_thead.c\
 					mutex.c\
 					probe_retry.c\
 					worker.c\
@@ -89,6 +90,7 @@ utils.o: ft_nmap.h network.h libft.h
 main.o: ft_nmap.h network.h libft.h
 heatmap_report.o: ft_nmap.h network.h libft.h
 update_job.o: ft_nmap.h network.h libft.h
+pseudo_thead.o: ft_nmap.h network.h libft.h
 mutex.o: ft_nmap.h network.h libft.h
 probe_retry.o: ft_nmap.h network.h libft.h
 worker.o: ft_nmap.h network.h libft.h
