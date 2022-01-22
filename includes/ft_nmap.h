@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/21 18:29:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 10:03:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -218,14 +218,14 @@ typedef struct		s_task_match
 **
 ** type: type of worker
 ** task_list: the list of tasks to be executed
-** task_match: the kind of tasks the worker must execute
+** task_types: the kind of tasks the worker must execute
 ** expiry: timestamp to stop worker (only for E_WORKER_PSEUDO_THREAD)
 */
 typedef struct		s_worker_config
 {
 	enum e_workers	type;
 	t_list			**task_list;
-	t_task_match	task_match;
+	int				task_types;
 	struct timeval	expiry;
 }					t_worker_config;
 
@@ -349,8 +349,8 @@ typedef struct		s_nmap_config
 	{ -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 },\
-	{ .type = E_WORKER_MAIN, .task_match = { .task_types = MAIN_TASKS }},\
-	{ .type = E_WORKER_THREAD, .task_match = { .task_types = WORKER_TASKS }},\
+	{ .type = E_WORKER_MAIN, .task_types = MAIN_TASKS },\
+	{ .type = E_WORKER_THREAD, .task_types = WORKER_TASKS },\
 	{ 0 }, { 0 }, NULL, NULL, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0\
 }
 

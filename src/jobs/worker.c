@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/22 08:35:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 10:01:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,6 @@ void		start_worker_threads(t_nmap_config *cfg)
 {
 	int				error = 0;
 
-	if (gettimeofday(&cfg->worker_thread_config.task_match.exec_time, NULL) < 0)
-		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	while (!error && cfg->nthreads < cfg->speedup && !cfg->end)
 		error = ft_thread_create(cfg->thread + ++cfg->nthreads,
 			NULL, worker, &cfg->worker_thread_config);
@@ -51,11 +49,10 @@ void		start_worker_threads(t_nmap_config *cfg)
 
 void		*worker(void *ptr)
 {
-	t_task_match	task_match;
 	t_task			*task = NULL;
 	t_worker_config	*wcfg = (t_worker_config *)ptr;
+	t_task_match	task_match = { .task_types = wcfg->task_types };
 
-	ft_memcpy(&task_match, &wcfg->task_match, sizeof(task_match));
 	if (wcfg->type == E_WORKER_THREAD)
 		ft_atexit(worker_exit);
 	while ((task = pop_task(wcfg->task_list, g_cfg,

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/19 22:13:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 10:17:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,12 +47,6 @@ void			push_front_tasks(t_list **dest, t_list *tasks,
 	}
 }
 
-//TODO: Find a way not to pass a NULL pointer to is_passed so that it does not
-//call gettimeofday each time. First because this is inefficient, and second
-//because it could cause disordering of the tasks if the time gettimeofday call
-//return passes the exec_time in the middle of the list. task_match->exec_time
-//should be used for that (if it's not the task_match structure might as well be
-//deleted for an int of task_types).
 static int		valid_task(void *content_ref, void *element)
 {
 	t_task			*task = (t_task *)element;
@@ -60,9 +54,9 @@ static int		valid_task(void *content_ref, void *element)
 
 	if (!(task_match->task_types & task->type))
 		return (1);
-	if (!task->exec_time.tv_sec || !task_match->exec_time.tv_sec)
+	if (!task->exec_time.tv_sec)
 		return (0);
-	return (!is_passed(NULL, &task->exec_time));
+	return (!is_passed(&task_match->exec_time, &task->exec_time));
 }
 
 static t_task	*get_task(t_list **src, t_task_match *task_match)
@@ -70,6 +64,8 @@ static t_task	*get_task(t_list **src, t_task_match *task_match)
 	t_list			*lst = NULL;
 	t_task			*task = NULL;
 
+	if (gettimeofday(&task_match->exec_time, NULL) < 0)
+		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	if (!(lst = ft_lst_pop_if(src, task_match, valid_task)))
 		return (NULL);
 	task = (t_task *)lst->content;
