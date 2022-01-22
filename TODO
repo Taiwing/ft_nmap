@@ -126,6 +126,8 @@
   wait for the rate-limit each time (so once per second
   most of the time).
 
+- FIX timeout on UDP scan when -v is not set (yeah weird)
+
 - fix sendto 'invalid argument' error when probing port
   8080 on the local network host address (it works on
   localhost, it works on the wifi local address, but not
