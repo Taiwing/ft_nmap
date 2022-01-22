@@ -225,6 +225,8 @@ int main(int argc, char **argv)
 			protocol = IPPROTO_UDP;
 		else if (!strcmp(argv[i], "--tcp"))
 			protocol = IPPROTO_TCP;
+		else if (!strcmp(argv[i], "--icmp"))
+			protocol = IPPROTO_ICMP;
 		else if (!strncmp(argv[i], "-d", 2))
 			dport = (uint16_t)atoi(argv[i] + 2);
 		else if (!strncmp(argv[i], "--dport", 7))
@@ -363,17 +365,6 @@ int main(int argc, char **argv)
 
 #define	BUF_LEN	1024
 
-	//TODO: Check if can set a port for the listening part. Maybe with the bind
-	//function ? Or by setting the port when opening socket ? TBD...
-	//
-	//But even if we cant, it already works basically, although it would have to
-	//check every incoming packets from an host, not only the ones from the port
-	//we are scanning. This might not be a problem at all though... This could
-	//be very useful to scan multiple ports at the same time actually. Pretty
-	//good stuff when you think about it.
-	//
-	//Also see if we can receive UDP and ICMP packets, otherwise it's going to
-	//be difficult to use this for nmap.
 	int		count = 5;
 	char	buf[BUF_LEN];
 	while (count)
