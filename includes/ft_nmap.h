@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/22 10:45:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 10:53:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@
 # define	MAX_PORTS					1024
 # define	MAX_LST_ELM_LEN				1024
 # define	PORTS_COUNT					0x10000
-# define	DEF_RETRIES					5
+# define	DEF_RETRIES					10
 # define	MIN_RETRIES					0
 # define	MAX_RETRIES					100
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
