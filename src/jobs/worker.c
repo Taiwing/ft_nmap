@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/19 22:13:13 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 08:35:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ void		*worker(void *ptr)
 		g_tasks[task->type](task);
 		ft_memdel((void **)&task);
 		if (wcfg->type == E_WORKER_PSEUDO_THREAD
-			&& is_passed(&wcfg->expiry, NULL))
+			&& is_passed(NULL, &wcfg->expiry))
 			break ;
 	}
 	if (wcfg->type == E_WORKER_MAIN || wcfg->type == E_WORKER_THREAD)
