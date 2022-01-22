@@ -4,10 +4,7 @@ static void	alarm_handler(int sig)
 {
 	(void)sig;
 	if (g_cfg->listen_breakloop)
-	{
-		g_cfg->listen_breakloop = 0;
 		pcap_breakloop(g_cfg->descr);
-	}
 	else if (!g_cfg->speedup && !g_cfg->pcap_worker_is_working)
 		pseudo_thread_worker();
 	alarm(1);

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/21 18:29:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 13:34:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,12 @@ static void	task_listen(t_task *task)
 
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
-	while (!g_cfg->end && packet_count >= 0)
+	while (!g_cfg->end && !g_cfg->listen_breakloop)
 	{
 		packet_count = ft_listen(NULL, g_cfg->descr, pcap_handlerf, 0);
 		stats_listen(g_cfg, packet_count);
 	}
+	g_cfg->listen_breakloop = 0;
 }
 
 static void	task_probe(t_task *task)
@@ -85,6 +86,8 @@ static void	task_reply(t_task *task)
 		lst = ft_lstnew(&new_task, sizeof(new_task));
 		push_front_tasks(&g_cfg->main_tasks, lst, g_cfg, !!g_cfg->speedup);
 		g_cfg->listen_breakloop = 1;
+		if (!g_cfg->speedup)
+			pcap_breakloop(g_cfg->descr);
 	}
 	ft_memdel((void **)&task->reply);
 }
