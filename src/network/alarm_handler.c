@@ -1,8 +1,5 @@
 #include "ft_nmap.h"
 
-//TODO: check that this setup works, if it does not, just break the pcap loop
-//here and lauch a pseudo worker in the main thread instead of here (maybe
-//do it in the listen hander or create a dedicated task ?)
 static void	alarm_handler(int sig)
 {
 	(void)sig;

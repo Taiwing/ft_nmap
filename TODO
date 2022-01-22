@@ -104,6 +104,11 @@
   probably/possibly due to rate limiting on the host end.
   By being scan first these ports are less likely to be
   rate-limited.
+- MAYBE: If the alarm_handler worker for monothreaded runs
+  is problematic, replace it with a pcap_breakloop call
+  and execute the pseudo worker in a dedicated task. This
+  should work. When done, if the scan is not over, launch
+  a new LISTEN task to keep scanning.
 
 - FIX ALL THAT SHIT
   2: Keep track of the probe/reply tasks being executed

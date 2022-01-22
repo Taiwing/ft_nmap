@@ -6,13 +6,11 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/30 19:50:50 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 13:46:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 09:35:39 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
-
-//TODO: move to ft_nmap.h
 
 enum e_udpfile_token	g_uf_start[] = {
 	E_UF_TOKEN_EOF,
