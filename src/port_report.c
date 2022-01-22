@@ -6,18 +6,25 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/08 02:54:02 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/08 02:54:18 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 10:41:44 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-//TODO: switch services array in function of type (tcp/udp/sctp)
+static const char	*get_service_name(uint16_t port)
+{
+	struct servent	*serv = NULL;
+
+	if (!(serv = getservbyport(htons(port), NULL)))
+		return ("(unknown)");
+	return (serv->s_name);
+}
+
 static void	print_port(t_port_job *port_job, uint16_t port_job_id,
 		uint16_t c, t_nmap_config *cfg)
 {
 	int			line;
-	//char		***services;
 	const char	*service;
 	const char	*results[SCAN_COUNT] = { 0 };
 
@@ -25,8 +32,6 @@ static void	print_port(t_port_job *port_job, uint16_t port_job_id,
 		if (cfg->scans[i])
 			results[j++] = g_scan_results[port_job->scan_jobs[i].status
 				& E_STATE_SCAN_MASK];
-	//TODO: use other service files or getservbyport()
-	//services = (char ***)g_tcp_services; //TEMP: pretend it's always TCP for now
 	if (!c)
 	{
 		line = ft_printf("\n| %-*s | %-*s |%#*t %-"xstr(SCAN_FIELD)"s|",
@@ -35,8 +40,7 @@ static void	print_port(t_port_job *port_job, uint16_t port_job_id,
 		if (line > 1)
 			ft_printf("\n%.*s\n", line - 1, g_sep_line);
 	}
-	if (!(service = g_tcp_services[cfg->ports[port_job_id]][0]))
-		service = "(unknown)";
+	service = get_service_name(cfg->ports[port_job_id]);
 	ft_printf("| %-*hu | %-*s |%#*t %-"xstr(SCAN_FIELD)"s|\n",
 		PORT_FIELD, cfg->ports[port_job_id], SERVICE_FIELD, service,
 		cfg->nscans, results);

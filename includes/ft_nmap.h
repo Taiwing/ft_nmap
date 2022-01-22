@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/22 10:03:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 10:45:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -470,9 +470,6 @@ extern const char		*g_nmap_scan_strings[SCAN_COUNT];
 extern const char		g_sep_line[JOB_LINE + 1];
 extern const char		*g_scan_results[MAX_PORT_STATUS + 1];
 extern const char		*g_port_status[MAX_PORT_STATUS + 1];
-extern const char		*g_tcp_services[PORTS_COUNT][2];
-extern const char		*g_udp_services[PORTS_COUNT][2];
-extern const char		*g_sctp_services[PORTS_COUNT][2];
 
 /*
 ** ft_nmap globals

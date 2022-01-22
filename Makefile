@@ -14,7 +14,6 @@ NAME		=	ft_nmap
 
 JOBSDIR			=	jobs
 NETWORKDIR		=	network
-SERVICESDIR		=	services
 
 SRCC			=	debug.c\
 					port_report.c\
@@ -56,14 +55,9 @@ NETWORKC		=	filter.c\
 					ports.c\
 					packet.c\
 
-SERVICESC		=	udp_services.c\
-					tcp_services.c\
-					sctp_services.c\
-
 ODIR			=	obj
 OBJ				=	$(patsubst %.c,%.o,$(JOBSC))\
 					$(patsubst %.c,%.o,$(NETWORKC))\
-					$(patsubst %.c,%.o,$(SERVICESC))\
 					$(patsubst %.c,%.o,$(SRCC))\
 
 vpath			%.o	$(ODIR)
@@ -71,7 +65,6 @@ vpath			%.h	$(HDIR)
 vpath			%.h	$(SUB1D)/$(HDIR)
 vpath			%.c	$(SRCDIR)/$(JOBSDIR)
 vpath			%.c	$(SRCDIR)/$(NETWORKDIR)
-vpath			%.c	$(SRCDIR)/$(SERVICESDIR)
 vpath			%.c	$(SRCDIR)
 
 ############################## BUILD ###########################################
@@ -120,9 +113,6 @@ layer4_headers.o: network.h libft.h
 ports.o: ft_nmap.h network.h libft.h
 packet.o: ft_nmap.h network.h libft.h
 verbose.o: ft_nmap.h network.h libft.h
-udp_services.o: ft_nmap.h network.h libft.h
-tcp_services.o: ft_nmap.h network.h libft.h
-sctp_services.o: ft_nmap.h network.h libft.h
 get_options.o: ft_nmap.h network.h libft.h
 %.o: %.c
 	@mkdir -p $(ODIR)
