@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:47:10 by yforeau           #+#    #+#             */
-/*   Updated: 2021/10/31 12:03:43 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/22 17:31:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ void	init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args)
 	struct iphdr	*ip4h = args->version == 4 ? args->iphdr : NULL;
 	struct ipv6hdr	*ip6h = args->version == 6 ? args->iphdr : NULL;
 	uint16_t		tcplen = ip6h ? ntohs(ip6h->payload_len)
-		: ntohs(ip4h->tot_len) - sizeof(struct tcphdr);
+		: ntohs(ip4h->tot_len) - sizeof(struct iphdr);
 
 	ft_bzero(tcp_packet, sizeof(struct tcphdr));
 	tcph->th_sport = htons(args->srcp);
