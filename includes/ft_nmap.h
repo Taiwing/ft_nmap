@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/22 10:53:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/23 12:39:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -278,9 +278,6 @@ typedef struct		s_worker_config
 ** host_count: number of hosts given by the user
 ** sent_packet_count: number of packets sent
 ** received_packet_count: count of received packets handled by pcap
-** listen_breaks_total: total count of listen loop breaks
-** listen_breaks_manual: times where pcap_breakloop() was used
-** listen_breaks_zero_packet: listen breaks with 0 packet found
 ** icmp_count: count of icmp response packets
 ** pcap_worker_is_working: boolean set to true if pcap_worker has started
 ** listen_breakloop: call pcap_breakloop in alarm_handler to end LISTEN task
@@ -335,9 +332,6 @@ typedef struct		s_nmap_config
 	int				host_count;
 	int				sent_packet_count;
 	int				received_packet_count;
-	int				listen_breaks_total;
-	int				listen_breaks_manual;
-	int				listen_breaks_zero_packet;
 	_Atomic int		icmp_count;
 	int				pcap_worker_is_working;
 	_Atomic int		listen_breakloop;
@@ -351,7 +345,7 @@ typedef struct		s_nmap_config
 	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 },\
 	{ .type = E_WORKER_MAIN, .task_types = MAIN_TASKS },\
 	{ .type = E_WORKER_THREAD, .task_types = WORKER_TASKS },\
-	{ 0 }, { 0 }, NULL, NULL, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0\
+	{ 0 }, { 0 }, NULL, NULL, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0\
 }
 
 /*
@@ -440,7 +434,6 @@ void		push_tasks(t_list **dest, t_list *tasks,
 void		push_reply_task(t_nmap_config *cfg, t_task *task,
 				struct timeval *exec_time);
 void		init_tasks(t_nmap_config *cfg);
-void		stats_listen(t_nmap_config *cfg, int packet_count);
 void		probe_retry_time(struct timeval *exec_time);
 void		set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,
 				struct timeval *exec_time);

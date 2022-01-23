@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/22 13:34:43 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/23 12:37:47 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,15 +34,10 @@ static void	task_new_host(t_task *task)
 
 static void	task_listen(t_task *task)
 {
-	int	packet_count = 0;
-
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
 	while (!g_cfg->end && !g_cfg->listen_breakloop)
-	{
-		packet_count = ft_listen(NULL, g_cfg->descr, pcap_handlerf, 0);
-		stats_listen(g_cfg, packet_count);
-	}
+		ft_listen(NULL, g_cfg->descr, pcap_handlerf, 0);
 	g_cfg->listen_breakloop = 0;
 }
 
@@ -116,15 +111,11 @@ static void	task_print_stats(t_task *task)
 	debug_print(g_cfg,
 		"total packets sent: %d (%g per second)\n"
 		"icmp packets received: %d (%g per second)\n"
-		"total packets received: %d (%g per second)\n"
-		"total listen breaks: %d\n"
-		"manual listen breaks: %d\n"
-		"listen breaks with 0 packet received: %d\n",
+		"total packets received: %d (%g per second)\n",
 		g_cfg->sent_packet_count, g_cfg->sent_packet_count / total_time,
 		g_cfg->icmp_count, g_cfg->icmp_count / total_time,
-		g_cfg->received_packet_count, g_cfg->received_packet_count / total_time,
-		g_cfg->listen_breaks_total, g_cfg->listen_breaks_manual,
-		g_cfg->listen_breaks_zero_packet);
+		g_cfg->received_packet_count,
+		g_cfg->received_packet_count / total_time);
 }
 
 const taskf	g_tasks[] = {
