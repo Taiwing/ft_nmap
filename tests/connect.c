@@ -13,6 +13,9 @@
 #include <netinet/ip_icmp.h>
 #include <linux/icmpv6.h>
 #include <arpa/inet.h>
+#include <poll.h>
+#include <linux/filter.h>
+#include <net/ethernet.h>
 
 #define	DEF_PORT	80
 #define	SRC_PORT	45654
@@ -168,51 +171,20 @@ int					print_packet(void *packet, int domain,
 	return (print_nexthdr(packet, domain, size, exec));
 }
 
-uint32_t	sum_bit16(uint16_t *data, size_t sz)
-{
-	uint32_t		sum;
+#define ARRAY_SIZE(arr)	(sizeof(arr) / sizeof(arr[0]))
 
-	for (sum = 0; sz >= sizeof(uint16_t); sz -= sizeof(uint16_t))
-		sum += *data++;
-	if (sz)
-		sum += *((uint8_t *)data);
-	return (sum);
-}
-
-uint16_t	checksum(uint16_t *data, size_t sz)
-{
-	uint32_t	sum;
-
-	sum = sum_bit16(data, sz);
-	sum = (sum >> 16) + (sum & 0xFFFF);
-	sum += (sum >> 16);
-	return ((uint16_t)~sum);
-}
-
-/*
-** transport_checksum: computes udp/tcp checksum
-*/
-int			transport_checksum(int version, void *iphdr,
-	uint8_t *packet, uint16_t len)
-{
-	uint64_t		sum = 0;
-	struct iphdr	*ip4h = version == 4 ? iphdr : NULL;
-	struct ipv6hdr	*ip6h = version == 6 ? iphdr : NULL;
-
-	if (ip4h)
-		sum += sum_bit16((uint16_t *)&ip4h->saddr, sizeof(struct in_addr) * 2);
-	else
-		sum += sum_bit16((uint16_t *)&ip6h->saddr, sizeof(struct in6_addr) * 2);
-	sum += htons(len) + htons(ip4h ? ip4h->protocol : ip6h->nexthdr)
-		+ sum_bit16((uint16_t *)packet, len);
-	return (checksum((uint16_t *)&sum, sizeof(uint64_t)));
-}
+#define OP_LDW (BPF_LD  | BPF_W   | BPF_ABS)
+#define OP_LDH (BPF_LD  | BPF_H   | BPF_ABS)
+#define OP_LDB (BPF_LD  | BPF_B   | BPF_ABS)
+#define OP_JEQ (BPF_JMP | BPF_JEQ | BPF_K)
+#define OP_RET (BPF_RET | BPF_K)
 
 int main(int argc, char **argv)
 {
 	struct addrinfo	hints = { 0 }, *res = NULL;
-	int				sockfd, i, ret, protocol = IPPROTO_TCP;
+	int				sockfd, i, ret;
 	uint16_t		sport = SRC_PORT, dport = DEF_PORT;
+	uint32_t		protocol = IPPROTO_TCP;
 
 	hints.ai_family = AF_UNSPEC;
 	for (i = 1; i < argc && argv[i][0] == '-'; ++i)
@@ -227,6 +199,11 @@ int main(int argc, char **argv)
 			protocol = IPPROTO_TCP;
 		else if (!strcmp(argv[i], "--icmp"))
 			protocol = IPPROTO_ICMP;
+		else if (!strcmp(argv[i], "--raw"))
+			protocol = IPPROTO_RAW;
+		else if (!strcmp(argv[i], "--ip"))
+			protocol = hints.ai_family == AF_UNSPEC || AF_INET ?
+				IPPROTO_IP : IPPROTO_IPV6;
 		else if (!strncmp(argv[i], "-d", 2))
 			dport = (uint16_t)atoi(argv[i] + 2);
 		else if (!strncmp(argv[i], "--dport", 7))
@@ -250,7 +227,7 @@ int main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 
-	if ((sockfd = socket(res->ai_family, SOCK_RAW, protocol)) < 0)
+	if ((sockfd = socket(AF_PACKET, SOCK_DGRAM, htons(ETH_P_IP))) < 0)
 	{
 		fprintf(stderr, "%s: sockfd: %s\n", argv[0], strerror(errno));
 		fflush(stderr);
@@ -258,10 +235,19 @@ int main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 
-	int ipproto = res->ai_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
-	int hdrincl = res->ai_family == AF_INET ? IP_HDRINCL: IPV6_HDRINCL;
-	int one = 1;
-	if (setsockopt(sockfd, ipproto, hdrincl, &one, sizeof(int)) < 0)
+	printf("ip: %s\n", inet_ntoa(((struct sockaddr_in *)res->ai_addr)->sin_addr));
+	struct sock_filter bpfcode_ipv4[] = {
+		{ OP_LDB, 0, 0, 9		},	// ldb ip[9] (IPv4 protocol)
+		{ OP_JEQ, 0, 2, 0		},	// jeq 0, fail, protocol
+		{ OP_LDW, 0, 0, 12		},	// ldw ip[12] (IPv4 source address)
+		{ OP_JEQ, 1, 0, 0		},	// jeq success, fail, IPv4 address
+		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
+		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
+	};
+	bpfcode_ipv4[1].k = protocol;
+	bpfcode_ipv4[3].k = htonl(((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr);
+	struct sock_fprog bpf = { ARRAY_SIZE(bpfcode_ipv4), bpfcode_ipv4 };
+	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
 	{
 		fprintf(stderr, "%s: setsockopt: %s\n", argv[0], strerror(errno));
 		fflush(stderr);
@@ -270,110 +256,39 @@ int main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 
-	if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0)
-	{
-		fprintf(stderr, "%s: connect: %s\n", argv[0], strerror(errno));
-		fflush(stderr);
-		close(sockfd);
-		freeaddrinfo(res);
-		return (EXIT_FAILURE);
-	}
-
-	struct iphdr	v4 = {
-		.ihl = 5,
-		.version = 4,
-		.ttl = 255,
-		.tot_len = sizeof(struct iphdr) + (protocol == IPPROTO_TCP ?
-			sizeof(struct tcphdr) : sizeof(struct udphdr)),
-		.protocol = protocol,
-	};
-	v4.tot_len = htons(v4.tot_len);
-	struct ipv6hdr	v6 = {
-		.version = 6,
-		.hop_limit = 255,
-		.payload_len = (protocol == IPPROTO_TCP ?
-			sizeof(struct tcphdr) : sizeof(struct udphdr)),
-		.nexthdr = protocol,
-	};
-	v6.payload_len = htons(v6.payload_len);
-	struct tcphdr	*tptr, tcph = {
-		.th_sport = htons(sport),
-		.th_dport = htons(dport),
-		.th_seq = htonl(0x12344321),
-		.th_ack = htonl(0),
-		.th_off = sizeof(struct tcphdr) / sizeof(uint32_t),
-		.th_flags = TH_SYN,
-		.th_win = htons(0xfff),
-		.th_urp = htons(0),
-	};
-	struct udphdr	*uptr, udph = {
-		.uh_sport = htons(sport),
-		.uh_dport = htons(dport),
-		.uh_ulen = htons(sizeof(struct udphdr)),
-	};
-	uint8_t		packet[sizeof(struct ipv6hdr) + sizeof(struct tcphdr)] = { 0 };
-	uint16_t	size = 0;
-
-	if (res->ai_family == AF_INET)
-	{
-		size = ntohs(v4.tot_len);
-		memcpy(packet, &v4, sizeof(v4));
-		if (protocol == IPPROTO_TCP)
-		{
-			memcpy(packet + sizeof(v4), &tcph, sizeof(tcph));
-			tptr = (struct tcphdr *)packet + sizeof(v4);
-			tptr->th_sum = transport_checksum(4, packet, (uint8_t *)tptr, size - sizeof(v4));
-		}
-		else
-		{
-			memcpy(packet + sizeof(v4), &udph, sizeof(udph));
-			uptr = (struct udphdr *)packet + sizeof(v4);
-			uptr->uh_sum = transport_checksum(4, packet, (uint8_t *)uptr, size - sizeof(v4));
-		}
-	}
-	else
-	{
-		size = sizeof(v6) + ntohs(v6.payload_len);
-		memcpy(packet, &v6, sizeof(v6));
-		if (protocol == IPPROTO_TCP)
-		{
-			memcpy(packet + sizeof(v6), &tcph, sizeof(tcph));
-			tptr = (struct tcphdr *)packet + sizeof(v6);
-			tptr->th_sum = transport_checksum(6, packet, (uint8_t *)tptr, size - sizeof(v6));
-		}
-		else
-		{
-			memcpy(packet + sizeof(v6), &udph, sizeof(udph));
-			uptr = (struct udphdr *)packet + sizeof(v6);
-			uptr->uh_sum = transport_checksum(6, packet, (uint8_t *)uptr, size - sizeof(v6));
-		}
-	}
-
-	//TODO: See if we need this. I dont think this is the case because we can
-	//use different sockets for the sending and for the receiving, it does not
-	//matter.
-	/*
-	if (sendto(sockfd, packet, size, 0, res->ai_addr, res->ai_addrlen) < 0)
-	{
-		fprintf(stderr, "%s: sendto: %s\n", argv[0], strerror(errno));
-		fflush(stderr);
-		close(sockfd);
-		freeaddrinfo(res);
-		return (EXIT_FAILURE);
-	}
-	*/
-
-#define	BUF_LEN	1024
+#define	BUF_LEN		1024
 
 	int		count = 5;
 	char	buf[BUF_LEN];
+
+#define	PFDS_COUNT	1
+	struct pollfd	pfds[PFDS_COUNT] = {
+		[0] = { .fd = sockfd, .events = POLLIN },
+	};
+
 	while (count)
 	{
-		if ((ret = recv(sockfd, buf, BUF_LEN, MSG_DONTWAIT)) < 0)
+		if (!poll(pfds, PFDS_COUNT, 0))
 			continue ;
-		printf("size of received packet: %d bytes\n", ret);
-		print_packet(buf, res->ai_family, (size_t)ret, argv[0]);
-		--count;
+		printf("events: %s%s%s%s\n",
+			(pfds[0].revents & POLLIN)  ? "POLLIN "  : "",
+			(pfds[0].revents & POLLHUP) ? "POLLHUP " : "",
+			(pfds[0].revents & POLLERR) ? "POLLERR " : "",
+			(pfds[0].revents & POLLNVAL) ? "POLLNVAL " : "");
+		if (!(pfds[0].revents & POLLIN))
+			fprintf(stderr, "%s: Unexpected event occured: %d\n",
+					argv[0], pfds[0].revents);
+		else if ((ret = recv(sockfd, buf, BUF_LEN, MSG_DONTWAIT)) < 0)
+		{
+			fprintf(stderr, "%s: recv: %s\n", argv[0], strerror(errno));
+			break ;
+		}
+		else if (ret > 0)
+		{
+			printf("size of received packet: %d bytes\n", ret);
+			print_packet(buf, res->ai_family, (size_t)ret, argv[0]);
+			if (pfds[0].revents & POLLIN) --count;
+		}
 	}
 
 	close(sockfd);
