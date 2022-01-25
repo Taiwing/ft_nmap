@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/06 01:00:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/23 12:45:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,12 +30,12 @@ void	open_device(t_nmap_config *cfg, int maxlen, int timeout)
 int			ft_listen(t_packet *reply, pcap_t *descr,
 				pcap_handler callback, int cnt)
 {
-	int	r;
+	int	ret;
 
-	if ((r = pcap_dispatch(descr, cnt, callback,
+	if ((ret = pcap_dispatch(descr, cnt, callback,
 			(uint8_t *)reply)) == PCAP_ERROR)
 		ft_exit(EXIT_FAILURE, "pcap_dispatch: pcap error");
-	else if (r == PCAP_ERROR_BREAK)
+	else if (ret == PCAP_ERROR_BREAK)
 		return (-1);
-	return (r);
+	return (ret);
 }
