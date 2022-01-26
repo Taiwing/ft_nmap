@@ -227,7 +227,8 @@ int main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 
-	if ((sockfd = socket(AF_PACKET, SOCK_DGRAM, htons(ETH_P_IP))) < 0)
+	int socket_protocol = res->ai_family == AF_INET ? ETH_P_IP : ETH_P_IPV6;
+	if ((sockfd = socket(AF_PACKET, SOCK_DGRAM, htons(socket_protocol))) < 0)
 	{
 		fprintf(stderr, "%s: sockfd: %s\n", argv[0], strerror(errno));
 		fflush(stderr);
@@ -235,7 +236,19 @@ int main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 
-	printf("ip: %s\n", inet_ntoa(((struct sockaddr_in *)res->ai_addr)->sin_addr));
+	char	ipbuf[INET6_ADDRSTRLEN + 1] = { 0 };
+	if (res->ai_family == AF_INET)
+	{
+		uint32_t ipv4 = ((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
+		inet_ntop(res->ai_family, &ipv4, ipbuf, INET6_ADDRSTRLEN);
+	}
+	else if (res->ai_family == AF_INET6)
+	{
+		void *ipv6 = (void *)((struct sockaddr_in6 *)res->ai_addr)->sin6_addr.s6_addr;
+		inet_ntop(res->ai_family, ipv6, ipbuf, INET6_ADDRSTRLEN);
+	}
+	printf("ip: %s\n", ipbuf);
+
 	struct sock_filter bpfcode_ipv4[] = {
 		{ OP_LDB, 0, 0, 9		},	// ldb ip[9] (IPv4 protocol)
 		{ OP_JEQ, 0, 2, 0		},	// jeq 0, fail, protocol
@@ -244,9 +257,105 @@ int main(int argc, char **argv)
 		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
 		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
 	};
-	bpfcode_ipv4[1].k = protocol;
-	bpfcode_ipv4[3].k = htonl(((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr);
-	struct sock_fprog bpf = { ARRAY_SIZE(bpfcode_ipv4), bpfcode_ipv4 };
+	/*
+	struct sock_filter bpfcode_ipv6[] = {
+		{ OP_LDB, 0, 0, 6		},	// ldb ip6[6] (IPv6 nexthdr)
+		{ OP_JEQ, 0, 8, 0		},	// jeq 0, fail, protocol
+		{ OP_LDW, 0, 0, 8		},	// ldw ip6[8] (IPv6 source address part 1)
+		{ OP_JEQ, 0, 6, 0		},	// jeq 0, fail, IPv6 address part 1
+		{ OP_LDW, 0, 0, 12		},	// ldw ip6[12] (IPv6 source address part 2)
+		{ OP_JEQ, 0, 4, 0		},	// jeq 0, fail, IPv6 address part 2
+		{ OP_LDW, 0, 0, 16		},	// ldw ip6[16] (IPv6 source address part 3)
+		{ OP_JEQ, 0, 2, 0		},	// jeq 0, fail, IPv6 address part 3
+		{ OP_LDW, 0, 0, 20		},	// ldw ip6[20] (IPv6 source address part 4)
+		{ OP_JEQ, 1, 0, 0		},	// jeq success, fail, IPv6 address part 4
+		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
+		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
+	};
+	*/
+	struct sock_filter bpfcode_ipv6[] = {
+		{ OP_LDB, 0, 0, 6		},	// ldb ip6[6] (IPv6 nexthdr)
+		{ OP_JEQ, 0, 36, 0		},	// jeq 0, fail, protocol
+		// Load and compare each of the 16 IPv6 bytes
+		{ OP_LDB, 0, 0, 8		},
+		{ OP_JEQ, 0, 34, 0		},
+		{ OP_LDB, 0, 0, 9		},
+		{ OP_JEQ, 0, 32, 0		},
+		{ OP_LDB, 0, 0, 10		},
+		{ OP_JEQ, 0, 30, 0		},
+		{ OP_LDB, 0, 0, 11		},
+		{ OP_JEQ, 0, 28, 0		},
+		{ OP_LDB, 0, 0, 12		},
+		{ OP_JEQ, 0, 26, 0		},
+		{ OP_LDB, 0, 0, 13		},
+		{ OP_JEQ, 0, 24, 0		},
+		{ OP_LDB, 0, 0, 14		},
+		{ OP_JEQ, 0, 22, 0		},
+		{ OP_LDB, 0, 0, 15		},
+		{ OP_JEQ, 0, 20, 0		},
+		{ OP_LDB, 0, 0, 16		},
+		{ OP_JEQ, 0, 18, 0		},
+		{ OP_LDB, 0, 0, 17		},
+		{ OP_JEQ, 0, 16, 0		},
+		{ OP_LDB, 0, 0, 18		},
+		{ OP_JEQ, 0, 14, 0		},
+		{ OP_LDB, 0, 0, 19		},
+		{ OP_JEQ, 0, 12, 0		},
+		{ OP_LDB, 0, 0, 20		},
+		{ OP_JEQ, 0, 10, 0		},
+		{ OP_LDB, 0, 0, 21		},
+		{ OP_JEQ, 0, 8, 0		},
+		{ OP_LDB, 0, 0, 22		},
+		{ OP_JEQ, 0, 6, 0		},
+		{ OP_LDB, 0, 0, 23		},
+		{ OP_JEQ, 0, 4, 0		},
+		{ OP_LDB, 0, 0, 24		},
+		{ OP_JEQ, 0, 2, 0		},
+		{ OP_LDB, 0, 0, 25		},
+		{ OP_JEQ, 1, 0, 0		},	// jeq, success, fail, final IPv6 byte
+		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
+		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
+	};
+	struct sock_fprog bpf = { 0 };
+
+	if (res->ai_family == AF_INET)
+	{
+		bpfcode_ipv4[1].k = protocol;
+		bpfcode_ipv4[3].k = htonl(((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr);
+		bpf.filter = bpfcode_ipv4;
+		bpf.len = ARRAY_SIZE(bpfcode_ipv4);
+	}
+	else if (res->ai_family == AF_INET6)
+	{
+		/*
+		uint8_t raw_ipv6[16] = { 0 };
+		memcpy(raw_ipv6, ((struct sockaddr_in6 *)res->ai_addr)->sin6_addr.s6_addr, 16);
+		//uint8_t big_endian_ipv6[16] = { 0 };
+		uint16_t big_endian_ipv6[8] = { 0 };
+		uint32_t *ipv6_addr = (uint32_t *)big_endian_ipv6;
+		uint16_t *short_ipv6 = (uint16_t *)raw_ipv6;
+		for (int i = 0; i < 8; ++i)
+		{
+			printf("%04hx%c", ntohs(short_ipv6[i]), i == 7 ? '\n' : ':');
+			//big_endian_ipv6[i] = ntohs(short_ipv6[i]);
+			big_endian_ipv6[i] = short_ipv6[i];
+		}
+		bpfcode_ipv6[3].k = ipv6_addr[0];
+		bpfcode_ipv6[5].k = ipv6_addr[1];
+		bpfcode_ipv6[7].k = ipv6_addr[2];
+		bpfcode_ipv6[9].k = ipv6_addr[3];
+		*/
+		bpfcode_ipv6[1].k = protocol;
+		uint8_t *raw_ipv6 = ((struct sockaddr_in6 *)res->ai_addr)->sin6_addr.s6_addr;
+		for (int i = 0; i < 16; ++i)
+		{
+			bpfcode_ipv6[i*2+3].k = raw_ipv6[i];
+			printf("k value at %d in bpfcode_ipv6: %02x\n", i*2+3, bpfcode_ipv6[i*2+3].k);
+		}
+		bpf.filter = bpfcode_ipv6;
+		bpf.len = ARRAY_SIZE(bpfcode_ipv6);
+	}
+
 	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
 	{
 		fprintf(stderr, "%s: setsockopt: %s\n", argv[0], strerror(errno));
