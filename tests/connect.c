@@ -317,48 +317,83 @@ int main(int argc, char **argv)
 
 	struct sock_filter bpfcode_ipv4[] = {
 		{ OP_LDB, 0, 0, 9		},	// ldb ip[9] (IPv4 protocol)
-		{ OP_JEQ, 0, 2, 0		},	// jeq 0, fail, protocol
+		{ OP_JEQ, 0, 4, 0		},	// jeq 0, fail, protocol
 		{ OP_LDW, 0, 0, 12		},	// ldw ip[12] (IPv4 source address)
-		{ OP_JEQ, 1, 0, 0		},	// jeq success, fail, IPv4 address
+		{ OP_JEQ, 0, 2, 0		},	// jeq 0, fail, IPv4 src address
+		{ OP_LDW, 0, 0, 16		},	// ldw ip[16] (IPv4 destination address)
+		{ OP_JEQ, 1, 0, 0		},	// jeq success, fail, IPv4 dest address
 		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
 		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
 	};
 	struct sock_filter bpfcode_ipv6[] = {
 		{ OP_LDB, 0, 0, 6		},	// ldb ip6[6] (IPv6 nexthdr)
-		{ OP_JEQ, 0, 32, 0		},	// jeq 0, fail, protocol
+		{ OP_JEQ, 0, 64, 0		},	// jeq 0, fail, protocol
 		// Load and compare each of the 16 bytes of source IPv6
 		{ OP_LDB, 0, 0, 8		},
-		{ OP_JEQ, 0, 30, 0		},
+		{ OP_JEQ, 0, 62, 0		},
 		{ OP_LDB, 0, 0, 9		},
-		{ OP_JEQ, 0, 28, 0		},
+		{ OP_JEQ, 0, 60, 0		},
 		{ OP_LDB, 0, 0, 10		},
-		{ OP_JEQ, 0, 26, 0		},
+		{ OP_JEQ, 0, 58, 0		},
 		{ OP_LDB, 0, 0, 11		},
-		{ OP_JEQ, 0, 24, 0		},
+		{ OP_JEQ, 0, 56, 0		},
 		{ OP_LDB, 0, 0, 12		},
-		{ OP_JEQ, 0, 22, 0		},
+		{ OP_JEQ, 0, 54, 0		},
 		{ OP_LDB, 0, 0, 13		},
-		{ OP_JEQ, 0, 20, 0		},
+		{ OP_JEQ, 0, 52, 0		},
 		{ OP_LDB, 0, 0, 14		},
-		{ OP_JEQ, 0, 18, 0		},
+		{ OP_JEQ, 0, 50, 0		},
 		{ OP_LDB, 0, 0, 15		},
-		{ OP_JEQ, 0, 16, 0		},
+		{ OP_JEQ, 0, 48, 0		},
 		{ OP_LDB, 0, 0, 16		},
-		{ OP_JEQ, 0, 14, 0		},
+		{ OP_JEQ, 0, 46, 0		},
 		{ OP_LDB, 0, 0, 17		},
-		{ OP_JEQ, 0, 12, 0		},
+		{ OP_JEQ, 0, 44, 0		},
 		{ OP_LDB, 0, 0, 18		},
-		{ OP_JEQ, 0, 10, 0		},
+		{ OP_JEQ, 0, 42, 0		},
 		{ OP_LDB, 0, 0, 19		},
-		{ OP_JEQ, 0, 8, 0		},
+		{ OP_JEQ, 0, 40, 0		},
 		{ OP_LDB, 0, 0, 20		},
-		{ OP_JEQ, 0, 6, 0		},
+		{ OP_JEQ, 0, 38, 0		},
 		{ OP_LDB, 0, 0, 21		},
-		{ OP_JEQ, 0, 4, 0		},
+		{ OP_JEQ, 0, 36, 0		},
 		{ OP_LDB, 0, 0, 22		},
-		{ OP_JEQ, 0, 2, 0		},
+		{ OP_JEQ, 0, 34, 0		},
 		{ OP_LDB, 0, 0, 23		},
-		{ OP_JEQ, 1, 0, 0		},	// jeq, success, fail, final IPv6 byte
+		{ OP_JEQ, 0, 32, 0		},	// jeq, 0, fail, final source IPv6 byte
+		// Load and compare each of the 16 bytes of destination IPv6
+		{ OP_LDB, 0, 0, 24		},
+		{ OP_JEQ, 0, 30, 0		},
+		{ OP_LDB, 0, 0, 25		},
+		{ OP_JEQ, 0, 28, 0		},
+		{ OP_LDB, 0, 0, 26		},
+		{ OP_JEQ, 0, 26, 0		},
+		{ OP_LDB, 0, 0, 27		},
+		{ OP_JEQ, 0, 24, 0		},
+		{ OP_LDB, 0, 0, 28		},
+		{ OP_JEQ, 0, 22, 0		},
+		{ OP_LDB, 0, 0, 29		},
+		{ OP_JEQ, 0, 20, 0		},
+		{ OP_LDB, 0, 0, 30		},
+		{ OP_JEQ, 0, 18, 0		},
+		{ OP_LDB, 0, 0, 31		},
+		{ OP_JEQ, 0, 16, 0		},
+		{ OP_LDB, 0, 0, 32		},
+		{ OP_JEQ, 0, 14, 0		},
+		{ OP_LDB, 0, 0, 33		},
+		{ OP_JEQ, 0, 12, 0		},
+		{ OP_LDB, 0, 0, 34		},
+		{ OP_JEQ, 0, 10, 0		},
+		{ OP_LDB, 0, 0, 35		},
+		{ OP_JEQ, 0, 8, 0		},
+		{ OP_LDB, 0, 0, 36		},
+		{ OP_JEQ, 0, 6, 0		},
+		{ OP_LDB, 0, 0, 37		},
+		{ OP_JEQ, 0, 4, 0		},
+		{ OP_LDB, 0, 0, 38		},
+		{ OP_JEQ, 0, 2, 0		},
+		{ OP_LDB, 0, 0, 39		},
+		{ OP_JEQ, 1, 0, 0		},	// jeq, success, fail, final dest IPv6 byte
 		// Return Failure or Success
 		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
 		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
@@ -376,6 +411,7 @@ int main(int argc, char **argv)
 			: loopback_v4->ifa_addr);
 		bpfcode_ipv4[1].k = protocol;
 		bpfcode_ipv4[3].k = ipv4_src;
+		bpfcode_ipv4[5].k = ipv4_dst;
 		bpf.filter = bpfcode_ipv4;
 		bpf.len = ARRAY_SIZE(bpfcode_ipv4);
 	}
@@ -393,6 +429,11 @@ int main(int argc, char **argv)
 		{
 			bpfcode_ipv6[i*2+3].k = raw_ipv6_src->sin6_addr.s6_addr[i];
 			printf("k value at %d in bpfcode_ipv6: %02x\n", i*2+3, bpfcode_ipv6[i*2+3].k);
+		}
+		for (int i = 0; i < 16; ++i)
+		{
+			bpfcode_ipv6[i*2+35].k = raw_ipv6_dst->sin6_addr.s6_addr[i];
+			printf("k value at %d in bpfcode_ipv6: %02x\n", i*2+35, bpfcode_ipv6[i*2+35].k);
 		}
 		bpf.filter = bpfcode_ipv6;
 		bpf.len = ARRAY_SIZE(bpfcode_ipv6);
