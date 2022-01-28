@@ -17,8 +17,9 @@
 #include <linux/filter.h>
 #include <net/ethernet.h>
 #include <linux/if_packet.h>
-#include <net/if.h>
+#include <linux/if.h>
 #include <sys/ioctl.h>
+#include <ifaddrs.h>
 
 #define	DEF_PORT	80
 #define	SRC_PORT	45654
@@ -174,6 +175,23 @@ int					print_packet(void *packet, int domain,
 	return (print_nexthdr(packet, domain, size, exec));
 }
 
+void	print_ip(char *ip_name, int family, struct sockaddr *ip)
+{
+	char	ipbuf[INET6_ADDRSTRLEN + 1] = { 0 };
+
+	if (family == AF_INET)
+	{
+		uint32_t ipv4 = ((struct sockaddr_in *)ip)->sin_addr.s_addr;
+		inet_ntop(family, &ipv4, ipbuf, INET6_ADDRSTRLEN);
+	}
+	else if (family == AF_INET6)
+	{
+		void *ipv6 = (void *)((struct sockaddr_in6 *)ip)->sin6_addr.s6_addr;
+		inet_ntop(family, ipv6, ipbuf, INET6_ADDRSTRLEN);
+	}
+	printf("%s: %s\n", ip_name, ipbuf);
+}
+
 #define ARRAY_SIZE(arr)	(sizeof(arr) / sizeof(arr[0]))
 
 #define OP_LDW (BPF_LD  | BPF_W   | BPF_ABS)
@@ -188,6 +206,7 @@ int main(int argc, char **argv)
 	int				sockfd, i, ret;
 	uint16_t		sport = SRC_PORT, dport = DEF_PORT;
 	uint32_t		protocol = IPPROTO_TCP;
+	char			*if_name = NULL;
 
 	hints.ai_family = AF_UNSPEC;
 	for (i = 1; i < argc && argv[i][0] == '-'; ++i)
@@ -215,6 +234,8 @@ int main(int argc, char **argv)
 			sport = (uint16_t)atoi(argv[i] + 2);
 		else if (!strncmp(argv[i], "--sport", 7))
 			sport = (uint16_t)atoi(argv[i] + 7);
+		else if (!strcmp(argv[i], "--iface") && ++i < i && argv[i])
+			if_name = argv[i];
 	}
 	if (!argv[i])
 	{
@@ -223,7 +244,8 @@ int main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 
-	if ((ret = getaddrinfo(argv[i], NULL, &hints, &res)))
+	char *hostname = argv[i];
+	if ((ret = getaddrinfo(hostname, NULL, &hints, &res)))
 	{
 		fprintf(stderr, "%s: getaddrinfo: %s\n", argv[0], gai_strerror(ret));
 		fflush(stderr);
@@ -239,34 +261,59 @@ int main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 
+	struct ifaddrs	*ifap = NULL, *defdev_v4 = NULL, *defdev_v6 = NULL,
+		*loopback_v4 = NULL, *loopback_v6 = NULL;
+	if (getifaddrs(&ifap) < 0)
+	{
+		fprintf(stderr, "%s: sockfd: %s\n", argv[0], strerror(errno));
+		fflush(stderr);
+		freeaddrinfo(res);
+		return (EXIT_FAILURE);
+	}
+	int match = 0;
+	for (struct ifaddrs *ptr = ifap; ptr; ptr = ptr->ifa_next)
+	{
+		if ((ptr->ifa_flags & IFF_LOWER_UP) && (ptr->ifa_flags & IFF_UP)
+			&& !(ptr->ifa_flags & IFF_DORMANT) && ptr->ifa_name
+			&& ptr->ifa_addr)
+		{
+			match = if_name && !strcmp(if_name, ptr->ifa_name);
+			if (ptr->ifa_addr->sa_family == AF_INET)
+			{
+				if ((ptr->ifa_flags & IFF_LOOPBACK))
+					loopback_v4 = loopback_v4 && !match ? loopback_v4 : ptr;
+				else
+					defdev_v4 = defdev_v4 && !match ? defdev_v4 : ptr;
+			}
+			else if (ptr->ifa_addr->sa_family == AF_INET6)
+			{
+				if ((ptr->ifa_flags & IFF_LOOPBACK))
+					loopback_v6 = loopback_v6 && !match ? loopback_v6 : ptr;
+				else
+					defdev_v6 = defdev_v6 && !match ? defdev_v6 : ptr;
+			}
+		}
+	}
+
 	/*
-	char				*if_name = "wlp0s20f3";
-	struct ifreq		ifr = { 0 };
-	memcpy(ifr.ifr_name, if_name, strlen(if_name));
-	if (ioctl(sockfd ,SIOCGIFINDEX, &ifr) < 0)
-		perror("ioctl");
-
-	struct sockaddr_ll	addr = { 0 };
-	addr.sll_family = AF_PACKET;
-	addr.sll_ifindex = ifr.ifr_ifindex;
-	addr.sll_protocol = htons(socket_protocol);
-
-	if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-		perror("bind");
+	if (if_name)
+	{
+		struct ifreq		ifr = { 0 };
+		memcpy(ifr.ifr_name, if_name, strlen(if_name));
+		if (ioctl(sockfd, SIOCGIFINDEX, &ifr) < 0)
+			perror("ioctl");
+	
+		struct sockaddr_ll	addr = { 0 };
+		addr.sll_family = AF_PACKET;
+		addr.sll_ifindex = ifr.ifr_ifindex;
+		addr.sll_protocol = htons(socket_protocol);
+	
+		if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+			perror("bind");
+	}
 	*/
 
-	char	ipbuf[INET6_ADDRSTRLEN + 1] = { 0 };
-	if (res->ai_family == AF_INET)
-	{
-		uint32_t ipv4 = ((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
-		inet_ntop(res->ai_family, &ipv4, ipbuf, INET6_ADDRSTRLEN);
-	}
-	else if (res->ai_family == AF_INET6)
-	{
-		void *ipv6 = (void *)((struct sockaddr_in6 *)res->ai_addr)->sin6_addr.s6_addr;
-		inet_ntop(res->ai_family, ipv6, ipbuf, INET6_ADDRSTRLEN);
-	}
-	printf("ip: %s\n", ipbuf);
+	print_ip("destination", res->ai_family, res->ai_addr);
 
 	struct sock_filter bpfcode_ipv4[] = {
 		{ OP_LDB, 0, 0, 9		},	// ldb ip[9] (IPv4 protocol)
@@ -276,26 +323,10 @@ int main(int argc, char **argv)
 		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
 		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
 	};
-	/*
-	struct sock_filter bpfcode_ipv6[] = {
-		{ OP_LDB, 0, 0, 6		},	// ldb ip6[6] (IPv6 nexthdr)
-		{ OP_JEQ, 0, 8, 0		},	// jeq 0, fail, protocol
-		{ OP_LDW, 0, 0, 8		},	// ldw ip6[8] (IPv6 source address part 1)
-		{ OP_JEQ, 0, 6, 0		},	// jeq 0, fail, IPv6 address part 1
-		{ OP_LDW, 0, 0, 12		},	// ldw ip6[12] (IPv6 source address part 2)
-		{ OP_JEQ, 0, 4, 0		},	// jeq 0, fail, IPv6 address part 2
-		{ OP_LDW, 0, 0, 16		},	// ldw ip6[16] (IPv6 source address part 3)
-		{ OP_JEQ, 0, 2, 0		},	// jeq 0, fail, IPv6 address part 3
-		{ OP_LDW, 0, 0, 20		},	// ldw ip6[20] (IPv6 source address part 4)
-		{ OP_JEQ, 1, 0, 0		},	// jeq success, fail, IPv6 address part 4
-		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
-		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
-	};
-	*/
 	struct sock_filter bpfcode_ipv6[] = {
 		{ OP_LDB, 0, 0, 6		},	// ldb ip6[6] (IPv6 nexthdr)
 		{ OP_JEQ, 0, 32, 0		},	// jeq 0, fail, protocol
-		// Load and compare each of the 16 IPv6 bytes
+		// Load and compare each of the 16 bytes of source IPv6
 		{ OP_LDB, 0, 0, 8		},
 		{ OP_JEQ, 0, 30, 0		},
 		{ OP_LDB, 0, 0, 9		},
@@ -328,6 +359,7 @@ int main(int argc, char **argv)
 		{ OP_JEQ, 0, 2, 0		},
 		{ OP_LDB, 0, 0, 23		},
 		{ OP_JEQ, 1, 0, 0		},	// jeq, success, fail, final IPv6 byte
+		// Return Failure or Success
 		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
 		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
 	};
@@ -335,36 +367,31 @@ int main(int argc, char **argv)
 
 	if (res->ai_family == AF_INET)
 	{
+		uint32_t ipv4_src = htonl(((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr);
+		uint32_t ipv4_dst = strcmp(hostname, "localhost")
+			? htonl(((struct sockaddr_in *)defdev_v4->ifa_addr)->sin_addr.s_addr)
+			: htonl(((struct sockaddr_in *)loopback_v4->ifa_addr)->sin_addr.s_addr);
+		print_ip("ipv4 interface address", AF_INET,
+			strcmp(hostname, "localhost") ? defdev_v4->ifa_addr
+			: loopback_v4->ifa_addr);
 		bpfcode_ipv4[1].k = protocol;
-		bpfcode_ipv4[3].k = htonl(((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr);
+		bpfcode_ipv4[3].k = ipv4_src;
 		bpf.filter = bpfcode_ipv4;
 		bpf.len = ARRAY_SIZE(bpfcode_ipv4);
 	}
 	else if (res->ai_family == AF_INET6)
 	{
-		/*
-		uint8_t raw_ipv6[16] = { 0 };
-		memcpy(raw_ipv6, ((struct sockaddr_in6 *)res->ai_addr)->sin6_addr.s6_addr, 16);
-		//uint8_t big_endian_ipv6[16] = { 0 };
-		uint16_t big_endian_ipv6[8] = { 0 };
-		uint32_t *ipv6_addr = (uint32_t *)big_endian_ipv6;
-		uint16_t *short_ipv6 = (uint16_t *)raw_ipv6;
-		for (int i = 0; i < 8; ++i)
-		{
-			printf("%04hx%c", ntohs(short_ipv6[i]), i == 7 ? '\n' : ':');
-			//big_endian_ipv6[i] = ntohs(short_ipv6[i]);
-			big_endian_ipv6[i] = short_ipv6[i];
-		}
-		bpfcode_ipv6[3].k = ipv6_addr[0];
-		bpfcode_ipv6[5].k = ipv6_addr[1];
-		bpfcode_ipv6[7].k = ipv6_addr[2];
-		bpfcode_ipv6[9].k = ipv6_addr[3];
-		*/
 		bpfcode_ipv6[1].k = protocol;
-		uint8_t *raw_ipv6 = ((struct sockaddr_in6 *)res->ai_addr)->sin6_addr.s6_addr;
+		struct sockaddr_in6	*raw_ipv6_src = (struct sockaddr_in6 *)res->ai_addr;
+		struct sockaddr_in6 *raw_ipv6_dst = strcmp(hostname, "localhost")
+			? (struct sockaddr_in6 *)defdev_v6->ifa_addr
+			: (struct sockaddr_in6 *)loopback_v6->ifa_addr;
+		print_ip("ipv6 interface address", AF_INET6,
+			strcmp(hostname, "localhost") ? defdev_v6->ifa_addr
+			: loopback_v6->ifa_addr);
 		for (int i = 0; i < 16; ++i)
 		{
-			bpfcode_ipv6[i*2+3].k = raw_ipv6[i];
+			bpfcode_ipv6[i*2+3].k = raw_ipv6_src->sin6_addr.s6_addr[i];
 			printf("k value at %d in bpfcode_ipv6: %02x\n", i*2+3, bpfcode_ipv6[i*2+3].k);
 		}
 		bpf.filter = bpfcode_ipv6;
@@ -377,6 +404,7 @@ int main(int argc, char **argv)
 		fflush(stderr);
 		close(sockfd);
 		freeaddrinfo(res);
+		freeifaddrs(ifap);
 		return (EXIT_FAILURE);
 	}
 
@@ -417,6 +445,7 @@ int main(int argc, char **argv)
 
 	close(sockfd);
 	freeaddrinfo(res);
+	freeifaddrs(ifap);
 	printf("Done! :)\n");
 	return (EXIT_SUCCESS);
 }
