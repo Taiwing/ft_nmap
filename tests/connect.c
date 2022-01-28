@@ -16,6 +16,9 @@
 #include <poll.h>
 #include <linux/filter.h>
 #include <net/ethernet.h>
+#include <linux/if_packet.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
 
 #define	DEF_PORT	80
 #define	SRC_PORT	45654
@@ -236,6 +239,22 @@ int main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 
+	/*
+	char				*if_name = "wlp0s20f3";
+	struct ifreq		ifr = { 0 };
+	memcpy(ifr.ifr_name, if_name, strlen(if_name));
+	if (ioctl(sockfd ,SIOCGIFINDEX, &ifr) < 0)
+		perror("ioctl");
+
+	struct sockaddr_ll	addr = { 0 };
+	addr.sll_family = AF_PACKET;
+	addr.sll_ifindex = ifr.ifr_ifindex;
+	addr.sll_protocol = htons(socket_protocol);
+
+	if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+		perror("bind");
+	*/
+
 	char	ipbuf[INET6_ADDRSTRLEN + 1] = { 0 };
 	if (res->ai_family == AF_INET)
 	{
@@ -275,43 +294,39 @@ int main(int argc, char **argv)
 	*/
 	struct sock_filter bpfcode_ipv6[] = {
 		{ OP_LDB, 0, 0, 6		},	// ldb ip6[6] (IPv6 nexthdr)
-		{ OP_JEQ, 0, 36, 0		},	// jeq 0, fail, protocol
+		{ OP_JEQ, 0, 32, 0		},	// jeq 0, fail, protocol
 		// Load and compare each of the 16 IPv6 bytes
 		{ OP_LDB, 0, 0, 8		},
-		{ OP_JEQ, 0, 34, 0		},
-		{ OP_LDB, 0, 0, 9		},
-		{ OP_JEQ, 0, 32, 0		},
-		{ OP_LDB, 0, 0, 10		},
 		{ OP_JEQ, 0, 30, 0		},
-		{ OP_LDB, 0, 0, 11		},
+		{ OP_LDB, 0, 0, 9		},
 		{ OP_JEQ, 0, 28, 0		},
-		{ OP_LDB, 0, 0, 12		},
+		{ OP_LDB, 0, 0, 10		},
 		{ OP_JEQ, 0, 26, 0		},
-		{ OP_LDB, 0, 0, 13		},
+		{ OP_LDB, 0, 0, 11		},
 		{ OP_JEQ, 0, 24, 0		},
-		{ OP_LDB, 0, 0, 14		},
+		{ OP_LDB, 0, 0, 12		},
 		{ OP_JEQ, 0, 22, 0		},
-		{ OP_LDB, 0, 0, 15		},
+		{ OP_LDB, 0, 0, 13		},
 		{ OP_JEQ, 0, 20, 0		},
-		{ OP_LDB, 0, 0, 16		},
+		{ OP_LDB, 0, 0, 14		},
 		{ OP_JEQ, 0, 18, 0		},
-		{ OP_LDB, 0, 0, 17		},
+		{ OP_LDB, 0, 0, 15		},
 		{ OP_JEQ, 0, 16, 0		},
-		{ OP_LDB, 0, 0, 18		},
+		{ OP_LDB, 0, 0, 16		},
 		{ OP_JEQ, 0, 14, 0		},
-		{ OP_LDB, 0, 0, 19		},
+		{ OP_LDB, 0, 0, 17		},
 		{ OP_JEQ, 0, 12, 0		},
-		{ OP_LDB, 0, 0, 20		},
+		{ OP_LDB, 0, 0, 18		},
 		{ OP_JEQ, 0, 10, 0		},
-		{ OP_LDB, 0, 0, 21		},
+		{ OP_LDB, 0, 0, 19		},
 		{ OP_JEQ, 0, 8, 0		},
-		{ OP_LDB, 0, 0, 22		},
+		{ OP_LDB, 0, 0, 20		},
 		{ OP_JEQ, 0, 6, 0		},
-		{ OP_LDB, 0, 0, 23		},
+		{ OP_LDB, 0, 0, 21		},
 		{ OP_JEQ, 0, 4, 0		},
-		{ OP_LDB, 0, 0, 24		},
+		{ OP_LDB, 0, 0, 22		},
 		{ OP_JEQ, 0, 2, 0		},
-		{ OP_LDB, 0, 0, 25		},
+		{ OP_LDB, 0, 0, 23		},
 		{ OP_JEQ, 1, 0, 0		},	// jeq, success, fail, final IPv6 byte
 		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
 		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
