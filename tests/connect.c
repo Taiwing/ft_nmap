@@ -315,20 +315,26 @@ int main(int argc, char **argv)
 
 	print_ip("destination", res->ai_family, res->ai_addr);
 
+	//IPv4 is filtered at the socket level (ETH_P_IP)
 	struct sock_filter bpfcode_ipv4[] = {
 		{ OP_LDB, 0, 0, 9		},	// ldb ip[9] (IPv4 protocol)
 		{ OP_JEQ, 0, 4, 0		},	// jeq 0, fail, protocol
-		{ OP_LDW, 0, 0, 12		},	// ldw ip[12] (IPv4 source address)
-		{ OP_JEQ, 0, 2, 0		},	// jeq 0, fail, IPv4 src address
-		{ OP_LDW, 0, 0, 16		},	// ldw ip[16] (IPv4 destination address)
-		{ OP_JEQ, 1, 0, 0		},	// jeq success, fail, IPv4 dest address
+		// Load and compare IPv4 source address (ip[12])
+		{ OP_LDW, 0, 0, 12		},
+		{ OP_JEQ, 0, 2, 0		},
+		// Load and compare IPv4 destination address (ip[16])
+		{ OP_LDW, 0, 0, 16		},
+		{ OP_JEQ, 1, 0, 0		},
+		// Return Failure or Success
 		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
 		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
 	};
+
+	//IPv6 is filtered at the socket level (ETH_P_IPV6)
 	struct sock_filter bpfcode_ipv6[] = {
 		{ OP_LDB, 0, 0, 6		},	// ldb ip6[6] (IPv6 nexthdr)
 		{ OP_JEQ, 0, 64, 0		},	// jeq 0, fail, protocol
-		// Load and compare each of the 16 bytes of source IPv6
+		// Load and compare each of the 16 bytes of source IPv6 (ip6[8])
 		{ OP_LDB, 0, 0, 8		},
 		{ OP_JEQ, 0, 62, 0		},
 		{ OP_LDB, 0, 0, 9		},
@@ -361,7 +367,7 @@ int main(int argc, char **argv)
 		{ OP_JEQ, 0, 34, 0		},
 		{ OP_LDB, 0, 0, 23		},
 		{ OP_JEQ, 0, 32, 0		},	// jeq, 0, fail, final source IPv6 byte
-		// Load and compare each of the 16 bytes of destination IPv6
+		// Load and compare each of the 16 bytes of destination IPv6 (ip6[24])
 		{ OP_LDB, 0, 0, 24		},
 		{ OP_JEQ, 0, 30, 0		},
 		{ OP_LDB, 0, 0, 25		},
