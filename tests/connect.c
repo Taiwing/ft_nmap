@@ -198,13 +198,16 @@ void	print_ip(char *ip_name, int family, struct sockaddr *ip)
 #define OP_LDH (BPF_LD  | BPF_H   | BPF_ABS)
 #define OP_LDB (BPF_LD  | BPF_B   | BPF_ABS)
 #define OP_JEQ (BPF_JMP | BPF_JEQ | BPF_K)
+#define OP_JGE (BPF_JMP | BPF_JGE | BPF_K)
+#define OP_JLE (BPF_JMP | BPF_JLE | BPF_K)
 #define OP_RET (BPF_RET | BPF_K)
 
 int main(int argc, char **argv)
 {
 	struct addrinfo	hints = { 0 }, *res = NULL;
 	int				sockfd, i, ret;
-	uint16_t		sport = SRC_PORT, dport = DEF_PORT;
+	uint16_t		src_port_min = SRC_PORT, dst_port_min = DEF_PORT;
+	uint16_t		src_port_max = SRC_PORT, dst_port_max = DEF_PORT;
 	uint32_t		protocol = IPPROTO_TCP;
 	char			*if_name = NULL;
 
@@ -226,14 +229,22 @@ int main(int argc, char **argv)
 		else if (!strcmp(argv[i], "--ip"))
 			protocol = hints.ai_family == AF_UNSPEC || AF_INET ?
 				IPPROTO_IP : IPPROTO_IPV6;
+		else if (!strncmp(argv[i], "-dm", 3))
+			dst_port_max = (uint16_t)atoi(argv[i] + 3);
 		else if (!strncmp(argv[i], "-d", 2))
-			dport = (uint16_t)atoi(argv[i] + 2);
+			dst_port_min = (uint16_t)atoi(argv[i] + 2);
 		else if (!strncmp(argv[i], "--dport", 7))
-			dport = (uint16_t)atoi(argv[i] + 7);
+			dst_port_min = (uint16_t)atoi(argv[i] + 7);
+		else if (!strncmp(argv[i], "--dportm", 8))
+			dst_port_max = (uint16_t)atoi(argv[i] + 8);
+		else if (!strncmp(argv[i], "-sm", 3))
+			src_port_max = (uint16_t)atoi(argv[i] + 3);
 		else if (!strncmp(argv[i], "-s", 2))
-			sport = (uint16_t)atoi(argv[i] + 2);
+			src_port_min = (uint16_t)atoi(argv[i] + 2);
 		else if (!strncmp(argv[i], "--sport", 7))
-			sport = (uint16_t)atoi(argv[i] + 7);
+			src_port_min = (uint16_t)atoi(argv[i] + 7);
+		else if (!strncmp(argv[i], "--sportm", 8))
+			src_port_max = (uint16_t)atoi(argv[i] + 8);
 		else if (!strcmp(argv[i], "--iface") && ++i < i && argv[i])
 			if_name = argv[i];
 	}
@@ -316,18 +327,44 @@ int main(int argc, char **argv)
 	print_ip("destination", res->ai_family, res->ai_addr);
 
 	//IPv4 is filtered at the socket level (ETH_P_IP)
+	/*
 	struct sock_filter bpfcode_ipv4[] = {
 		{ OP_LDB, 0, 0, 9		},	// ldb ip[9] (IPv4 protocol)
-		{ OP_JEQ, 0, 4, 0		},	// jeq 0, fail, protocol
+		{ OP_JEQ, 0, 10, 0		},	// jeq 0, fail, protocol
 		// Load and compare IPv4 source address (ip[12])
 		{ OP_LDW, 0, 0, 12		},
-		{ OP_JEQ, 0, 2, 0		},
+		{ OP_JEQ, 0, 8, 0		},
 		// Load and compare IPv4 destination address (ip[16])
 		{ OP_LDW, 0, 0, 16		},
-		{ OP_JEQ, 1, 0, 0		},
+		{ OP_JEQ, 1, 6, 0		},
+		// Load and compare TCP or UDP source port (ip[20])
+		{ OP_LDH, 0, 0, 20,		},
+		{ OP_JGE, 0, 4, 0,		},	// jge src_port minimum
+		{ OP_JLE, 0, 3, 0,		},	// jle src_port maximum
+		// Load and compare TCP or UDP destination port (ip[22])
+		{ OP_LDH, 0, 0, 22,		},
+		{ OP_JGE, 0, 1, 0,		},	// jge dst_port minimum
+		{ OP_JLE, 1, 0, 0,		},	// jle dst_port maximum
 		// Return Failure or Success
 		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
 		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
+	};
+	*/
+	struct sock_filter bpfcode_ipv4[] = {
+		{ 0x30,  0,  0, 0x00000009 },
+		{ 0x15,  0, 11, 0000000000 },	// protocol TCP | UDP
+		{ 0x20,  0,  0, 0x0000000c },
+		{ 0x15,  0,  9, 0000000000 },	// ipv4 source address
+		{ 0x20,  0,  0, 0x00000010 },
+		{ 0x15,  0,  7, 0000000000 },	// ipv4 destination address
+		{ 0x28,  0,  0, 0x00000014 },
+		{ 0x35,  0,  5, 0000000000 },	// smallest source port
+		{ 0x25,  4,  0, 0000000000 },	// biggest source port
+		{ 0x28,  0,  0, 0x00000016 },
+		{ 0x35,  0,  2, 0000000000 },	// smallest destination port
+		{ 0x25,  1,  0, 0000000000 },	// biggest destination port
+		{ 0x06,  0,  0, 0xffffffff },
+		{ 0x06,  0,  0, 0000000000 },
 	};
 
 	//IPv6 is filtered at the socket level (ETH_P_IPV6)
@@ -406,6 +443,8 @@ int main(int argc, char **argv)
 	};
 	struct sock_fprog bpf = { 0 };
 
+	printf("source port range: %hu-%hu\n", src_port_min, src_port_max);
+	printf("destination port range: %hu-%hu\n", dst_port_min, dst_port_max);
 	if (res->ai_family == AF_INET)
 	{
 		uint32_t ipv4_src = htonl(((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr);
@@ -418,6 +457,10 @@ int main(int argc, char **argv)
 		bpfcode_ipv4[1].k = protocol;
 		bpfcode_ipv4[3].k = ipv4_src;
 		bpfcode_ipv4[5].k = ipv4_dst;
+		bpfcode_ipv4[7].k = dst_port_min;
+		bpfcode_ipv4[8].k = dst_port_max;
+		bpfcode_ipv4[10].k = src_port_min;
+		bpfcode_ipv4[11].k = src_port_max;
 		bpf.filter = bpfcode_ipv4;
 		bpf.len = ARRAY_SIZE(bpfcode_ipv4);
 	}

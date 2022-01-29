@@ -1,0 +1,14 @@
+ldb [9]
+jne #0, drop	/* protocol: TCP | UDP */
+ld [12]
+jne #0, drop	/* ipv4 source address */
+ld [16]
+jne #0, drop	/* ipv4 destination address */
+ldh [20]
+jlt #0, drop 	/* TCP | UDP smallest source port */
+jgt #0, drop 	/* TCP | UDP biggest source port */
+ldh [22]
+jlt #0, drop 	/* TCP | UDP smallest destination port */
+jgt #0, drop 	/* TCP | UDP biggest destination port */
+ret #-1
+drop: ret #0
