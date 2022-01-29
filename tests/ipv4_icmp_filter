@@ -10,7 +10,7 @@ jne #0, drop
 ld [16]
 jne #0, drop
 
-/* ICMP protocol */
+/* ICMP payload ---> protocol */
 ldb [37]
 jne #0, drop	/* protcol: TCP | UDP */
 

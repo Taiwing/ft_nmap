@@ -223,7 +223,8 @@ int main(int argc, char **argv)
 		else if (!strcmp(argv[i], "--tcp"))
 			protocol = IPPROTO_TCP;
 		else if (!strcmp(argv[i], "--icmp"))
-			protocol = IPPROTO_ICMP;
+			protocol = hints.ai_family == AF_UNSPEC || hints.ai_family == AF_INET ?
+				IPPROTO_ICMP : IPPROTO_ICMPV6;
 		else if (!strcmp(argv[i], "--raw"))
 			protocol = IPPROTO_RAW;
 		else if (!strcmp(argv[i], "--ip"))
@@ -328,7 +329,7 @@ int main(int argc, char **argv)
 
 	//IPv4 is filtered at the socket level (ETH_P_IP)
 	struct sock_filter bpfcode_ipv4_layer4[] = {
-		// Load and compare IPv4 protcol (ip[9])
+		// Load and compare IPv4 protocol (ip[9])
 		{ 0x30,  0,  0, 0x00000009 },
 		{ 0x15,  0, 11, 0000000000 },	// protocol TCP | UDP (1)
 
@@ -356,9 +357,9 @@ int main(int argc, char **argv)
 	};
 
 	struct sock_filter bpfcode_ipv4_icmp[] = {
-		// Load and compare IPv4 protcol (ip[9])
+		// Load and compare IPv4 protocol (ip[9])
 		{ 0x30,  0,  0, 0x00000009 },
-		{ 0x15,  0, 13, 0000000000 },	// protocol TCP | UDP (1)
+		{ 0x15,  0, 13, 0000000000 },	// protocol ICMP (1)
 
 		// Load and compare IPv4 source address (ip[12])
 		{ 0x20,  0,  0, 0x0000000c },
@@ -389,7 +390,7 @@ int main(int argc, char **argv)
 
 	//IPv6 is filtered at the socket level (ETH_P_IPV6)
 	struct sock_filter bpfcode_ipv6_layer4[] = {
-		// Load and compare IPv6 protcol (ip6[6])
+		// Load and compare IPv6 protocol (ip6[6])
 		{ 0x30,  0,  0, 0x00000006 },
 		{ 0x15,  0, 71, 0000000000 },	// protocol TCP | UDP (1)
 
@@ -475,6 +476,97 @@ int main(int argc, char **argv)
 		{ 0x06,  0,  0, 0xffffffff },
 		{ 0x06,  0,  0, 0000000000 },
 	};
+	struct sock_filter bpfcode_ipv6_icmp[] = {
+		// Load and compare IPv6 protocol (ip6[6])
+		{ 0x30,  0,  0, 0x00000006 },
+		{ 0x15,  0, 73, 0000000000 },	// protocol ICMP6 (1)
+
+		// Load and compare IPv6 source address (ip6[8]-ip6[23])
+		{ 0x30,  0,  0, 0x00000008 },
+		{ 0x15,  0, 71, 0000000000 },	// first ipv6 source byte (3)
+		{ 0x30,  0,  0, 0x00000009 },
+		{ 0x15,  0, 69, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000a },
+		{ 0x15,  0, 67, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000b },
+		{ 0x15,  0, 65, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000c },
+		{ 0x15,  0, 63, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000d },
+		{ 0x15,  0, 61, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000e },
+		{ 0x15,  0, 59, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000f },
+		{ 0x15,  0, 57, 0000000000 },
+		{ 0x30,  0,  0, 0x00000010 },
+		{ 0x15,  0, 55, 0000000000 },
+		{ 0x30,  0,  0, 0x00000011 },
+		{ 0x15,  0, 53, 0000000000 },
+		{ 0x30,  0,  0, 0x00000012 },
+		{ 0x15,  0, 51, 0000000000 },
+		{ 0x30,  0,  0, 0x00000013 },
+		{ 0x15,  0, 49, 0000000000 },
+		{ 0x30,  0,  0, 0x00000014 },
+		{ 0x15,  0, 47, 0000000000 },
+		{ 0x30,  0,  0, 0x00000015 },
+		{ 0x15,  0, 45, 0000000000 },
+		{ 0x30,  0,  0, 0x00000016 },
+		{ 0x15,  0, 43, 0000000000 },
+		{ 0x30,  0,  0, 0x00000017 },
+		{ 0x15,  0, 41, 0000000000 },	// last ipv6 source byte (33)
+
+		// Load and compare IPv6 destination address (ip6[24]-ip6[39])
+		{ 0x30,  0,  0, 0x00000018 },
+		{ 0x15,  0, 39, 0000000000 },	// first ipv6 destination byte (35)
+		{ 0x30,  0,  0, 0x00000019 },
+		{ 0x15,  0, 37, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001a },
+		{ 0x15,  0, 35, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001b },
+		{ 0x15,  0, 33, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001c },
+		{ 0x15,  0, 31, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001d },
+		{ 0x15,  0, 29, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001e },
+		{ 0x15,  0, 27, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001f },
+		{ 0x15,  0, 25, 0000000000 },
+		{ 0x30,  0,  0, 0x00000020 },
+		{ 0x15,  0, 23, 0000000000 },
+		{ 0x30,  0,  0, 0x00000021 },
+		{ 0x15,  0, 21, 0000000000 },
+		{ 0x30,  0,  0, 0x00000022 },
+		{ 0x15,  0, 19, 0000000000 },
+		{ 0x30,  0,  0, 0x00000023 },
+		{ 0x15,  0, 17, 0000000000 },
+		{ 0x30,  0,  0, 0x00000024 },
+		{ 0x15,  0, 15, 0000000000 },
+		{ 0x30,  0,  0, 0x00000025 },
+		{ 0x15,  0, 13, 0000000000 },
+		{ 0x30,  0,  0, 0x00000026 },
+		{ 0x15,  0, 11, 0000000000 },
+		{ 0x30,  0,  0, 0x00000027 },
+		{ 0x15,  0,  9, 0000000000 },	// last ipv6 destination byte (65)
+
+		// Load and compare ICMP6 payload protocol (ip6[54])
+		{ 0x30,  0,  0, 0x00000036 },
+		{ 0x15,  0,  7, 0000000000 },	// protocol (67)
+
+		// Load and compare ICMP6 payload TCP or UDP source port (ip6[88])
+		{ 0x28,  0,  0, 0x00000058 },
+		{ 0x35,  0,  5, 0000000000 },	// smallest source port (69)
+		{ 0x25,  4,  0, 0000000000 },	// biggest source port (70)
+
+		// Load and compare ICMP6 payload TCP or UDP destination port (ip6[90])
+		{ 0x28,  0,  0, 0x0000005a },
+		{ 0x35,  0,  2, 0000000000 },	// smallest destination port (72)
+		{ 0x25,  1,  0, 0000000000 },	// biggest destination port (73)
+
+		// Return Match or Drop
+		{ 0x06,  0,  0, 0xffffffff },
+		{ 0x06,  0,  0, 0000000000 },
+	};
 	struct sock_fprog bpf = { 0 };
 
 	printf("source port range: %hu-%hu\n", src_port_min, src_port_max);
@@ -488,35 +580,33 @@ int main(int argc, char **argv)
 		print_ip("ipv4 interface address", AF_INET,
 			strcmp(hostname, "localhost") ? defdev_v4->ifa_addr
 			: loopback_v4->ifa_addr);
+		struct sock_filter	*ipv4_filter_ptr = protocol == IPPROTO_ICMP ?
+			bpfcode_ipv4_icmp : bpfcode_ipv4_layer4;
+		ipv4_filter_ptr[1].k = protocol;
+		ipv4_filter_ptr[3].k = ipv4_src;
+		ipv4_filter_ptr[5].k = ipv4_dst;
 		if (protocol != IPPROTO_ICMP)
 		{
-			bpfcode_ipv4_layer4[1].k = protocol;
-			bpfcode_ipv4_layer4[3].k = ipv4_src;
-			bpfcode_ipv4_layer4[5].k = ipv4_dst;
-			bpfcode_ipv4_layer4[7].k = dst_port_min;
-			bpfcode_ipv4_layer4[8].k = dst_port_max;
-			bpfcode_ipv4_layer4[10].k = src_port_min;
-			bpfcode_ipv4_layer4[11].k = src_port_max;
+			ipv4_filter_ptr[7].k = dst_port_min;
+			ipv4_filter_ptr[8].k = dst_port_max;
+			ipv4_filter_ptr[10].k = src_port_min;
+			ipv4_filter_ptr[11].k = src_port_max;
 			bpf.filter = bpfcode_ipv4_layer4;
 			bpf.len = ARRAY_SIZE(bpfcode_ipv4_layer4);
 		}
 		else
 		{
-			bpfcode_ipv4_icmp[1].k = protocol;
-			bpfcode_ipv4_icmp[3].k = ipv4_src;
-			bpfcode_ipv4_icmp[5].k = ipv4_dst;
-			bpfcode_ipv4_icmp[7].k = IPPROTO_UDP;	//TODO unhardcode this
-			bpfcode_ipv4_icmp[9].k = src_port_min;
-			bpfcode_ipv4_icmp[10].k = src_port_max;
-			bpfcode_ipv4_icmp[12].k = dst_port_min;
-			bpfcode_ipv4_icmp[13].k = dst_port_max;
+			ipv4_filter_ptr[7].k = IPPROTO_UDP;	//TODO unhardcode this
+			ipv4_filter_ptr[9].k = src_port_min;
+			ipv4_filter_ptr[10].k = src_port_max;
+			ipv4_filter_ptr[12].k = dst_port_min;
+			ipv4_filter_ptr[13].k = dst_port_max;
 			bpf.filter = bpfcode_ipv4_icmp;
 			bpf.len = ARRAY_SIZE(bpfcode_ipv4_icmp);
 		}
 	}
 	else if (res->ai_family == AF_INET6)
 	{
-		bpfcode_ipv6_layer4[1].k = protocol;
 		struct sockaddr_in6	*raw_ipv6_src = (struct sockaddr_in6 *)res->ai_addr;
 		struct sockaddr_in6 *raw_ipv6_dst = strcmp(hostname, "localhost")
 			? (struct sockaddr_in6 *)defdev_v6->ifa_addr
@@ -524,22 +614,39 @@ int main(int argc, char **argv)
 		print_ip("ipv6 interface address", AF_INET6,
 			strcmp(hostname, "localhost") ? defdev_v6->ifa_addr
 			: loopback_v6->ifa_addr);
+
+		struct sock_filter *ipv6_filter_ptr = protocol == IPPROTO_ICMPV6 ?
+			bpfcode_ipv6_icmp : bpfcode_ipv6_layer4;
+		ipv6_filter_ptr[1].k = protocol;
 		for (int i = 0; i < 16; ++i)
 		{
-			bpfcode_ipv6_layer4[i*2+3].k = raw_ipv6_src->sin6_addr.s6_addr[i];
-			printf("k value at %d in bpfcode_ipv6_layer4: %02x\n", i*2+3, bpfcode_ipv6_layer4[i*2+3].k);
+			ipv6_filter_ptr[i*2+3].k = raw_ipv6_src->sin6_addr.s6_addr[i];
+			printf("k value at %d in ipv6_filter_ptr: %02x\n", i*2+3, ipv6_filter_ptr[i*2+3].k);
 		}
 		for (int i = 0; i < 16; ++i)
 		{
-			bpfcode_ipv6_layer4[i*2+35].k = raw_ipv6_dst->sin6_addr.s6_addr[i];
-			printf("k value at %d in bpfcode_ipv6_layer4: %02x\n", i*2+35, bpfcode_ipv6_layer4[i*2+35].k);
+			ipv6_filter_ptr[i*2+35].k = raw_ipv6_dst->sin6_addr.s6_addr[i];
+			printf("k value at %d in ipv6_filter_ptr: %02x\n", i*2+35, ipv6_filter_ptr[i*2+35].k);
 		}
-		bpfcode_ipv6_layer4[67].k = dst_port_min;
-		bpfcode_ipv6_layer4[68].k = dst_port_max;
-		bpfcode_ipv6_layer4[70].k = src_port_min;
-		bpfcode_ipv6_layer4[71].k = src_port_max;
-		bpf.filter = bpfcode_ipv6_layer4;
-		bpf.len = ARRAY_SIZE(bpfcode_ipv6_layer4);
+		if (protocol != IPPROTO_ICMPV6)
+		{
+			ipv6_filter_ptr[67].k = dst_port_min;
+			ipv6_filter_ptr[68].k = dst_port_max;
+			ipv6_filter_ptr[70].k = src_port_min;
+			ipv6_filter_ptr[71].k = src_port_max;
+			bpf.filter = bpfcode_ipv6_layer4;
+			bpf.len = ARRAY_SIZE(bpfcode_ipv6_layer4);
+		}
+		else
+		{
+			ipv6_filter_ptr[67].k = IPPROTO_UDP;	//TODO: unhardcode this
+			ipv6_filter_ptr[69].k = src_port_min;
+			ipv6_filter_ptr[70].k = src_port_max;
+			ipv6_filter_ptr[72].k = dst_port_min;
+			ipv6_filter_ptr[73].k = dst_port_max;
+			bpf.filter = bpfcode_ipv6_icmp;
+			bpf.len = ARRAY_SIZE(bpfcode_ipv6_icmp);
+		}
 	}
 
 	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
