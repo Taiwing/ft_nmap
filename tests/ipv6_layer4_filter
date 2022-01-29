@@ -1,0 +1,85 @@
+/* ipv6 Protocol */
+ldb [6]
+jne #0, drop	/* protocol: TCP | UDP */
+
+/* ipv6 source address */
+ldb [8]
+jne #0, drop	
+ldb [9]
+jne #0, drop	
+ldb [10]
+jne #0, drop	
+ldb [11]
+jne #0, drop	
+ldb [12]
+jne #0, drop	
+ldb [13]
+jne #0, drop	
+ldb [14]
+jne #0, drop	
+ldb [15]
+jne #0, drop	
+ldb [16]
+jne #0, drop	
+ldb [17]
+jne #0, drop	
+ldb [18]
+jne #0, drop	
+ldb [19]
+jne #0, drop	
+ldb [20]
+jne #0, drop	
+ldb [21]
+jne #0, drop	
+ldb [22]
+jne #0, drop	
+ldb [23]
+jne #0, drop	
+
+/* ipv6 destination address */
+ldb [24]
+jne #0, drop	
+ldb [25]
+jne #0, drop	
+ldb [26]
+jne #0, drop	
+ldb [27]
+jne #0, drop	
+ldb [28]
+jne #0, drop	
+ldb [29]
+jne #0, drop	
+ldb [30]
+jne #0, drop	
+ldb [31]
+jne #0, drop	
+ldb [32]
+jne #0, drop	
+ldb [33]
+jne #0, drop	
+ldb [34]
+jne #0, drop	
+ldb [35]
+jne #0, drop	
+ldb [36]
+jne #0, drop	
+ldb [37]
+jne #0, drop	
+ldb [38]
+jne #0, drop	
+ldb [39]
+jne #0, drop	
+
+/* TCP | UDP source port */
+ldh [40]
+jlt #0, drop 	/* TCP | UDP smallest source port */
+jgt #0, drop 	/* TCP | UDP biggest source port */
+
+/* TCP | UDP destination port */
+ldh [42]
+jlt #0, drop 	/* TCP | UDP smallest destination port */
+jgt #0, drop 	/* TCP | UDP biggest destination port */
+
+/* Return */
+ret #-1
+drop: ret #0

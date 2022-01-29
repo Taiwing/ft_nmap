@@ -327,119 +327,121 @@ int main(int argc, char **argv)
 	print_ip("destination", res->ai_family, res->ai_addr);
 
 	//IPv4 is filtered at the socket level (ETH_P_IP)
-	/*
 	struct sock_filter bpfcode_ipv4[] = {
-		{ OP_LDB, 0, 0, 9		},	// ldb ip[9] (IPv4 protocol)
-		{ OP_JEQ, 0, 10, 0		},	// jeq 0, fail, protocol
-		// Load and compare IPv4 source address (ip[12])
-		{ OP_LDW, 0, 0, 12		},
-		{ OP_JEQ, 0, 8, 0		},
-		// Load and compare IPv4 destination address (ip[16])
-		{ OP_LDW, 0, 0, 16		},
-		{ OP_JEQ, 1, 6, 0		},
-		// Load and compare TCP or UDP source port (ip[20])
-		{ OP_LDH, 0, 0, 20,		},
-		{ OP_JGE, 0, 4, 0,		},	// jge src_port minimum
-		{ OP_JLE, 0, 3, 0,		},	// jle src_port maximum
-		// Load and compare TCP or UDP destination port (ip[22])
-		{ OP_LDH, 0, 0, 22,		},
-		{ OP_JGE, 0, 1, 0,		},	// jge dst_port minimum
-		{ OP_JLE, 1, 0, 0,		},	// jle dst_port maximum
-		// Return Failure or Success
-		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
-		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
-	};
-	*/
-	struct sock_filter bpfcode_ipv4[] = {
+		// Load and compare IPv4 protcol (ip[9])
 		{ 0x30,  0,  0, 0x00000009 },
-		{ 0x15,  0, 11, 0000000000 },	// protocol TCP | UDP
+		{ 0x15,  0, 11, 0000000000 },	// protocol TCP | UDP (1)
+
+		// Load and compare IPv4 source address (ip[12])
 		{ 0x20,  0,  0, 0x0000000c },
-		{ 0x15,  0,  9, 0000000000 },	// ipv4 source address
+		{ 0x15,  0,  9, 0000000000 },	// ipv4 source address (3)
+
+		// Load and compare IPv4 destination address (ip[16])
 		{ 0x20,  0,  0, 0x00000010 },
-		{ 0x15,  0,  7, 0000000000 },	// ipv4 destination address
+		{ 0x15,  0,  7, 0000000000 },	// ipv4 destination address (5)
+
+		// Load and compare TCP or UDP source port (ip[20])
 		{ 0x28,  0,  0, 0x00000014 },
-		{ 0x35,  0,  5, 0000000000 },	// smallest source port
-		{ 0x25,  4,  0, 0000000000 },	// biggest source port
+		{ 0x35,  0,  5, 0000000000 },	// smallest source port (7)
+		{ 0x25,  4,  0, 0000000000 },	// biggest source port (8)
+
+		// Load and compare TCP or UDP destination port (ip[22])
 		{ 0x28,  0,  0, 0x00000016 },
-		{ 0x35,  0,  2, 0000000000 },	// smallest destination port
-		{ 0x25,  1,  0, 0000000000 },	// biggest destination port
+		{ 0x35,  0,  2, 0000000000 },	// smallest destination port (10)
+		{ 0x25,  1,  0, 0000000000 },	// biggest destination port (11)
+
+		// Return Match or Drop
 		{ 0x06,  0,  0, 0xffffffff },
 		{ 0x06,  0,  0, 0000000000 },
 	};
 
 	//IPv6 is filtered at the socket level (ETH_P_IPV6)
 	struct sock_filter bpfcode_ipv6[] = {
-		{ OP_LDB, 0, 0, 6		},	// ldb ip6[6] (IPv6 nexthdr)
-		{ OP_JEQ, 0, 64, 0		},	// jeq 0, fail, protocol
-		// Load and compare each of the 16 bytes of source IPv6 (ip6[8])
-		{ OP_LDB, 0, 0, 8		},
-		{ OP_JEQ, 0, 62, 0		},
-		{ OP_LDB, 0, 0, 9		},
-		{ OP_JEQ, 0, 60, 0		},
-		{ OP_LDB, 0, 0, 10		},
-		{ OP_JEQ, 0, 58, 0		},
-		{ OP_LDB, 0, 0, 11		},
-		{ OP_JEQ, 0, 56, 0		},
-		{ OP_LDB, 0, 0, 12		},
-		{ OP_JEQ, 0, 54, 0		},
-		{ OP_LDB, 0, 0, 13		},
-		{ OP_JEQ, 0, 52, 0		},
-		{ OP_LDB, 0, 0, 14		},
-		{ OP_JEQ, 0, 50, 0		},
-		{ OP_LDB, 0, 0, 15		},
-		{ OP_JEQ, 0, 48, 0		},
-		{ OP_LDB, 0, 0, 16		},
-		{ OP_JEQ, 0, 46, 0		},
-		{ OP_LDB, 0, 0, 17		},
-		{ OP_JEQ, 0, 44, 0		},
-		{ OP_LDB, 0, 0, 18		},
-		{ OP_JEQ, 0, 42, 0		},
-		{ OP_LDB, 0, 0, 19		},
-		{ OP_JEQ, 0, 40, 0		},
-		{ OP_LDB, 0, 0, 20		},
-		{ OP_JEQ, 0, 38, 0		},
-		{ OP_LDB, 0, 0, 21		},
-		{ OP_JEQ, 0, 36, 0		},
-		{ OP_LDB, 0, 0, 22		},
-		{ OP_JEQ, 0, 34, 0		},
-		{ OP_LDB, 0, 0, 23		},
-		{ OP_JEQ, 0, 32, 0		},	// jeq, 0, fail, final source IPv6 byte
-		// Load and compare each of the 16 bytes of destination IPv6 (ip6[24])
-		{ OP_LDB, 0, 0, 24		},
-		{ OP_JEQ, 0, 30, 0		},
-		{ OP_LDB, 0, 0, 25		},
-		{ OP_JEQ, 0, 28, 0		},
-		{ OP_LDB, 0, 0, 26		},
-		{ OP_JEQ, 0, 26, 0		},
-		{ OP_LDB, 0, 0, 27		},
-		{ OP_JEQ, 0, 24, 0		},
-		{ OP_LDB, 0, 0, 28		},
-		{ OP_JEQ, 0, 22, 0		},
-		{ OP_LDB, 0, 0, 29		},
-		{ OP_JEQ, 0, 20, 0		},
-		{ OP_LDB, 0, 0, 30		},
-		{ OP_JEQ, 0, 18, 0		},
-		{ OP_LDB, 0, 0, 31		},
-		{ OP_JEQ, 0, 16, 0		},
-		{ OP_LDB, 0, 0, 32		},
-		{ OP_JEQ, 0, 14, 0		},
-		{ OP_LDB, 0, 0, 33		},
-		{ OP_JEQ, 0, 12, 0		},
-		{ OP_LDB, 0, 0, 34		},
-		{ OP_JEQ, 0, 10, 0		},
-		{ OP_LDB, 0, 0, 35		},
-		{ OP_JEQ, 0, 8, 0		},
-		{ OP_LDB, 0, 0, 36		},
-		{ OP_JEQ, 0, 6, 0		},
-		{ OP_LDB, 0, 0, 37		},
-		{ OP_JEQ, 0, 4, 0		},
-		{ OP_LDB, 0, 0, 38		},
-		{ OP_JEQ, 0, 2, 0		},
-		{ OP_LDB, 0, 0, 39		},
-		{ OP_JEQ, 1, 0, 0		},	// jeq, success, fail, final dest IPv6 byte
-		// Return Failure or Success
-		{ OP_RET, 0, 0, 0		},	// ret #0x0 (fail)
-		{ OP_RET, 0, 0, 1024	},	// ret #0xffffffff (success)
+		// Load and compare IPv6 protcol (ip6[6])
+		{ 0x30,  0,  0, 0x00000006 },
+		{ 0x15,  0, 71, 0000000000 },	// protocol TCP | UDP (1)
+
+		// Load and compare IPv6 source address (ip6[8]-ip6[23])
+		{ 0x30,  0,  0, 0x00000008 },
+		{ 0x15,  0, 69, 0000000000 },	// first ipv6 source byte (3)
+		{ 0x30,  0,  0, 0x00000009 },
+		{ 0x15,  0, 67, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000a },
+		{ 0x15,  0, 65, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000b },
+		{ 0x15,  0, 63, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000c },
+		{ 0x15,  0, 61, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000d },
+		{ 0x15,  0, 59, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000e },
+		{ 0x15,  0, 57, 0000000000 },
+		{ 0x30,  0,  0, 0x0000000f },
+		{ 0x15,  0, 55, 0000000000 },
+		{ 0x30,  0,  0, 0x00000010 },
+		{ 0x15,  0, 53, 0000000000 },
+		{ 0x30,  0,  0, 0x00000011 },
+		{ 0x15,  0, 51, 0000000000 },
+		{ 0x30,  0,  0, 0x00000012 },
+		{ 0x15,  0, 49, 0000000000 },
+		{ 0x30,  0,  0, 0x00000013 },
+		{ 0x15,  0, 47, 0000000000 },
+		{ 0x30,  0,  0, 0x00000014 },
+		{ 0x15,  0, 45, 0000000000 },
+		{ 0x30,  0,  0, 0x00000015 },
+		{ 0x15,  0, 43, 0000000000 },
+		{ 0x30,  0,  0, 0x00000016 },
+		{ 0x15,  0, 41, 0000000000 },
+		{ 0x30,  0,  0, 0x00000017 },
+		{ 0x15,  0, 39, 0000000000 },	// last ipv6 source byte (33)
+
+		// Load and compare IPv6 destination address (ip6[24]-ip6[39])
+		{ 0x30,  0,  0, 0x00000018 },
+		{ 0x15,  0, 37, 0000000000 },	// first ipv6 destination byte (35)
+		{ 0x30,  0,  0, 0x00000019 },
+		{ 0x15,  0, 35, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001a },
+		{ 0x15,  0, 33, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001b },
+		{ 0x15,  0, 31, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001c },
+		{ 0x15,  0, 29, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001d },
+		{ 0x15,  0, 27, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001e },
+		{ 0x15,  0, 25, 0000000000 },
+		{ 0x30,  0,  0, 0x0000001f },
+		{ 0x15,  0, 23, 0000000000 },
+		{ 0x30,  0,  0, 0x00000020 },
+		{ 0x15,  0, 21, 0000000000 },
+		{ 0x30,  0,  0, 0x00000021 },
+		{ 0x15,  0, 19, 0000000000 },
+		{ 0x30,  0,  0, 0x00000022 },
+		{ 0x15,  0, 17, 0000000000 },
+		{ 0x30,  0,  0, 0x00000023 },
+		{ 0x15,  0, 15, 0000000000 },
+		{ 0x30,  0,  0, 0x00000024 },
+		{ 0x15,  0, 13, 0000000000 },
+		{ 0x30,  0,  0, 0x00000025 },
+		{ 0x15,  0, 11, 0000000000 },
+		{ 0x30,  0,  0, 0x00000026 },
+		{ 0x15,  0,  9, 0000000000 },
+		{ 0x30,  0,  0, 0x00000027 },
+		{ 0x15,  0,  7, 0000000000 },	// last ipv6 destination byte (65)
+
+		// Load and compare TCP or UDP source port (ip6[40])
+		{ 0x28,  0,  0, 0x00000028 },
+		{ 0x35,  0,  5, 0000000000 },	// smallest source port (67)
+		{ 0x25,  4,  0, 0000000000 },	// biggest source port (68)
+
+		// Load and compare TCP or UDP destination port (ip6[42])
+		{ 0x28,  0,  0, 0x0000002a },
+		{ 0x35,  0,  2, 0000000000 },	// smallest destination port (70)
+		{ 0x25,  1,  0, 0000000000 },	// biggest destination port (71)
+
+		// Return Match or Drop
+		{ 0x06,  0,  0, 0xffffffff },
+		{ 0x06,  0,  0, 0000000000 },
 	};
 	struct sock_fprog bpf = { 0 };
 
@@ -484,6 +486,10 @@ int main(int argc, char **argv)
 			bpfcode_ipv6[i*2+35].k = raw_ipv6_dst->sin6_addr.s6_addr[i];
 			printf("k value at %d in bpfcode_ipv6: %02x\n", i*2+35, bpfcode_ipv6[i*2+35].k);
 		}
+		bpfcode_ipv6[67].k = dst_port_min;
+		bpfcode_ipv6[68].k = dst_port_max;
+		bpfcode_ipv6[70].k = src_port_min;
+		bpfcode_ipv6[71].k = src_port_max;
 		bpf.filter = bpfcode_ipv6;
 		bpf.len = ARRAY_SIZE(bpfcode_ipv6);
 	}
