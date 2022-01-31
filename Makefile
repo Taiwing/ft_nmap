@@ -1,13 +1,13 @@
 ############################## COMPILE VAR #####################################
 
 CC			=	gcc
-#CFLAGS		=	-Wall -Wextra -DTHREAD_SAFE
-CFLAGS		=	-Wall -Wextra -DTHREAD_SAFE -g -fsanitize=address,undefined
+#CFLAGS		=	-Wall -Wextra -Werror -DTHREAD_SAFE
+CFLAGS		=	-Wall -Wextra -Werror -DTHREAD_SAFE -g -fsanitize=address,undefined
 HDIR		=	includes
 SRCDIR		=	src
 SUB1D		=	libft
 HFLAGS		=	-I $(HDIR) -I $(SUB1D)/$(HDIR)
-LIBS		=	$(SUB1D)/libft.a -lpthread -lpcap
+LIBS		=	$(SUB1D)/libft.a -lpthread
 NAME		=	ft_nmap
 
 ############################## SOURCES #########################################
@@ -27,7 +27,6 @@ SRCC			=	debug.c\
 					get_options.c\
 
 JOBSC			=	update_job.c\
-					pseudo_thead.c\
 					mutex.c\
 					probe_retry.c\
 					worker.c\
@@ -45,8 +44,6 @@ NETWORKC		=	filter.c\
 					ip.c\
 					probe.c\
 					interfaces.c\
-					pcap_handler.c\
-					alarm_handler.c\
 					scan_result.c\
 					listen.c\
 					get_destinfo.c\
@@ -82,7 +79,6 @@ utils.o: ft_nmap.h network.h libft.h
 main.o: ft_nmap.h network.h libft.h
 heatmap_report.o: ft_nmap.h network.h libft.h
 update_job.o: ft_nmap.h network.h libft.h
-pseudo_thead.o: ft_nmap.h network.h libft.h
 mutex.o: ft_nmap.h network.h libft.h
 probe_retry.o: ft_nmap.h network.h libft.h
 worker.o: ft_nmap.h network.h libft.h
@@ -102,8 +98,6 @@ sockets.o: ft_nmap.h network.h libft.h
 ip.o: ft_nmap.h network.h libft.h
 probe.o: ft_nmap.h network.h libft.h
 interfaces.o: ft_nmap.h network.h libft.h
-pcap_handler.o: ft_nmap.h network.h libft.h
-alarm_handler.o: ft_nmap.h network.h libft.h
 scan_result.o: ft_nmap.h network.h libft.h
 listen.o: ft_nmap.h network.h libft.h
 get_destinfo.o: ft_nmap.h network.h libft.h

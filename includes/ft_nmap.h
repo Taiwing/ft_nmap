@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/23 12:39:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 08:32:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 # include <fcntl.h>
 # include <pthread.h>
 # include <sys/time.h>
-# include <pcap/sll.h>
 # include <signal.h>
 # include <stdatomic.h>
 
@@ -95,9 +94,37 @@ enum		e_scans { E_SYN = 0, E_ACK, E_NULL, E_FIN, E_XMAS, E_UDP };
 // IP modes
 enum		e_ip_modes { E_IPALL = 0, E_IPV4, E_IPV6 };
 
-// Sockets
-# define	SOCKET_COUNT	4
-enum		e_sockets { E_UDPV4 = 0, E_TCPV4, E_UDPV6, E_TCPV6 };
+// Send sockets
+# define	SOCKET_SEND_COUNT	4
+enum		e_send_sockets {
+	E_SSEND_UDPV4 = 0,
+	E_SSEND_TCPV4,
+	E_SSEND_UDPV6,
+	E_SSEND_TCPV6,
+};
+
+// Receive sockets
+# define	SOCKET_RECV_COUNT	8
+enum		e_recv_sockets {
+	E_SRECV_UDPV4 = 0,
+	E_SRECV_UDPV6,
+	E_SRECV_TCPV4,
+	E_SRECV_TCPV6,
+	E_SRECV_ICMP_UDPV4,
+	E_SRECV_ICMP_UDPV6,
+	E_SRECV_ICMP_TCPV4,
+	E_SRECV_ICMP_TCPV6,
+};
+
+# define	SOCKET_SRECV_IS_IPV4(n)\
+	(n == E_SRECV_UDPV4 || n == E_SRECV_TCPV4\
+	|| n == E_SRECV_ICMP_UDPV4 || E_SRECV_ICMP_TCPV4)
+# define	SOCKET_SRECV_IS_IPV6(n)	(!SOCKET_SRECV_IS_IPV4(n))
+# define	SOCKET_SRECV_IS_UDP(n)\
+	(n == E_SRECV_UDPV4 || n == E_SRECV_ICMP_UDPV4\
+	|| n == E_SRECV_UDPV6 || n == E_SRECV_ICMP_UDPV6)
+# define	SOCKET_SRECV_IS_TCP(n)\	(!SOCKET_SRECV_IS_UDP(n))
+
 
 // Reports
 enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE, E_REPORT_HEATMAP };
@@ -116,7 +143,7 @@ enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE, E_REPORT_HEATMAP };
 ** port_job_id: index of the port_job in the host_job's port_jobs array
 ** probes: scan_job probe packets
 ** probe_count: number of probe packets
-** socket: socket type
+** socket: send socket type
 */
 typedef struct				s_scan_job
 {
@@ -131,7 +158,7 @@ typedef struct				s_scan_job
 	uint16_t				port_job_id;
 	t_packet				**probes;
 	uint16_t				probe_count;
-	enum e_sockets			socket;
+	enum e_send_sockets		socket;
 }							t_scan_job;
 
 /*
@@ -182,10 +209,11 @@ typedef struct			s_host_job
 ** Task structure: given to workers and main by next_task()
 **
 ** type: well, type of task (duh)
-** scan_job: scan_job for type PROBE, REPLY (timeout), or LISTEN (monothread)
+** scan_job: scan_job for type PROBE or REPLY (timeout)
 ** payload_index: index of the probe to send for PROBE tasks
 ** reply: scan reply bytes for REPLY task
 ** reply_size: scan reply packet size for REPLY task
+** reply_ip_header: scan reply ip header type
 ** exec_time: timestamp from which the task can be executed (immediate if 0)
 */
 typedef struct		s_task
@@ -195,6 +223,7 @@ typedef struct		s_task
 	uint16_t		payload_index;
 	uint8_t			*reply;
 	size_t			reply_size;
+	enum e_iphdr	reply_ip_header;
 	struct timeval	exec_time;
 }					t_task;
 
@@ -219,14 +248,12 @@ typedef struct		s_task_match
 ** type: type of worker
 ** task_list: the list of tasks to be executed
 ** task_types: the kind of tasks the worker must execute
-** expiry: timestamp to stop worker (only for E_WORKER_PSEUDO_THREAD)
 */
 typedef struct		s_worker_config
 {
 	enum e_workers	type;
 	t_list			**task_list;
 	int				task_types;
-	struct timeval	expiry;
 }					t_worker_config;
 
 /*
@@ -249,13 +276,14 @@ typedef struct		s_worker_config
 ** dev: interface on which to listen to given by user
 ** scans: scans to perform as an array of booleans
 ** nscans: number of scans to perform on each port
+** has_udp_scans: boolean set to true if UDP scan is set
+** has_tcp_scans: boolean set to true at least one TCP scan is set
 ** scan_strings: store selected scan names
 ** hosts_fd: file descriptor for the hosts_file
-** linktype: link header type (SLL or SLL2)
-** linkhdr_size: size of said header
 ** ifap: pointer to getifaddrs output (to be freed in cleanup)
 ** ip_mode: ip configuration (IPv4/IPv6 enabled/disabled)
-** socket: sockets for sending probe packets
+** send_sockets: sockets for sending probe packets
+** recv_sockets: sockets to receive reply packets
 ** netinf: information about the network interfaces
 ** thread: threads array
 ** nthreads: thread count
@@ -263,7 +291,6 @@ typedef struct		s_worker_config
 ** high_mutex: high priority mutex access to tasks list
 ** low_mutex: low priority mutex access to tasks list
 ** send_mutex: mutex for sending probes
-** descr: pcap handle for reading incoming packets
 ** udp_payloads: structure to fetch the udp payloads by port
 ** worker_main_config: configuration of the main worker
 ** worker_thread_config: configuration of the thread workers
@@ -276,11 +303,10 @@ typedef struct		s_worker_config
 ** start_ts: ft_nmap start timestamp (after tasks initialization)
 ** end_ts: ft_nmap end timestamp (after thread_wait/listen)
 ** host_count: number of hosts given by the user
-** sent_packet_count: number of packets sent
-** received_packet_count: count of received packets handled by pcap
+** sent_packet_count: count of packets sent
+** received_packet_count: count of received packets
 ** icmp_count: count of icmp response packets
-** pcap_worker_is_working: boolean set to true if pcap_worker has started
-** listen_breakloop: call pcap_breakloop in alarm_handler to end LISTEN task
+** listen_breakloop: end LISTEN task
 */
 typedef struct		s_nmap_config
 {
@@ -302,13 +328,14 @@ typedef struct		s_nmap_config
 	const char		*dev;
 	uint8_t			scans[SCAN_COUNT];
 	uint8_t			nscans;
+	int				has_udp_scans;
+	int				has_tcp_scans;
 	const char		*scan_strings[SCAN_COUNT];
 	int				hosts_fd;
-	int				linktype;
-	size_t			linkhdr_size;
 	struct ifaddrs	*ifap;
 	enum e_ip_modes	ip_mode;
-	int				socket[SOCKET_COUNT];
+	int				send_sockets[SOCKET_SEND_COUNT];
+	int				recv_sockets[SOCKET_RECV_COUNT];
 	t_netinfo		netinf;
 	t_ft_thread		thread[MAX_THREADS];
 	uint8_t			nthreads;
@@ -316,7 +343,6 @@ typedef struct		s_nmap_config
 	pthread_mutex_t	high_mutex;
 	pthread_mutex_t	low_mutex;
 	pthread_mutex_t	send_mutex;
-	pcap_t			*descr;
 	t_udp_payload	**udp_payloads[PORTS_COUNT];
 	t_worker_config	worker_main_config;
 	t_worker_config	worker_thread_config;
@@ -333,19 +359,22 @@ typedef struct		s_nmap_config
 	int				sent_packet_count;
 	int				received_packet_count;
 	_Atomic int		icmp_count;
-	int				pcap_worker_is_working;
 	_Atomic int		listen_breakloop;
 }					t_nmap_config;
 
+/*
+** TODO: Move nmap config field description here and use explicit names for
+** intializing them. This will be clearer and easier to update.
+*/
 # define	CONFIG_DEF				{\
 	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_RETRIES, { 0 }, DEF_TIMEOUT, 0, { 0 },\
-	{ 0 }, 0, NULL, NULL, NULL, { 0 }, 0, { 0 }, -1, 0, 0, NULL, E_IPALL,\
-	{ -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0, PTHREAD_MUTEX_INITIALIZER,\
+	{ 0 }, 0, NULL, NULL, NULL, { 0 }, 0, 0, 0, { 0 }, -1, NULL, E_IPALL,\
+	{ -1, -1, -1, -1 }, { -1, -1, -1, -1, -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
-	PTHREAD_MUTEX_INITIALIZER, NULL, { 0 },\
+	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, { 0 },\
 	{ .type = E_WORKER_MAIN, .task_types = MAIN_TASKS },\
 	{ .type = E_WORKER_THREAD, .task_types = WORKER_TASKS },\
-	{ 0 }, { 0 }, NULL, NULL, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0, 0\
+	{ 0 }, { 0 }, NULL, NULL, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0\
 }
 
 /*
@@ -364,7 +393,6 @@ void		verbose_scan(t_nmap_config *cfg, t_scan_job *scan_job,
 				t_packet *packet, const char *action);
 void		verbose_reply(t_nmap_config *cfg, t_scan_job *scan_job,
 				t_packet *reply, uint8_t result);
-void		debug_listener_setup(t_nmap_config *cfg, char *filter);
 void		debug_invalid_packet(t_nmap_config *cfg,
 				t_packet *packet, char *action);
 void		debug_task(t_nmap_config *cfg, t_task *task, uint8_t result);
@@ -388,8 +416,8 @@ void		init_udp_payloads(t_nmap_config *cfg);
 */
 
 void		open_device(t_nmap_config *cfg, int maxlen, int timeout);
-void		set_alarm_handler(void);
-void		init_sockets(t_nmap_config *cfg);
+void		init_send_sockets(t_nmap_config *cfg);
+void		init_recv_sockets(t_nmap_config *cfg);
 void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
 int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
@@ -398,14 +426,11 @@ int			new_host(t_nmap_config *cfg);
 void		build_probe_packet(t_packet *dest, t_scan_job *scan_job,
 				uint8_t *layer5, uint16_t l5_len);
 void		send_probe(t_nmap_config *cfg, t_scan_job *scan_job, uint16_t i);
-void		pcap_handlerf(uint8_t *u, const struct pcap_pkthdr *h,
-				const uint8_t *bytes);
-int			ft_listen(t_packet *reply, pcap_t *descr,
-				pcap_handler callback, int cnt);
-void		set_filter(t_nmap_config *cfg);
+int			ft_listen(struct pollfd *listen_fds, int fds_count, int timeout);
+void		set_filters(t_nmap_config *cfg);
 uint8_t		scan_result(enum e_scans type, t_packet *reply);
 uint8_t		parse_reply_packet(t_task *task, t_nmap_config *cfg,
-				t_scan_job **scan_job);
+		t_scan_job **scan_job, enum e_iphdr iph);
 
 /*
 ** Job functions

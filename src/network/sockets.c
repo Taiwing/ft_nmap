@@ -6,13 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 12:29:57 by yforeau           #+#    #+#             */
-/*   Updated: 2021/11/15 10:35:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 06:52:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-static int	init_socket(int domain, int protocol)
+static int	init_send_socket(int domain, int protocol)
 {
 	int	sfd, one, ret;
 
@@ -34,30 +34,70 @@ static int	init_socket(int domain, int protocol)
 	return (sfd);
 }
 
-void		close_sockets(t_nmap_config *cfg)
+static int	init_recv_socket(int domain)
 {
-	for (int i = 0; i < SOCKET_COUNT; ++i)
-		if (cfg->socket[i] >= 0)
-			close(cfg->socket[i]);
+	int	sfd;
+	int	socket_protocol = domain == AF_INET ? ETH_P_IP : ETH_P_IPV6;
+
+	if ((sfd = socket(AF_PACKET, SOCK_DGRAM, htons(socket_protocol))) < 0)
+		ft_exit(EXIT_FAILURE, "socket: %s", strerror(errno));
+	return (sfd);
 }
 
-void		init_sockets(t_nmap_config *cfg)
+void		close_sockets(t_nmap_config *cfg)
 {
-	int	has_udp_scans = cfg->scans[E_UDP];
-	int has_tcp_scans = !!(cfg->nscans - has_udp_scans);
+	for (int i = 0; i < SOCKET_SEND_COUNT; ++i)
+		if (cfg->send_sockets[i] >= 0)
+			close(cfg->send_sockets[i]);
+	for (int i = 0; i < SOCKET_RECV_COUNT; ++i)
+		if (cfg->recv_sockets[i] >= 0)
+			close(cfg->recv_sockets[i]);
+}
 
+void	init_send_sockets(t_nmap_config *cfg)
+{
 	if (cfg->ip_mode != E_IPV6)
 	{
-		if (has_udp_scans)
-			cfg->socket[E_UDPV4] = init_socket(AF_INET, IPPROTO_UDP);
-		if (has_tcp_scans)
-			cfg->socket[E_TCPV4] = init_socket(AF_INET, IPPROTO_TCP);
+		if (cfg->has_udp_scans)
+			cfg->send_sockets[E_SSEND_UDPV4] =
+				init_send_socket(AF_INET, IPPROTO_UDP);
+		if (cfg->has_tcp_scans)
+			cfg->send_sockets[E_SSEND_TCPV4] =
+				init_send_socket(AF_INET, IPPROTO_TCP);
 	}
 	if (cfg->ip_mode != E_IPV4)
 	{
-		if (has_udp_scans)
-			cfg->socket[E_UDPV6] = init_socket(AF_INET6, IPPROTO_UDP);
-		if (has_tcp_scans)
-			cfg->socket[E_TCPV6] = init_socket(AF_INET6, IPPROTO_TCP);
+		if (cfg->has_udp_scans)
+			cfg->send_sockets[E_SSEND_UDPV6] =
+				init_send_socket(AF_INET6, IPPROTO_UDP);
+		if (cfg->has_tcp_scans)
+			cfg->send_sockets[E_SSEND_TCPV6] =
+				init_send_socket(AF_INET6, IPPROTO_TCP);
+	}
+}
+
+void	init_recv_sockets(t_nmap_config *cfg)
+{
+	if (cfg->ip_mode != E_IPV6)
+	{
+		if (cfg->has_udp_scans)
+			cfg->recv_sockets[E_SRECV_UDPV4] = init_recv_socket(AF_INET);
+		if (cfg->has_udp_scans)
+			cfg->recv_sockets[E_SRECV_ICMP_UDPV4] = init_recv_socket(AF_INET);
+		if (cfg->has_tcp_scans)
+			cfg->recv_sockets[E_SRECV_TCPV4] = init_recv_socket(AF_INET);
+		if (cfg->has_tcp_scans)
+			cfg->recv_sockets[E_SRECV_ICMP_TCPV4] = init_recv_socket(AF_INET);
+	}
+	if (cfg->ip_mode != E_IPV4)
+	{
+		if (cfg->has_udp_scans)
+			cfg->recv_sockets[E_SRECV_UDPV6] = init_recv_socket(AF_INET6);
+		if (cfg->has_udp_scans)
+			cfg->recv_sockets[E_SRECV_ICMP_UDPV6] = init_recv_socket(AF_INET6);
+		if (cfg->has_tcp_scans)
+			cfg->recv_sockets[E_SRECV_TCPV6] = init_recv_socket(AF_INET6);
+		if (cfg->has_tcp_scans)
+			cfg->recv_sockets[E_SRECV_ICMP_TCPV6] = init_recv_socket(AF_INET6);
 	}
 }

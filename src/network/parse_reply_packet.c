@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/12 20:43:03 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/15 16:20:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 08:56:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,45 +43,28 @@ static t_scan_job	*get_scan_job(t_packet *reply, t_nmap_config *cfg)
 	return (cfg->scan_jobs[sport - PORT_DEF]);
 }
 
-static uint8_t	*check_link_layer(t_task *task, t_nmap_config *cfg,
-		enum e_iphdr *iph, size_t *size)
+static void		check_reply_size(t_task *task, enum e_iphdr iph)
 {
-	int				type;
-	uint8_t			*bytes = task->reply;
+	size_t	size = task->reply_size;
 
-	if (task->reply_size < cfg->linkhdr_size)
-		ft_exit(EXIT_FAILURE, "%s: too small for a link layer header",
-			__func__);
-	*size = task->reply_size - cfg->linkhdr_size;
-	*size = *size > RAW_DATA_MAXSIZE ? RAW_DATA_MAXSIZE : *size;
-	type = ntohs(cfg->linktype == DLT_LINUX_SLL ?
-		((struct sll_header *)bytes)->sll_protocol :
-		((struct sll2_header *)bytes)->sll2_protocol);
-	if (type != ETHERTYPE_IP && type != ETHERTYPE_IPV6)
-		ft_exit(EXIT_FAILURE, "%s: invalid ether type: %d", __func__, type);
-	else if ((type == ETHERTYPE_IP && *size < sizeof(struct iphdr))
-		|| (type == ETHERTYPE_IPV6 && *size < sizeof(struct ipv6hdr)))
+	if ((iph == E_IH_V4 && size < sizeof(struct iphdr))
+		|| (iph == E_IH_V6 && size < sizeof(struct ipv6hdr)))
 		ft_exit(EXIT_FAILURE, "%s: too small for an IP%s header: %hu bytes",
-			__func__, type == ETHERTYPE_IP ? "v4" : "v6", size);
-	bytes += cfg->linkhdr_size;
-	*iph = type == ETHERTYPE_IP ? E_IH_V4 : E_IH_V6;
-	return (bytes);
+			__func__, iph == E_IH_V4 ? "v4" : "v6", size);
 }
 
 uint8_t			parse_reply_packet(t_task *task, t_nmap_config *cfg,
-		t_scan_job **scan_job)
+		t_scan_job **scan_job, enum e_iphdr iph)
 {
-	enum e_iphdr	iph;
-	size_t			size;
-	uint8_t			*bytes;
 	t_packet		reply = { 0 };
+	uint8_t			*bytes = task->reply;
 	uint8_t			result = E_STATE_NONE;
 
-	bytes = check_link_layer(task, cfg, &iph, &size);
-	init_packet(&reply, iph, (uint8_t *)bytes);
+	check_reply_size(task, iph);
+	init_packet(&reply, iph, bytes);
 	if (is_icmp(&reply))
 		++cfg->icmp_count;
-	if (reply.size > size)
+	if (reply.size > task->reply_size)
 	{
 		if (cfg->debug)
 			debug_invalid_packet(cfg, &reply, "Dropping Invalid Packet");

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/23 12:37:47 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 08:38:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@ static void	task_worker_spawn(t_task *task)
 		debug_task(g_cfg, task, 0);
 	if (g_cfg->speedup)
 		start_worker_threads(g_cfg);
-	set_alarm_handler();
 }
 
 static void	task_new_host(t_task *task)
@@ -34,10 +33,29 @@ static void	task_new_host(t_task *task)
 
 static void	task_listen(t_task *task)
 {
+	uint16_t		family = g_cfg->host_job.family;
+	struct pollfd	listen_fds[SOCKET_RECV_COUNT] = { 0 };
+
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
+	for (int i = 0; i < SOCKET_RECV_COUNT; ++i)
+	{
+		if (SOCKET_SRECV_IS_IPV4(i) && family != AF_INET)
+			listen_fds[i].fd = -1;
+		else if (SOCKET_SRECV_IS_IPV6(i) && family != AF_INET6)
+			listen_fds[i].fd = -1;
+		else
+		{
+			listen_fds[i].events = POLLIN;
+			listen_fds[i].fd = g_cfg->recv_sockets[i];
+		}
+	}
 	while (!g_cfg->end && !g_cfg->listen_breakloop)
-		ft_listen(NULL, g_cfg->descr, pcap_handlerf, 0);
+	{
+		ft_listen(listen_fds, SOCKET_RECV_COUNT, 0);
+		if (!g_cfg->speedup)
+			pseudo_thread_worker();
+	}
 	g_cfg->listen_breakloop = 0;
 }
 
@@ -70,9 +88,10 @@ static void	task_reply(t_task *task)
 	t_list          *lst;
 	uint8_t         result;
 	t_scan_job		*scan_job = task->scan_job;
+	enum e_iphdr	iph = task->reply_ip_header;
 	t_task          new_task = { .type = E_TASK_NEW_HOST };
 
-	result = !scan_job ? parse_reply_packet(task, g_cfg, &scan_job)
+	result = !scan_job ? parse_reply_packet(task, g_cfg, &scan_job, iph)
 		: scan_result(scan_job->type, NULL);
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, result);
@@ -81,8 +100,6 @@ static void	task_reply(t_task *task)
 		lst = ft_lstnew(&new_task, sizeof(new_task));
 		push_front_tasks(&g_cfg->main_tasks, lst, g_cfg, !!g_cfg->speedup);
 		g_cfg->listen_breakloop = 1;
-		if (!g_cfg->speedup)
-			pcap_breakloop(g_cfg->descr);
 	}
 	ft_memdel((void **)&task->reply);
 }
@@ -93,8 +110,6 @@ static void	task_worker_wait(t_task *task)
 		debug_task(g_cfg, task, 0);
 	if (g_cfg->speedup)
 		wait_worker_threads(g_cfg);
-	else
-		alarm(0);
 }
 
 static void	task_print_stats(t_task *task)

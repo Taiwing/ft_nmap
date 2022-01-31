@@ -6,25 +6,12 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/18 10:13:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/30 17:00:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 #include "ft_printf_internal.h"
-
-void	debug_listener_setup(t_nmap_config *cfg, char *filter)
-{
-	if (cfg->speedup)
-		nmap_mutex_lock(&cfg->print_mutex, &g_print_locked);
-	ft_putchar('\n');
-	if (cfg->speedup)
-		ft_printf("Worker Thread %llu (%#llx)\n",
-				ft_thread_self(), pthread_self());
-	ft_printf("Setting pcap filter:\n%s\n", filter);
-	if (cfg->speedup)
-		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);
-}
 
 void	debug_invalid_packet(t_nmap_config *cfg, t_packet *packet, char *action)
 {

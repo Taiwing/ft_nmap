@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/12/11 14:04:27 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 08:39:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 # define NETWORK_H
 
 # include "libft.h"
-# include <pcap.h>
 # include <time.h>
 # include <unistd.h>
 # include <errno.h>
@@ -29,6 +28,10 @@
 # include <netinet/udp.h>
 # include <ifaddrs.h>
 # include <linux/if.h>
+# include <poll.h>
+# include <linux/filter.h>
+# include <arpa/inet.h>
+# include <netdb.h>
 
 # define	FILTER_BUFSIZE				1024
 
@@ -115,7 +118,6 @@ typedef union		u_nexthdr
 # define PAYLOAD_MAXSIZE	(MAX_UDP_PAYLOAD_LENGTH)
 # define RAW_DATA_MAXSIZE	\
 	((sizeof(t_iphdr) + sizeof(t_nexthdr)) * 2 + PAYLOAD_MAXSIZE)
-# define HEADER_MAXSIZE		(sizeof(struct ether_header) + RAW_DATA_MAXSIZE)
 
 /*
 ** t_packet:

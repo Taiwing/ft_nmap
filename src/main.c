@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/19 08:18:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 08:40:00 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,18 +18,12 @@ static void	main_thread_cleanup(void)
 	nmap_mutex_unlock(&g_cfg->high_mutex, &g_high_locked);
 	nmap_mutex_unlock(&g_cfg->low_mutex, &g_low_locked);
 	nmap_mutex_unlock(&g_cfg->send_mutex, &g_send_locked);
-	alarm(0);
 	if (g_cfg->ifap)
 		freeifaddrs(g_cfg->ifap);
 	wait_worker_threads(g_cfg);
 	if (g_cfg->hosts_fd >= 0)
 		close(g_cfg->hosts_fd);
 	close_sockets(g_cfg);
-	if (g_cfg->descr)
-	{
-		pcap_close(g_cfg->descr);
-		g_cfg->descr = NULL;
-	}
 }
 
 static void	check_config(t_nmap_config *cfg)
@@ -47,6 +41,8 @@ static void	check_config(t_nmap_config *cfg)
 	if (!cfg->nscans)
 		for (; cfg->nscans < SCAN_COUNT; ++cfg->nscans)
 			cfg->scans[cfg->nscans] = 1;
+	cfg->has_udp_scans = cfg->scans[E_UDP];
+	cfg->has_tcp_scans = !!(cfg->nscans - cfg->has_udp_scans);
 }
 
 static void	init_config(t_nmap_config *cfg, int argc, char **argv)
@@ -60,8 +56,8 @@ static void	init_config(t_nmap_config *cfg, int argc, char **argv)
 	get_options(cfg, argc, argv);
 	check_config(cfg);
 	get_network_info(cfg);
-	init_sockets(cfg);
-	open_device(cfg, HEADER_MAXSIZE, 1);
+	init_send_sockets(cfg);
+	init_recv_sockets(cfg);
 	if (cfg->scans[E_UDP])
 		init_udp_payloads(cfg);
 	print_config(cfg);

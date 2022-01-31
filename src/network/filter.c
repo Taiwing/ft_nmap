@@ -6,112 +6,382 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 08:01:16 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/17 20:46:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 08:44:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-#define SET_FILTER_ERRBUF_SIZE	(PCAP_ERRBUF_SIZE + 128)
+//IPv4 is filtered at the socket level (ETH_P_IP)
+const struct sock_filter	g_bpfcode_ipv4_layer4[] = {
+	// Load and compare IPv4 protocol (ip[9])
+	{ 0x30,  0,  0, 0x00000009 },
+	{ 0x15,  0, 11, 0000000000 },	// protocol TCP | UDP (1)
 
-static void		set_filter_internal(char *filter, t_nmap_config *cfg)
+	// Load and compare IPv4 source address (ip[12])
+	{ 0x20,  0,  0, 0x0000000c },
+	{ 0x15,  0,  9, 0000000000 },	// ipv4 source address (3)
+
+	// Load and compare IPv4 destination address (ip[16])
+	{ 0x20,  0,  0, 0x00000010 },
+	{ 0x15,  0,  7, 0000000000 },	// ipv4 destination address (5)
+
+	// Load and compare TCP or UDP source port (ip[20])
+	{ 0x28,  0,  0, 0x00000014 },
+	{ 0x35,  0,  5, 0000000000 },	// smallest source port (7)
+	{ 0x25,  4,  0, 0000000000 },	// biggest source port (8)
+
+	// Load and compare TCP or UDP destination port (ip[22])
+	{ 0x28,  0,  0, 0x00000016 },
+	{ 0x35,  0,  2, 0000000000 },	// smallest destination port (10)
+	{ 0x25,  1,  0, 0000000000 },	// biggest destination port (11)
+
+	// Return Match or Drop
+	{ 0x06,  0,  0, RAW_DATA_MAXSIZE },
+	{ 0x06,  0,  0, 0000000000 },
+};
+
+const struct sock_filter	g_bpfcode_ipv4_icmp[] = {
+	// Load and compare IPv4 protocol (ip[9])
+	{ 0x30,  0,  0, 0x00000009 },
+	{ 0x15,  0, 13, 0000000000 },	// protocol ICMP (1)
+
+	// Load and compare IPv4 source address (ip[12])
+	{ 0x20,  0,  0, 0x0000000c },
+	{ 0x15,  0, 11, 0000000000 },	// ipv4 source address (3)
+
+	// Load and compare IPv4 destination address (ip[16])
+	{ 0x20,  0,  0, 0x00000010 },
+	{ 0x15,  0,  9, 0000000000 },	// ipv4 destination address (5)
+
+	// Load and compare ICMP protocol (ip[37])
+	{ 0x30,  0,  0, 0x00000025 },
+	{ 0x15,  0,  7, 0000000000 },	// ICMP protocol (7)
+
+	// Load and compare ICMP payload TCP or UDP source port (ip[48])
+	{ 0x28,  0,  0, 0x00000030 },
+	{ 0x35,  0,  5, 0000000000 },	// smallest source port (9)
+	{ 0x25,  4,  0, 0000000000 },	// biggest source port (10)
+
+	// Load and compare ICMP payload TCP or UDP destination port (ip[50])
+	{ 0x28,  0,  0, 0x00000032 },
+	{ 0x35,  0,  2, 0000000000 },	// smallest destination port (12)
+	{ 0x25,  1,  0, 0000000000 },	// biggest destination port (13)
+
+	// Return Match or Drop
+	{ 0x06,  0,  0, RAW_DATA_MAXSIZE },
+	{ 0x06,  0,  0, 0000000000 },
+};
+
+//IPv6 is filtered at the socket level (ETH_P_IPV6)
+const struct sock_filter	g_bpfcode_ipv6_layer4[] = {
+	// Load and compare IPv6 protocol (ip6[6])
+	{ 0x30,  0,  0, 0x00000006 },
+	{ 0x15,  0, 71, 0000000000 },	// protocol TCP | UDP (1)
+
+	// Load and compare IPv6 source address (ip6[8]-ip6[23])
+	{ 0x30,  0,  0, 0x00000008 },
+	{ 0x15,  0, 69, 0000000000 },	// first ipv6 source byte (3)
+	{ 0x30,  0,  0, 0x00000009 },
+	{ 0x15,  0, 67, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000a },
+	{ 0x15,  0, 65, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000b },
+	{ 0x15,  0, 63, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000c },
+	{ 0x15,  0, 61, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000d },
+	{ 0x15,  0, 59, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000e },
+	{ 0x15,  0, 57, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000f },
+	{ 0x15,  0, 55, 0000000000 },
+	{ 0x30,  0,  0, 0x00000010 },
+	{ 0x15,  0, 53, 0000000000 },
+	{ 0x30,  0,  0, 0x00000011 },
+	{ 0x15,  0, 51, 0000000000 },
+	{ 0x30,  0,  0, 0x00000012 },
+	{ 0x15,  0, 49, 0000000000 },
+	{ 0x30,  0,  0, 0x00000013 },
+	{ 0x15,  0, 47, 0000000000 },
+	{ 0x30,  0,  0, 0x00000014 },
+	{ 0x15,  0, 45, 0000000000 },
+	{ 0x30,  0,  0, 0x00000015 },
+	{ 0x15,  0, 43, 0000000000 },
+	{ 0x30,  0,  0, 0x00000016 },
+	{ 0x15,  0, 41, 0000000000 },
+	{ 0x30,  0,  0, 0x00000017 },
+	{ 0x15,  0, 39, 0000000000 },	// last ipv6 source byte (33)
+
+	// Load and compare IPv6 destination address (ip6[24]-ip6[39])
+	{ 0x30,  0,  0, 0x00000018 },
+	{ 0x15,  0, 37, 0000000000 },	// first ipv6 destination byte (35)
+	{ 0x30,  0,  0, 0x00000019 },
+	{ 0x15,  0, 35, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001a },
+	{ 0x15,  0, 33, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001b },
+	{ 0x15,  0, 31, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001c },
+	{ 0x15,  0, 29, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001d },
+	{ 0x15,  0, 27, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001e },
+	{ 0x15,  0, 25, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001f },
+	{ 0x15,  0, 23, 0000000000 },
+	{ 0x30,  0,  0, 0x00000020 },
+	{ 0x15,  0, 21, 0000000000 },
+	{ 0x30,  0,  0, 0x00000021 },
+	{ 0x15,  0, 19, 0000000000 },
+	{ 0x30,  0,  0, 0x00000022 },
+	{ 0x15,  0, 17, 0000000000 },
+	{ 0x30,  0,  0, 0x00000023 },
+	{ 0x15,  0, 15, 0000000000 },
+	{ 0x30,  0,  0, 0x00000024 },
+	{ 0x15,  0, 13, 0000000000 },
+	{ 0x30,  0,  0, 0x00000025 },
+	{ 0x15,  0, 11, 0000000000 },
+	{ 0x30,  0,  0, 0x00000026 },
+	{ 0x15,  0,  9, 0000000000 },
+	{ 0x30,  0,  0, 0x00000027 },
+	{ 0x15,  0,  7, 0000000000 },	// last ipv6 destination byte (65)
+
+	// Load and compare TCP or UDP source port (ip6[40])
+	{ 0x28,  0,  0, 0x00000028 },
+	{ 0x35,  0,  5, 0000000000 },	// smallest source port (67)
+	{ 0x25,  4,  0, 0000000000 },	// biggest source port (68)
+
+	// Load and compare TCP or UDP destination port (ip6[42])
+	{ 0x28,  0,  0, 0x0000002a },
+	{ 0x35,  0,  2, 0000000000 },	// smallest destination port (70)
+	{ 0x25,  1,  0, 0000000000 },	// biggest destination port (71)
+
+	// Return Match or Drop
+	{ 0x06,  0,  0, RAW_DATA_MAXSIZE },
+	{ 0x06,  0,  0, 0000000000 },
+};
+
+const struct sock_filter	g_bpfcode_ipv6_icmp[] = {
+	// Load and compare IPv6 protocol (ip6[6])
+	{ 0x30,  0,  0, 0x00000006 },
+	{ 0x15,  0, 73, 0000000000 },	// protocol ICMP6 (1)
+
+	// Load and compare IPv6 source address (ip6[8]-ip6[23])
+	{ 0x30,  0,  0, 0x00000008 },
+	{ 0x15,  0, 71, 0000000000 },	// first ipv6 source byte (3)
+	{ 0x30,  0,  0, 0x00000009 },
+	{ 0x15,  0, 69, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000a },
+	{ 0x15,  0, 67, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000b },
+	{ 0x15,  0, 65, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000c },
+	{ 0x15,  0, 63, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000d },
+	{ 0x15,  0, 61, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000e },
+	{ 0x15,  0, 59, 0000000000 },
+	{ 0x30,  0,  0, 0x0000000f },
+	{ 0x15,  0, 57, 0000000000 },
+	{ 0x30,  0,  0, 0x00000010 },
+	{ 0x15,  0, 55, 0000000000 },
+	{ 0x30,  0,  0, 0x00000011 },
+	{ 0x15,  0, 53, 0000000000 },
+	{ 0x30,  0,  0, 0x00000012 },
+	{ 0x15,  0, 51, 0000000000 },
+	{ 0x30,  0,  0, 0x00000013 },
+	{ 0x15,  0, 49, 0000000000 },
+	{ 0x30,  0,  0, 0x00000014 },
+	{ 0x15,  0, 47, 0000000000 },
+	{ 0x30,  0,  0, 0x00000015 },
+	{ 0x15,  0, 45, 0000000000 },
+	{ 0x30,  0,  0, 0x00000016 },
+	{ 0x15,  0, 43, 0000000000 },
+	{ 0x30,  0,  0, 0x00000017 },
+	{ 0x15,  0, 41, 0000000000 },	// last ipv6 source byte (33)
+
+	// Load and compare IPv6 destination address (ip6[24]-ip6[39])
+	{ 0x30,  0,  0, 0x00000018 },
+	{ 0x15,  0, 39, 0000000000 },	// first ipv6 destination byte (35)
+	{ 0x30,  0,  0, 0x00000019 },
+	{ 0x15,  0, 37, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001a },
+	{ 0x15,  0, 35, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001b },
+	{ 0x15,  0, 33, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001c },
+	{ 0x15,  0, 31, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001d },
+	{ 0x15,  0, 29, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001e },
+	{ 0x15,  0, 27, 0000000000 },
+	{ 0x30,  0,  0, 0x0000001f },
+	{ 0x15,  0, 25, 0000000000 },
+	{ 0x30,  0,  0, 0x00000020 },
+	{ 0x15,  0, 23, 0000000000 },
+	{ 0x30,  0,  0, 0x00000021 },
+	{ 0x15,  0, 21, 0000000000 },
+	{ 0x30,  0,  0, 0x00000022 },
+	{ 0x15,  0, 19, 0000000000 },
+	{ 0x30,  0,  0, 0x00000023 },
+	{ 0x15,  0, 17, 0000000000 },
+	{ 0x30,  0,  0, 0x00000024 },
+	{ 0x15,  0, 15, 0000000000 },
+	{ 0x30,  0,  0, 0x00000025 },
+	{ 0x15,  0, 13, 0000000000 },
+	{ 0x30,  0,  0, 0x00000026 },
+	{ 0x15,  0, 11, 0000000000 },
+	{ 0x30,  0,  0, 0x00000027 },
+	{ 0x15,  0,  9, 0000000000 },	// last ipv6 destination byte (65)
+
+	// Load and compare ICMP6 payload protocol (ip6[54])
+	{ 0x30,  0,  0, 0x00000036 },
+	{ 0x15,  0,  7, 0000000000 },	// protocol (67)
+
+	// Load and compare ICMP6 payload TCP or UDP source port (ip6[88])
+	{ 0x28,  0,  0, 0x00000058 },
+	{ 0x35,  0,  5, 0000000000 },	// smallest source port (69)
+	{ 0x25,  4,  0, 0000000000 },	// biggest source port (70)
+
+	// Load and compare ICMP6 payload TCP or UDP destination port (ip6[90])
+	{ 0x28,  0,  0, 0x0000005a },
+	{ 0x35,  0,  2, 0000000000 },	// smallest destination port (72)
+	{ 0x25,  1,  0, 0000000000 },	// biggest destination port (73)
+
+	// Return Match or Drop
+	{ 0x06,  0,  0, RAW_DATA_MAXSIZE },
+	{ 0x06,  0,  0, 0000000000 },
+};
+
+#define BPF_FILTER_SIZE(arr)	(sizeof(arr) / sizeof(arr[0]))
+
+static void	filter_ipv6_icmp(int sockfd, int protocol, t_nmap_config *cfg)
 {
-	int					ret;
-	struct bpf_program	fp = { 0 };
-	char				errbuf[SET_FILTER_ERRBUF_SIZE + 1] = { 0 };
-	//TODO: check the netp value, I'm not sure this is valid
-	bpf_u_int32			netp = cfg->host_job.family == AF_INET ?
-		PCAP_NETMASK_UNKNOWN : cfg->host_job.dev->netmask.v4.sin_addr.s_addr;
+	uint16_t			filter_length = BPF_FILTER_SIZE(g_bpfcode_ipv6_icmp);
+	struct sock_filter	filter[BPF_FILTER_SIZE(g_bpfcode_ipv6_icmp)];
+	struct sock_fprog	bpf = { .len = filter_length, .filter = filter };
+	t_ip				*src = &cfg->host_job.dev->ip, *dst = &cfg->host_job.ip;
 
-	if (cfg->debug)
-		debug_listener_setup(cfg, filter);
-	if (pcap_compile(cfg->descr, &fp, filter, 1, netp) == PCAP_ERROR)
-	{
-		ft_snprintf(errbuf, SET_FILTER_ERRBUF_SIZE,
-			"pcap_compile: %s", pcap_geterr(cfg->descr));
-		ft_exit(EXIT_FAILURE, errbuf);
-	}
-	ret = pcap_setfilter(cfg->descr, &fp);
-	pcap_freecode(&fp);
-	if (ret == PCAP_ERROR)
-	{
-		ft_snprintf(errbuf, SET_FILTER_ERRBUF_SIZE,
-			"pcap_setfilter: %s", pcap_geterr(cfg->descr));
-		ft_exit(EXIT_FAILURE, errbuf);
-	}
+	ft_memcpy(filter, g_bpfcode_ipv6_icmp, sizeof(filter));
+	filter[1].k = IPPROTO_ICMPV6;
+	for (int i = 0; i < 16; ++i)
+		filter[i * 2 + 3].k = dst->v6.sin6_addr.s6_addr[i];
+	for (int i = 0; i < 16; ++i)
+		filter[i * 2 + 35].k = src->v6.sin6_addr.s6_addr[i];
+	filter[67].k = protocol;
+	filter[69].k = PORT_DEF;
+	filter[70].k = PORT_DEF + (cfg->nscans * cfg->nports) - 1;
+	filter[72].k = cfg->ports[0];
+	filter[73].k = cfg->ports[cfg->nports - 1];
+	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
+		ft_exit(EXIT_FAILURE, "%s: setsockopt: %s", __func__, strerror(errno));
 }
 
-#define HOST_FILTER			"(%1$s src host %2$s && %1$s dst host %3$s)"
-
-#define ICMP_UDP_FILTER		"icmp[17] == "xstr(IP_HEADER_UDP)
-#define ICMP_TCP_FILTER		"icmp[17] == "xstr(IP_HEADER_TCP)
-#define ICMP6_UDP_FILTER	"ip6[54] == "xstr(IP_HEADER_UDP)
-#define ICMP6_TCP_FILTER	"ip6[54] == "xstr(IP_HEADER_TCP)
-
-#define LAYER4_PORT_RANGE_FILTER	\
-	"(%1$s src portrange %2$hu-%4$hu && %1$s dst portrange %3$hu-%5$hu)"
-#define ICMP_PORT_RANGE_FILTER		\
-	"(icmp[28:2] >= %1$hu && icmp[28:2] <= %3$hu "\
-	"&& icmp[30:2] >= %2$hu && icmp[30:2] <= %4$hu)"
-#define ICMP6_PORT_RANGE_FILTER		\
-	"(ip6[88:2] >= %1$hu && ip6[88:2] <= %3$hu "\
-	"&& ip6[90:2] >= %2$hu && ip6[90:2] <= %4$hu)"
-
-#define HAS_UDP 1
-#define HAS_TCP 2
-
-static void set_icmp_port_filter(char *filter, char *buf, uint16_t args[6])
+static void	filter_ipv6_layer4(int sockfd, int protocol, t_nmap_config *cfg)
 {
-	uint16_t	family = args[0];
-	uint16_t	layer4 = args[1];
-	uint16_t	dstp[2] = { args[2], args[3] };
-	uint16_t	srcp[2] = { args[4], args[5] };
+	uint16_t			filter_length = BPF_FILTER_SIZE(g_bpfcode_ipv6_layer4);
+	struct sock_filter	filter[BPF_FILTER_SIZE(g_bpfcode_ipv6_layer4)];
+	struct sock_fprog	bpf = { .len = filter_length, .filter = filter };
+	t_ip				*src = &cfg->host_job.dev->ip, *dst = &cfg->host_job.ip;
 
-	ft_snprintf(buf, FILTER_MAXLEN, layer4 == (HAS_UDP | HAS_TCP) ?
-		"(%1$s || %2$s)" : layer4 == HAS_UDP ? "%1$s" : "%2$s",
-		family == AF_INET ? ICMP_UDP_FILTER : ICMP6_UDP_FILTER,
-		family == AF_INET ? ICMP_TCP_FILTER : ICMP6_TCP_FILTER);
-	ft_strlcat(filter, " || (", FILTER_MAXLEN);
-	ft_strlcat(filter, buf, FILTER_MAXLEN);
-	ft_strlcat(filter, " && ", FILTER_MAXLEN);
-	ft_snprintf(buf, FILTER_MAXLEN, family == AF_INET ? ICMP_PORT_RANGE_FILTER
-		: ICMP6_PORT_RANGE_FILTER, srcp[0], dstp[0], srcp[1], dstp[1]);
-	ft_strlcat(filter, buf, FILTER_MAXLEN);
-	ft_strlcat(filter, "))", FILTER_MAXLEN);
+	ft_memcpy(filter, g_bpfcode_ipv6_layer4, sizeof(filter));
+	filter[1].k = protocol;
+	for (int i = 0; i < 16; ++i)
+		filter[i * 2 + 3].k = dst->v6.sin6_addr.s6_addr[i];
+	for (int i = 0; i < 16; ++i)
+		filter[i * 2 + 35].k = src->v6.sin6_addr.s6_addr[i];
+	filter[67].k = cfg->ports[0];
+	filter[68].k = cfg->ports[cfg->nports - 1];
+	filter[70].k = PORT_DEF;
+	filter[71].k = PORT_DEF + (cfg->nscans * cfg->nports) - 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
+		ft_exit(EXIT_FAILURE, "%s: setsockopt: %s", __func__, strerror(errno));
 }
 
-static void	build_port_filters(char *filter, uint16_t family,
-		t_nmap_config *cfg)
+static void	filter_ipv4_icmp(int sockfd, int protocol, t_nmap_config *cfg)
 {
-	char		*layer4str = NULL;
-	uint16_t	layer4 = HAS_UDP | HAS_TCP;
-	char		buf[FILTER_MAXLEN + 1] = { 0 };
-	uint16_t	nscan_jobs = cfg->nscans * cfg->nports;
-	uint16_t	dstp[2] = { cfg->ports[0], cfg->ports[cfg->nports - 1] };
-	uint16_t	srcp[2] = { PORT_DEF, PORT_DEF + nscan_jobs - 1 };
+	uint16_t			filter_length = BPF_FILTER_SIZE(g_bpfcode_ipv4_icmp);
+	struct sock_filter	filter[BPF_FILTER_SIZE(g_bpfcode_ipv4_icmp)];
+	struct sock_fprog	bpf = { .len = filter_length, .filter = filter };
+	t_ip				*src = &cfg->host_job.dev->ip, *dst = &cfg->host_job.ip;
 
-	layer4 = !cfg->scans[E_UDP] ? HAS_TCP : cfg->nscans == 1 ? HAS_UDP
-		: HAS_UDP | HAS_TCP;
-	layer4str = layer4 == HAS_TCP ? "tcp" : layer4 == HAS_UDP ? "udp" : "";
-	ft_snprintf(buf, FILTER_MAXLEN, LAYER4_PORT_RANGE_FILTER,
-		layer4str, dstp[0], srcp[0], dstp[1], srcp[1]);
-	ft_strlcat(filter, " && (", FILTER_MAXLEN);
-	ft_strlcat(filter, buf, FILTER_MAXLEN);
-	set_icmp_port_filter(filter, buf, (uint16_t[6]){ family, layer4,
-		dstp[0], dstp[1], srcp[0], srcp[1] });
+	ft_memcpy(filter, g_bpfcode_ipv4_icmp, sizeof(filter));
+	filter[1].k = IPPROTO_ICMP;
+	filter[3].k = htonl(dst->v4.sin_addr.s_addr);
+	filter[5].k = htonl(src->v4.sin_addr.s_addr);
+	filter[7].k = protocol;
+	filter[9].k = PORT_DEF;
+	filter[10].k = PORT_DEF + (cfg->nscans * cfg->nports) - 1;
+	filter[12].k = cfg->ports[0];
+	filter[13].k = cfg->ports[cfg->nports - 1];
+	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
+		ft_exit(EXIT_FAILURE, "%s: setsockopt: %s", __func__, strerror(errno));
 }
 
-void		set_filter(t_nmap_config *cfg)
+static void	filter_ipv4_layer4(int sockfd, int protocol, t_nmap_config *cfg)
 {
-	t_ip		*src = &cfg->host_job.dev->ip, *dst = &cfg->host_job.ip;
+	uint16_t			filter_length = BPF_FILTER_SIZE(g_bpfcode_ipv4_layer4);
+	struct sock_filter	filter[BPF_FILTER_SIZE(g_bpfcode_ipv4_layer4)];
+	struct sock_fprog	bpf = { .len = filter_length, .filter = filter };
+	t_ip				*src = &cfg->host_job.dev->ip, *dst = &cfg->host_job.ip;
+
+	ft_memcpy(filter, g_bpfcode_ipv4_layer4, sizeof(filter));
+	filter[1].k = protocol;
+	filter[3].k = htonl(dst->v4.sin_addr.s_addr);
+	filter[5].k = htonl(src->v4.sin_addr.s_addr);
+	filter[7].k = cfg->ports[0];
+	filter[8].k = cfg->ports[cfg->nports - 1];
+	filter[10].k = PORT_DEF;
+	filter[11].k = PORT_DEF + (cfg->nscans * cfg->nports) - 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
+		ft_exit(EXIT_FAILURE, "%s: setsockopt: %s", __func__, strerror(errno));
+}
+
+static void	filter_icmp(enum e_recv_sockets socket_type, t_nmap_config *cfg)
+{
+	int	protocol;
+
+	protocol = SOCKET_SRECV_IS_UDP(socket_type) ? IPPROTO_UDP : IPPROTO_TCP;
+	if (SOCKET_SRECV_IS_IPV4(socket_type))
+		filter_ipv4_icmp(cfg->recv_sockets[socket_type], protocol, cfg);
+	else if (SOCKET_SRECV_IS_IPV6(socket_type))
+		filter_ipv6_icmp(cfg->recv_sockets[socket_type], protocol, cfg);
+}
+
+static void	filter_layer4(enum e_recv_sockets socket_type, t_nmap_config *cfg)
+{
+	int	protocol;
+
+	protocol = SOCKET_SRECV_IS_UDP(socket_type) ? IPPROTO_UDP : IPPROTO_TCP;
+	if (SOCKET_SRECV_IS_IPV4(socket_type))
+		filter_ipv4_layer4(cfg->recv_sockets[socket_type], protocol, cfg);
+	else if (SOCKET_SRECV_IS_IPV6(socket_type))
+		filter_ipv6_layer4(cfg->recv_sockets[socket_type], protocol, cfg);
+}
+
+void		set_filters(t_nmap_config *cfg)
+{
 	uint16_t	family = cfg->host_job.family;
-	char		srcbuf[INET6_ADDRSTRLEN + 1], dstbuf[INET6_ADDRSTRLEN + 1];
-	char		filter[FILTER_MAXLEN + 1] = { 0 };
 
-	ft_snprintf(filter, FILTER_MAXLEN, HOST_FILTER,
-		family == AF_INET ? "ip" : "ip6",
-		inet_ntop(family, ip_addr(dst), dstbuf, INET6_ADDRSTRLEN),
-		inet_ntop(family, ip_addr(src), srcbuf, INET6_ADDRSTRLEN));
-	build_port_filters(filter, family, cfg);
-	set_filter_internal(filter, cfg);
+	if (family == AF_INET && cfg->has_udp_scans)
+	{
+		filter_layer4(E_SRECV_UDPV4, cfg);
+		filter_icmp(E_SRECV_ICMP_UDPV4, cfg);
+	}
+	if (family == AF_INET && cfg->has_tcp_scans)
+	{
+		filter_layer4(E_SRECV_TCPV4, cfg);
+		filter_icmp(E_SRECV_ICMP_TCPV4, cfg);
+	}
+	if (family == AF_INET6 && cfg->has_udp_scans)
+	{
+		filter_layer4(E_SRECV_UDPV6, cfg);
+		filter_icmp(E_SRECV_ICMP_UDPV6, cfg);
+	}
+	if (family == AF_INET6 && cfg->has_tcp_scans)
+	{
+		filter_layer4(E_SRECV_TCPV6, cfg);
+		filter_icmp(E_SRECV_ICMP_TCPV6, cfg);
+	}
 }

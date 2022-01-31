@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/21 15:20:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/30 17:10:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,8 @@ const t_opt	g_nmap_opt[] = {
 };
 
 const char	*g_nmap_help[] = {
-	"Show debugging information about pcap filters and posix threads. Also\n"
-	"\t\tprint packets that do not match any valid probe (filter failure).",
+	"Show debugging information about posix threads and ft_nmap tasks. Also\n"
+	"\t\tprint packets that do not match any valid probe (filter failures).",
 	"File containing a list of hosts to scan (1 per line).",
 	"Print this and exit.",
 	"Select interface on which to listen on.",
