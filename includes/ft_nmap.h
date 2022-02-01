@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/31 08:32:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/01 07:07:57 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,12 +118,12 @@ enum		e_recv_sockets {
 
 # define	SOCKET_SRECV_IS_IPV4(n)\
 	(n == E_SRECV_UDPV4 || n == E_SRECV_TCPV4\
-	|| n == E_SRECV_ICMP_UDPV4 || E_SRECV_ICMP_TCPV4)
+	|| n == E_SRECV_ICMP_UDPV4 || n == E_SRECV_ICMP_TCPV4)
 # define	SOCKET_SRECV_IS_IPV6(n)	(!SOCKET_SRECV_IS_IPV4(n))
 # define	SOCKET_SRECV_IS_UDP(n)\
 	(n == E_SRECV_UDPV4 || n == E_SRECV_ICMP_UDPV4\
 	|| n == E_SRECV_UDPV6 || n == E_SRECV_ICMP_UDPV6)
-# define	SOCKET_SRECV_IS_TCP(n)\	(!SOCKET_SRECV_IS_UDP(n))
+# define	SOCKET_SRECV_IS_TCP(n)	(!SOCKET_SRECV_IS_UDP(n))
 
 
 // Reports
