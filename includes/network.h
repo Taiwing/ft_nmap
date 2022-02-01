@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/31 08:39:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 19:44:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,7 +254,6 @@ void		init_tcp_header(uint8_t *tcp_packet, t_tcph_args *args);
 ** Print Headers
 */
 
-int			print_ether_type(uint8_t *packet);
 int			print_iphdr(void *iphdr, int domain, char *exec);
 int			print_nexthdr(void *iphdr, int domain, uint16_t size, char *exec);
 int			print_icmphdr(void *icmph, int domain, uint16_t size, char *exec);

@@ -6,36 +6,11 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/20 14:08:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:33:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 19:44:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "network.h"
-
-static void		print_mac(uint8_t *ptr)
-{
-	for (int i = 0; i < ETHER_ADDR_LEN; ++i)
-		ft_printf("%02x%c", *ptr++, i < ETHER_ADDR_LEN - 1 ? ':' : '\n');
-}
-
-int			print_ether_type(uint8_t *packet)
-{
-	struct ether_header	*eptr = (struct ether_header *)packet;
-	int					type = ntohs(eptr->ether_type);
-
-	ft_printf("Ethernet type hex:%x dec:%d %s\n", type, type,
-		type == ETHERTYPE_IP ? "is an IP packet" :
-		type == ETHERTYPE_IPV6 ? "is an IPv6 packet" :
-		type == ETHERTYPE_ARP ? "is an ARP packet" :
-		"not IP");
-	ft_printf("Destination Address: ");
-	print_mac((uint8_t *)eptr->ether_dhost);
-	ft_printf("Source Address: ");
-	print_mac((uint8_t *)eptr->ether_shost);
-	return (type != ETHERTYPE_IP
-			&& type != ETHERTYPE_IPV6
-			&& type != ETHERTYPE_ARP);
-}
 
 int					print_iphdr(void *iphdr, int domain, char *exec)
 {
