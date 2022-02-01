@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/31 12:17:45 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 22:01:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/01/31 19:40:12 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ static void				set_packet_size(t_packet *packet)
 			size = 0;
 			break;
 	}
-	packet->size = size;
+	packet->size = size > RAW_DATA_MAXSIZE ? RAW_DATA_MAXSIZE : size;
 }
 
 static enum e_nexthdr	set_nexthdr(uint8_t type, enum e_iphdr iph)
