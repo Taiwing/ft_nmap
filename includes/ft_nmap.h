@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 06:30:37 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/02 20:10:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,7 +210,6 @@ typedef struct			s_host_job
 **
 ** type: well, type of task (duh)
 ** scan_job: scan_job for type PROBE or REPLY (timeout)
-** payload_index: index of the probe to send for PROBE tasks
 ** reply: scan reply bytes for REPLY task
 ** reply_size: scan reply packet size for REPLY task
 ** reply_ip_header: scan reply ip header type
@@ -220,7 +219,6 @@ typedef struct		s_task
 {
 	enum e_tasks	type;
 	t_scan_job		*scan_job;
-	uint16_t		payload_index;
 	uint8_t			*reply;
 	size_t			reply_size;
 	enum e_iphdr	reply_ip_header;
@@ -463,7 +461,7 @@ void		probe_retry_time(struct timeval *exec_time);
 void		set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,
 				struct timeval *exec_time);
 void		push_probe_task(t_nmap_config *cfg, t_scan_job *scan_job,
-				struct timeval *exec_time, uint16_t probe_id);
+				struct timeval *exec_time);
 void		pseudo_thread_worker(void);
 
 /*

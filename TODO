@@ -30,14 +30,6 @@
   possibly change because the probe execution order will
   probably be modified.
 
-- FIX infinite loop on UDP scan when -v is not set
-  UPDATE: This has been done, but I'm not sure that what
-  I did is not a monkey patch. The problem looks like a
-  classic datarace case on the scan_job tries variable,
-  but it is also happening in monothreaded mode and I am
-  not sure why. So the infinite loop has disappeared on
-  UDP scans, but this should be investigated further.
-
 ---- TODO ----
 
 - Because of ICMP rate-limiting, I can justify a runtime of

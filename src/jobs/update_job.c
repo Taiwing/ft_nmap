@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 08:04:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/02 20:37:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,22 +40,13 @@ static int	end_job(t_nmap_config *cfg, t_port_job *port_job)
 	return (ret);
 }
 
-/*
-** TODO: The condition testing if tries is negative has been removed. Check
-** that it does not have side effects. Also, this was done for a good reason.
-** Because sometimes, with probe tries decrementation, tries value was getting
-** negative before a valid reply or a timeout. This basically produced an
-** infinite loop on UDP scans. Although, this might be a monkey patch, because
-** I'm not entirely sure how it's possible that tries got negative before
-** update_job, especially in monothreaded mode.
-*/
 int		update_job(t_nmap_config *cfg, t_scan_job *scan_job, uint8_t result)
 {
 	t_port_job			*port_job = NULL;
 	int					ret = 0;
 
 	port_job = cfg->host_job.port_jobs + scan_job->port_job_id;
-	if (cfg->host_job.done == cfg->nports
+	if (scan_job->tries < 0 || cfg->host_job.done == cfg->nports
 		|| scan_job->host_job_id != cfg->host_job.host_job_id
 		|| ++port_job->scan_locks[scan_job->type] > 1)
 		return (ret);

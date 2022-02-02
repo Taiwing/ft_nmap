@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 08:48:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/02 20:08:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ static void	task_listen(t_task *task)
 static void	task_probe(t_task *task)
 {
 	int				tries;
+	int				payload_index;
 	struct timeval	exec_time = { 0 };
 
 	if (g_cfg->debug > 1)
@@ -69,13 +70,14 @@ static void	task_probe(t_task *task)
 	if (task->scan_job->tries < 0)
 		return ;
 	tries = --task->scan_job->tries;
+	payload_index = (tries + 1) % task->scan_job->probe_count;
 	if (g_cfg->verbose)
 		verbose_scan(g_cfg, task->scan_job,
-			task->scan_job->probes[task->payload_index], "Sending probe...");
-	send_probe(g_cfg, task->scan_job, task->payload_index);
+			task->scan_job->probes[payload_index], "Sending probe...");
+	send_probe(g_cfg, task->scan_job, payload_index);
 	probe_retry_time(&exec_time);
 	if (tries > 0)
-		push_probe_task(g_cfg, task->scan_job, &exec_time, task->payload_index);
+		push_probe_task(g_cfg, task->scan_job, &exec_time);
 	else
 		set_scan_job_timeout(g_cfg, task->scan_job, &exec_time);
 }
