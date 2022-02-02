@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/31 08:30:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/02 06:30:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,12 +65,18 @@ static t_scan_job	*init_scan_job(t_nmap_config *cfg, uint16_t scan_job_id,
 
 static void		build_probe_tasks(t_nmap_config *cfg)
 {
+	t_scan_job	*scan_job;
+
 	for (uint16_t scan = 0, id = 0; scan < SCAN_COUNT; ++scan)
 	{
 		if (!cfg->scans[scan])
 			continue ;
 		for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
-			init_scan_job_probes(cfg, init_scan_job(cfg, id, scan, port), NULL);
+		{
+			scan_job = init_scan_job(cfg, id, scan, port);
+			for (uint16_t probe = 0; probe < scan_job->probe_count; ++probe)
+				push_probe_task(cfg, scan_job, NULL, probe);
+		}
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/01 07:07:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/02 06:30:37 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -462,8 +462,8 @@ void		init_tasks(t_nmap_config *cfg);
 void		probe_retry_time(struct timeval *exec_time);
 void		set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,
 				struct timeval *exec_time);
-void		init_scan_job_probes(t_nmap_config *cfg, t_scan_job *scan_job,
-				struct timeval *exec_time);
+void		push_probe_task(t_nmap_config *cfg, t_scan_job *scan_job,
+				struct timeval *exec_time, uint16_t probe_id);
 void		pseudo_thread_worker(void);
 
 /*
