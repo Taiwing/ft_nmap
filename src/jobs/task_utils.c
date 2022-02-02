@@ -6,11 +6,33 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/22 10:17:27 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/02 21:06:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
+
+static void		task_del(void *ptr, size_t size)
+{
+	t_task	*task = ptr;
+
+	(void)size;
+	if (task->type == E_TASK_REPLY)
+		ft_memdel((void **)&task->reply);
+	ft_memdel((void **)&ptr);
+}
+
+void			flush_tasks(t_list **dest, t_nmap_config *cfg, int prio)
+{
+	if (prio)
+		nmap_mutex_lock(&cfg->high_mutex, &g_high_locked);
+	ft_lstdel(dest, task_del);
+	if (prio)
+	{
+		cfg->pending_tasks = 0;
+		nmap_mutex_unlock(&cfg->high_mutex, &g_high_locked);
+	}
+}
 
 void			push_back_tasks(t_list **dest, t_list *tasks,
 			t_nmap_config *cfg, int prio)

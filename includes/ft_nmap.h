@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 20:10:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/02 21:06:52 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -452,6 +452,7 @@ void		push_back_tasks(t_list **dest, t_list *tasks,
 				t_nmap_config *cfg, int prio);
 t_task		*pop_task(t_list **src, t_nmap_config *cfg, int prio,
 				t_task_match *task_match);
+void		flush_tasks(t_list **dest, t_nmap_config *cfg, int prio);
 void		push_tasks(t_list **dest, t_list *tasks,
 				t_nmap_config *cfg, int prio);
 void		push_reply_task(t_nmap_config *cfg, t_task *task,
