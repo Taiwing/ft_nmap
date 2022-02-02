@@ -1,114 +1,4 @@
-- Try and fix ACK scan false 'positive' tests, meaning all
-  the ports on which the scan result ends up randomly
-  filtered where the original nmap always says unfiltered.
-  It does not happen often (like 3/4 times on 1024 ports)
-  but it still makes the result false and unreliable. The
-  ACK scan should get an RST response for ending up in an
-  unfiltered state, then sometimes it must not receive
-  the RST response, or indeed any response at all. Either
-  that or it gets an icmp packet out of the blue...
-- Fix UDP scans missing close results. Like for the ACK
-  scan, sometimes (actually most of the time for UDP),
-  ft_nmap seems to be missing some responses, and so the
-  UDP ports appear to be open|filtered when they should
-  be closed. The scan just timeouts for no reason. This
-  does not happen when the scan is done without speedup
-  or with a low speedup and a limited amount of ports.
-  Then this problem is probably has probably something
-  to do with pcap_handler. It looks like it misses some
-  responses when they come too close to one another.
-  This is also certainly responsible for the missing
-  unfiltered ACK scan results.
-- The SYN scan looks reliable enough. Although it
-  appears to fail some of the time too. It happened once
-  on an 'intra.42.fr' scan (missing ariel3 port), and on
-  'framasoft.org' it can happen too (saw it multiple
-  times). This is also probably the same problem as for
-  the ACK and UDP scans. The fact that it happens more
-  and more as we 'go up' the scan list (because SYN is 0
-  and UDP is 5 while ACK is in the middle, which is also
-  how often this problem appears on each scan type), is
-  probably be a hint to the root of the problem.
-  UPDATE: It looks like each scan works as expected if
-  executed individually (except maybe UDP, which is more
-  complicated than the others as it takes at least 20min
-  on a full 1024 ports scan for  the original nmap).
-  The scans should probably be done consecutively,
-  meaning that each scan type and their retries should
-  be done on every port before the next scan type. This
-  looks like the problem is caused by crossing the
-  streams as the ghost busters would put it. If we try
-  a lot of scans of different types at the same time,
-  it just fails, probably because of firewall rules or
-  of network overload.
-  UPDATE2: For UDP and the closed/filtered states and
-  for NULL/FIN/XMAS and the filtered state, the problem
-  is that the linux kernel caps outgoing icmp packets to
-  1 per second. This is why the UDP scan takes around 20
-  minutes for on 1024 ports. There is no workaround for
-  this. The only way is to scan once per second and limit
-  retries to one. An other way to accelerate the process
-  would be start with the ports where there are probes
-  defined in nmap-payloads, as they have at least a
-  chance to instantly return a UDP response (although,
-  the time earned would be very small compared to the
-  total time the scan would take).
-
-- Rework the monothread logic so that ft_nmap is able to
-  execute multiple scans at the same time. The solution
-  might be to send multiple probes in a row in the alarm
-  handler after the listening function has been called.
-  This looks dirty, but it might be the only solution to
-  pass the first test on the correction sheet, because
-  with the original nmap I can justify a runtime of 20min
-  for the UDP scan only not 8 hours. So ft_nmap, with
-  every scan flag and no speedup should take around 20min
-  too.
-
-- Try to fix the fact that some probes are sent/received
-  after the result has been printed. It's not a big deal
-  so if there is no way to do that cleanly, just dont.
-  UPDATE: It may be a bigger problem than expected. On
-  some 1024-port scans, there are some open ports that
-  are often missed at the end of the list (like rsync).
-  This might be the cause.
-  UPDATE2: Well it also leads to a segfault when a
-  worker tries to send a probe after the host scan has
-  ended. It rarely happens normally, but it almost
-  always does on multiple target scans when we set a
-  wait time in between probes. This is obviously a big
-  problem now. This has to be fixed. Either by making it
-  impossible to have task execute after the host scan is
-  over (which I don't know how to do since they both
-  happen in a worker task and also depend on the alarm
-  handler) or by keeping track of the task associated
-  with a host and delaying host printing while there are
-  some tasks being executed. This looks like the easiest
-  solution but maybe not the cleanest. This also will
-  possibly change because the probe execution order will
-  probably be modified.
-  UPDATE3: Since the decentralized_timeout update this has
-  not reappeared. This does not mean it cannot though. I
-  think it works because now the scan_job 'tries' value is
-  checked before sending the probe. So 'most of the time' it
-  just skips the probing. But it does not mean the segfault
-  cant re-happen if we are unlucky.
-
-- MAYBE: If multiple scans are given and ACK is one of them,
-  do it first. This is because it can be used to guess wich
-  ports are most likely to respond to the other scans. For
-  example if every port is filtered except for 80, 443 and
-  995 in the ACK scan, then the SYN scan can begin by
-  probing these ports. This will minimize the problem of
-  missing open ports at the end of the list. These are
-  probably/possibly due to rate limiting on the host end.
-  By being scan first these ports are less likely to be
-  rate-limited.
-- MAYBE: If the alarm_handler worker for monothreaded runs
-  is problematic, replace it with a pcap_breakloop call
-  and execute the pseudo worker in a dedicated task. This
-  should work. When done, if the scan is not over, launch
-  a new LISTEN task to keep scanning.
+---- FIX ----
 
 - FIX ALL THAT SHIT
   2: Keep track of the probe/reply tasks being executed
@@ -126,26 +16,84 @@
   wait for the rate-limit each time (so once per second
   most of the time).
 
-- FIX timeout on UDP scan when -v is not set (yeah weird)
+- FIX the fact that some probes are sent/received after the
+  result has been printed.
+  UPDATE: Well it leads to a segfault when a worker tries
+  to send a probe after the host scan has ended. It rarely
+  happens normally, but it almost always does on multiple
+  target scans when we set a wait time in between probes.
+  We can either make it impossible to have task execute after
+  the host scan is over or keep track of the tasks associated
+  with a host and delay host printing while there are some
+  tasks being executed. This looks like the easiest
+  solution but maybe not the cleanest. This also will
+  possibly change because the probe execution order will
+  probably be modified.
 
-- fix sendto 'invalid argument' error when probing port
-  8080 on the local network host address (it works on
-  localhost, it works on the wifi local address, but not
-  on the default ethernet lan address)
-  UPDATE: This does not happen when the drake simulator
-  server is not lauched. It makes sense as it listens on
-  the 8080 port.
-- check other scan results too
-- adapt the filter to ipv6 for the icmp part (also maybe
-  clean the function/divide it because it's messy)
+- FIX infinite loop on UDP scan when -v is not set
+  UPDATE: This has been done, but I'm not sure that what
+  I did is not a monkey patch. The problem looks like a
+  classic datarace case on the scan_job tries variable,
+  but it is also happening in monothreaded mode and I am
+  not sure why. So the infinite loop has disappeared on
+  UDP scans, but this should be investigated further.
+
+---- TODO ----
+
+- Because of ICMP rate-limiting, I can justify a runtime of
+  arount 20min for the UDP scan only not 8 hours. So ft_nmap
+  with every scan flag and no speedup should take around 20
+  minutes too. However, this might be wrong because NULL,
+  FIN and XMAS scans also depend on ICMP to get an accurate
+  result. In fact, there is only SYN and ACK which dont
+  have any problem with ICMP rate-limiting. Although RST
+  responses can also be rate-limited. So this still might
+  be a problem there too.
+
+- check what happens now when we scan on port listened on
+  by an other process (like with drake_simulator on 8080)
 - when all this is done, check that the scan results are
-  the same as the original nmap and that it does not
-  take too much time to execute
+  the same as the original nmap and that it does not take
+  too much time to execute
 - Make sure time options (and options in general) cannot
   be given values that would make ft_nmap lose its mind.
   Like, what happens if the max_rtt_timeout value makes
   the probe_retry_time overflow on the expiry timestamp?
 - then stress-test the shit out of this program (really)
+
+---- MAYBE ----
+
+- It looks like each scan works as expected if executed
+  individually (except maybe UDP, which is more complicated
+  than the others as it takes at least 20min on a full 1024
+  ports scan for  the original nmap). The scans should probably
+  be done consecutively, meaning that each scan type and their
+  retries should be done on every port before the next scan
+  type. This looks like the problem is caused by crossing the
+  streams as the ghost busters would put it. If we try a lot of
+  scans of different types at the same time, it just fails,
+  probably because of firewall rules or network overload.
+  UPDATE: For UDP and the closed/filtered states and
+  for NULL/FIN/XMAS and the filtered state, the problem
+  is that the linux kernel caps outgoing icmp packets to
+  1 per second. This is why the UDP scan takes around 20
+  minutes for 1024 ports. There is no workaround for this.
+  The only way is to scan once per second and limit retries
+  to one. An other way to accelerate the process would be
+  to start with the ports where there are probes defined in
+  nmap-payloads, as they have at least a chance to instantly
+  return a UDP response (although, the time earned would be
+  very small compared to the total time the scan would take).
+
+- If multiple scans are given and ACK is one of them, do it
+  first. This is because it can be used to guess wich ports
+  are most likely to respond to the other scans. For example
+  if every port is filtered except for 80, 443 and 995 in
+  the ACK scan, then the SYN scan can begin by probing these
+  ports. This will minimize the problem of missing open ports
+  at the end of the list. These are probably due to rate
+  limiting on the host end. By being scan first these ports
+  are less likely to be rate-limited.
 
 - Implement a "watch" mode for the heatmap option where
   ft_nmap would be continuously scanning the target
