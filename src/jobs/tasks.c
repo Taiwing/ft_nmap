@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 07:20:27 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/02 08:48:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,8 +68,7 @@ static void	task_probe(t_task *task)
 		debug_task(g_cfg, task, 0);
 	if (task->scan_job->tries < 0)
 		return ;
-	else
-		tries = --task->scan_job->tries;
+	tries = --task->scan_job->tries;
 	if (g_cfg->verbose)
 		verbose_scan(g_cfg, task->scan_job,
 			task->scan_job->probes[task->payload_index], "Sending probe...");
