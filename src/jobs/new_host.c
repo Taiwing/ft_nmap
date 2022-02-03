@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 21:07:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/03 06:53:50 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,12 @@ static void	set_host_job_data(t_host_job *host_job, char *host,
 			|| !ip_cmp(&cfg->netinf.loopback_v6->ip, &host_job->ip) ?
 			cfg->netinf.loopback_v6 : cfg->netinf.defdev_v6;
 	ft_bzero((void *)&host_job->end_ts, sizeof(host_job->end_ts));
-	ft_bzero((void *)host_job->port_jobs, sizeof(host_job->port_jobs));
+	for (int i = 0; i < cfg->nports; ++i)
+	{
+		host_job->port_jobs[i].status = host_job->port_jobs[i].done = 0;
+		ft_bzero((void *)&host_job->port_jobs[i].scan_locks,
+			sizeof(host_job->port_jobs[i].scan_locks));
+	}
 	host_job->status = 0;
 }
 
