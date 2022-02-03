@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 20:08:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/03 07:31:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,8 @@ static void	task_probe(t_task *task)
 	int				payload_index;
 	struct timeval	exec_time = { 0 };
 
+	if (g_cfg->host_job.status & E_STATE_DONE)
+		return ;
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
 	if (task->scan_job->tries < 0)
@@ -90,6 +92,8 @@ static void	task_reply(t_task *task)
 	enum e_iphdr	iph = task->reply_ip_header;
 	t_task          new_task = { .type = E_TASK_NEW_HOST };
 
+	if (g_cfg->host_job.status & E_STATE_DONE)
+		return ;
 	result = !scan_job ? parse_reply_packet(task, g_cfg, &scan_job, iph)
 		: scan_result(scan_job->type, NULL);
 	if (g_cfg->debug > 1)

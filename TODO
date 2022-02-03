@@ -1,9 +1,6 @@
 ---- FIX ----
 
 - FIX ALL THAT SHIT
-  2: Keep track of the probe/reply tasks being executed
-  for a host so that they can be waited for in multi-
-  threaded mode to fix that damned segfault.
   3: The RTT of a response are very different from a host
   to an other. So execute a ping first, then wait for 10
   responses and use the average RTT as a basis for
@@ -15,20 +12,15 @@
   that matter). Then, only send one probe at a time and
   wait for the rate-limit each time (so once per second
   most of the time).
-
-- FIX the fact that some probes are sent/received after the
-  result has been printed.
-  UPDATE: Well it leads to a segfault when a worker tries
-  to send a probe after the host scan has ended. It rarely
-  happens normally, but it almost always does on multiple
-  target scans when we set a wait time in between probes.
-  We can either make it impossible to have task execute after
-  the host scan is over or keep track of the tasks associated
-  with a host and delay host printing while there are some
-  tasks being executed. This looks like the easiest
-  solution but maybe not the cleanest. This also will
-  possibly change because the probe execution order will
-  probably be modified.
+  UPDATE: There also seem to be some rate-limiting when
+  running all the scans on the 1024 ports in monothreaded
+  mode. Ironically, I think this is because multithreaded
+  mode is less efficient at sending probes, which means
+  they must be a little bit spaced out, whereas it just
+  sends them as fast as possible in monothreaded mode. To
+  limit this flooding effect, an initial execution time
+  could be set to make sure the probes are at least a little
+  bit spaced out (but first make sure it's really the cause).
 
 ---- TODO ----
 

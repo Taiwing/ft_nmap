@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 21:06:52 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/03 07:20:12 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,6 +297,7 @@ typedef struct		s_worker_config
 ** main_tasks: tasks to be executed by worker main
 ** thread_tasks: tasks to be executed by worker threads
 ** pending_tasks: boolean set to true if thread_tasks is not empty
+** running_tasks: count of actually running tasks
 ** end: boolean signaling the end of ft_nmap's execution
 ** start_ts: ft_nmap start timestamp (after tasks initialization)
 ** end_ts: ft_nmap end timestamp (after thread_wait/listen)
@@ -350,6 +351,7 @@ typedef struct		s_nmap_config
 	t_list			*main_tasks;
 	t_list			*thread_tasks;
 	_Atomic int		pending_tasks;
+	_Atomic int		running_tasks;
 	_Atomic int		end;
 	struct timeval	start_ts;
 	struct timeval	end_ts;
@@ -372,7 +374,7 @@ typedef struct		s_nmap_config
 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, { 0 },\
 	{ .type = E_WORKER_MAIN, .task_types = MAIN_TASKS },\
 	{ .type = E_WORKER_THREAD, .task_types = WORKER_TASKS },\
-	{ 0 }, { 0 }, NULL, NULL, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0\
+	{ 0 }, { 0 }, NULL, NULL, 0, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0\
 }
 
 /*

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/30 17:19:53 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/03 07:21:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,9 @@ void		*worker(void *ptr)
 	while ((task = pop_task(wcfg->task_list, g_cfg,
 		wcfg->type == E_WORKER_THREAD, &task_match)))
 	{
+		++g_cfg->running_tasks;
 		g_tasks[task->type](task);
+		--g_cfg->running_tasks;
 		ft_memdel((void **)&task);
 	}
 	if (wcfg->type == E_WORKER_MAIN || wcfg->type == E_WORKER_THREAD)
