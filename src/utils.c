@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/06 04:35:54 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/19 21:54:55 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/04 07:00:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,18 +47,16 @@ void	shitty_usleep(uint64_t ms)
 }
 
 const char	*g_nmap_time_unit_strings[] = {
-	"ms", "s", "m", "h", NULL
+	"ns", "us", "ms", "s", "m", "h", NULL
 };
 
-const double	g_nmap_time_units[] = {
-	1.0, 1000.0, 60000.0, 3600000.0
-};
+const int	g_nmap_s_time_units[] = { 1, 60, 3600 };
+const int	g_nmap_ns_time_units[] = { 1, 1000, 1000000 };
 
 void	str_to_timespec(struct timespec *time, const char *str)
 {
-	double		ms_value = 0.0;
-	int			value = 0, i = 0;
 	const char	*unit_str = NULL, *p;
+	int			i = 0, value = 0, second = 1;
 
 	p = str;
 	value = parse_int_prefix(p, 0, INT_MAX, "time value");
@@ -70,10 +68,13 @@ void	str_to_timespec(struct timespec *time, const char *str)
 		++i;
 	if (!g_nmap_time_unit_strings[i])
 		ft_exit(EXIT_FAILURE, "invalid argument: '%s': '%s' is not a valid "
-			"time unit (must be one of: ms, s, m or h)", str, unit_str);
-	ms_value = (double)value * g_nmap_time_units[i];
-	time->tv_sec = ms_value / 1000;
-	time->tv_nsec = (ms_value - time->tv_sec * 1000) * 1000000;
+			"time unit (must be one of: ns, us, ms, s, m or h)", str, unit_str);
+	if (i < 3)
+		second = 1000000000 / g_nmap_ns_time_units[i];
+	else
+		value *= g_nmap_s_time_units[i - 3];
+	time->tv_sec = value / second;
+	time->tv_nsec = (value % second) * g_nmap_ns_time_units[i < 3 ? i : 0];
 }
 
 /*

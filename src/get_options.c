@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/30 17:10:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/04 19:47:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,10 +58,7 @@ const char	*g_nmap_help[] = {
 	"\t\toutcome state instead of the default port table.",
 	"Set max number of retries to for sending a probe (def: " xstr(DEF_RETRIES)
 	", min: " xstr(MIN_RETRIES) ", max: " xstr(MAX_RETRIES) ").",
-	"Adjust delay between probes. As for every options that take a 'time'\n"
-	"\t\targument, it can be specified as an integer which will be in seconds\n"
-	"\t\tby default, or be appended a time unit ('ms' for milliseconds,\n"
-	"\t\t's' for seconds, 'm' for minutes and 'h' for hours).",
+	"Adjust delay between probes.",
 	"Set how long to wait for a probe to respond before retry or timeout.",
 	NULL,
 };
@@ -79,6 +76,9 @@ const char	*g_description =
 "\tin the /etc/hosts file or domain names. ft_nmap will loop on them until\n"
 "\tno argument is left. Then it will look at the --file option value if it\n"
 "\twas given and do the same. The host file format is one host per line.\n"
+"\n\tOptions that take a 'time' value are in milliseconds by default. They\n"
+"\tcan be appended a time unit which will be one of: ns (nanoseconds), us\n"
+"\t(microseconds), ms (milliseconds), s (seconds), m (minutes) or h (hours).\n"
 "\n\tEach scan type given in scan list is a column in the final host report\n"
 "\tand a series of letters is used to describe the result of a port scan:\n\n"
 "\tO --> Open\n"
