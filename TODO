@@ -1,17 +1,15 @@
 ---- FIX ----
 
 - FIX ALL THAT SHIT
-  3: The RTT of a response are very different from a host
-  to an other. So execute a ping first, then wait for 10
-  responses and use the average RTT as a basis for
-  computing the timeout of probes. This will also say if
-  the host is up or not, so ft_nmap will skip scanning
-  all together if the host is down (like the original).
-  4: Add a function/task to detect rate-limiting for ICMP
+  3: Add a function/task to detect rate-limiting for ICMP
   or RST responses (and maybe any type of response for
   that matter). Then, only send one probe at a time and
   wait for the rate-limit each time (so once per second
-  most of the time).
+  most of the time). First begin by making an adaptative
+  rtt timeout system like the original nmap, and then add
+  an algorithm to handle congestion and therefore rate
+  limiting (with a congestion window and the slow start with
+  the exponential backoff algorithm). It should be better.
   UPDATE: There also seem to be some rate-limiting when
   running all the scans on the 1024 ports in monothreaded
   mode. Ironically, I think this is because multithreaded
@@ -21,6 +19,19 @@
   limit this flooding effect, an initial execution time
   could be set to make sure the probes are at least a little
   bit spaced out (but first make sure it's really the cause).
+  UPDATE2: Im not sure this is due to the timing between
+  probes as even with long scan-delays we still lose almost
+  every probe in monothreaded mode. Looping on listen in the
+  LISTEN task make this a little bit better because we handle
+  multiple responses before re-sending probes. Maybe the scan
+  delay does not work really as I expected... I don't know.
+  4: The RTT of a response are very different from a host
+  to an other. So execute a ping first, then wait for 10
+  responses and use the average RTT as a basis for
+  computing the timeout of probes. This will also say if
+  the host is up or not, so ft_nmap will skip scanning
+  all together if the host is down (like the original).
+
 
 ---- TODO ----
 
