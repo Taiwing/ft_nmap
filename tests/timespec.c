@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/05 11:55:54 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 17:20:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 17:31:00 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,6 +112,19 @@ int	timespec_div(struct timespec *dest, const struct timespec *src, int div)
 	return (-!(dest->tv_sec == sec && dest->tv_nsec == nsec));
 }
 
+int	timespec_mul(struct timespec *dest, const struct timespec *src, int mul)
+{
+	int128_t	sec = (int128_t)src->tv_sec;
+	int128_t	nsec = (int128_t)src->tv_nsec;
+
+	sec *= mul;
+	nsec *= mul;
+	check_timespec_result(&sec, &nsec);
+	dest->tv_sec = sec;
+	dest->tv_nsec = nsec;
+	return (-!(dest->tv_sec == sec && dest->tv_nsec == nsec));
+}
+
 int main(int argc, char **argv)
 {
 	struct timespec	left = { 0 };
@@ -120,8 +133,13 @@ int main(int argc, char **argv)
 	struct timespec	sub = { 0 };
 	struct timespec	abs = { 0 };
 	struct timespec	div = { 0 };
-	int				ret_sum = 0, ret_sub = 0, ret_abs = 0, ret_div;
-	int				divisor;
+	struct timespec	mul = { 0 };
+	int				ret_sum = 0,
+					ret_sub = 0,
+					ret_abs = 0,
+					ret_div = 0,
+					ret_mul = 0;
+	int				divisor, multiplier;
 
 	if (argc > 1)
 		left.tv_sec = strtoll(argv[1], NULL, 10);
@@ -132,7 +150,7 @@ int main(int argc, char **argv)
 	if (argc > 4)
 		right.tv_nsec = strtoll(argv[4], NULL, 10);
 	if (argc > 5)
-		divisor = atoi(argv[5]);
+		multiplier = divisor = atoi(argv[5]);
 	printf("left - sec: %ld - nsec: %ld\n", left.tv_sec, left.tv_nsec);
 	printf("right - sec: %ld - nsec: %ld\n", right.tv_sec, right.tv_nsec);
 	ret_sum = timespec_add(&sum, &left, &right);
@@ -155,5 +173,11 @@ int main(int argc, char **argv)
 	ret_div = timespec_div(&div, &right, divisor);
 	printf("right / %d - (return %d) - sec: %ld - nsec: %ld\n",
 		divisor, ret_div, div.tv_sec, div.tv_nsec);
+	ret_mul = timespec_mul(&mul, &left, multiplier);
+	printf("left * %d - (return %d) - sec: %ld - nsec: %ld\n",
+		multiplier, ret_mul, mul.tv_sec, mul.tv_nsec);
+	ret_mul = timespec_mul(&mul, &right, multiplier);
+	printf("right * %d - (return %d) - sec: %ld - nsec: %ld\n",
+		multiplier, ret_mul, mul.tv_sec, mul.tv_nsec);
 	return (EXIT_SUCCESS);
 }
