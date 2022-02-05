@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/03 07:31:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 11:14:22 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ static void	task_listen(t_task *task)
 	}
 	while (!g_cfg->end && !g_cfg->listen_breakloop)
 	{
+		//while (ft_listen(listen_fds, SOCKET_RECV_COUNT, 0) > 0);
 		ft_listen(listen_fds, SOCKET_RECV_COUNT, 0);
 		if (!g_cfg->speedup)
 			pseudo_thread_worker();

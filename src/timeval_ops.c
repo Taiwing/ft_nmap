@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/05 19:16:59 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 19:30:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 21:24:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ _Static_assert(sizeof(suseconds_t) < sizeof(int128_t),
 ** right. This is because the values are copied first and written at the end.
 **
 ** Every timeval function returns 0 if everything went well and -1 if there was
-** an error (overflow, underlow or division by 0).
+** an error (overflow, underflow or division by 0).
 */
 
 static void	check_timeval_result(int128_t *secptr, int128_t *usecptr)
