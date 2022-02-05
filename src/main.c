@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 19:52:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 21:01:30 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,14 +43,16 @@ static void	check_config(t_nmap_config *cfg)
 			cfg->scans[cfg->nscans] = 1;
 	cfg->has_udp_scans = cfg->scans[E_UDP];
 	cfg->has_tcp_scans = !!(cfg->nscans - cfg->has_udp_scans);
+	if (timeval_cmp(&cfg->rtt.min_timeout, &cfg->rtt.initial_timeout) > 0)
+		ft_exit(EXIT_FAILURE, "min-rtt-timeout is greater"
+			" than initial-rtt-timeout");
+	if (timeval_cmp(&cfg->rtt.initial_timeout, &cfg->rtt.max_timeout) > 0)
+		ft_exit(EXIT_FAILURE, "initial-rtt-timeout is greater"
+			" than max-rtt-timeout");
 	ft_memcpy(&cfg->rtt.timeout, &cfg->rtt.initial_timeout,
 		sizeof(cfg->rtt.timeout));
 	ft_memcpy(&cfg->rtt.smoothed, &cfg->rtt.initial_timeout,
 		sizeof(cfg->rtt.timeout));
-	//TODO: create timeval operation functions and check that min_timeout is
-	//less or equal to initial_timeout which is itself less or equal to
-	//max_timeout (which is obviously the case by default, but the user will
-	//mess it all up as the good little ape he is).
 }
 
 static void	init_config(t_nmap_config *cfg, int argc, char **argv)
