@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/06 04:35:54 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/04 07:00:16 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 20:11:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,32 +28,29 @@ double	ts_msdiff(struct timeval *a, struct timeval *b)
 }
 
 /*
-** shitty_usleep: 'sleep' for ms shitty busy waiting milliseconds
+** shitty_usleep: shitty 'sleep' for some shitty timeval time
 **
-** To be used with a shitty mutex to synchronize send calls.
+** To be used with a shitty mutex to synchronize shitty send calls.
 */
-void	shitty_usleep(uint64_t ms)
+void	shitty_usleep(struct timeval *time)
 {
-	struct timeval	start, end;
-	double			diff = 0;
+	struct timeval	start, end, diff;
 
 	if (gettimeofday(&start, NULL) < 0)
 		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	do {
 		if (gettimeofday(&end, NULL) < 0)
 			ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
-		diff = ts_msdiff(&end, &start);
-	} while (diff < (double)ms);
+		if (timeval_sub(&diff, &end, &start) < 0)
+			ft_exit(EXIT_FAILURE, "timeval_sub: overflow");
+	} while (timeval_cmp(time, &diff) > 0);
 }
 
-const char	*g_nmap_time_unit_strings[] = {
-	"ns", "us", "ms", "s", "m", "h", NULL
-};
-
+const char	*g_nmap_time_unit_strings[] = { "us", "ms", "s", "m", "h", NULL };
+const int	g_nmap_us_time_units[] = { 1, 1000 };
 const int	g_nmap_s_time_units[] = { 1, 60, 3600 };
-const int	g_nmap_ns_time_units[] = { 1, 1000, 1000000 };
 
-void	str_to_timespec(struct timespec *time, const char *str)
+void	str_to_timeval(struct timeval *time, const char *str)
 {
 	const char	*unit_str = NULL, *p;
 	int			i = 0, value = 0, second = 1;
@@ -68,13 +65,13 @@ void	str_to_timespec(struct timespec *time, const char *str)
 		++i;
 	if (!g_nmap_time_unit_strings[i])
 		ft_exit(EXIT_FAILURE, "invalid argument: '%s': '%s' is not a valid "
-			"time unit (must be one of: ns, us, ms, s, m or h)", str, unit_str);
-	if (i < 3)
-		second = 1000000000 / g_nmap_ns_time_units[i];
+			"time unit (must be one of: us, ms, s, m or h)", str, unit_str);
+	if (i < 2)
+		second = 1000000 / g_nmap_us_time_units[i];
 	else
-		value *= g_nmap_s_time_units[i - 3];
+		value *= g_nmap_s_time_units[i - 2];
 	time->tv_sec = value / second;
-	time->tv_nsec = (value % second) * g_nmap_ns_time_units[i < 3 ? i : 0];
+	time->tv_usec = (value % second) * g_nmap_us_time_units[i < 2 ? i : 0];
 }
 
 /*

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 10:31:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 20:33:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,7 +264,7 @@ typedef struct		s_nmap_config
 	int				debug;
 	int				complete;
 	int				retries;
-	struct timespec	scan_delay;
+	struct timeval	scan_delay;
 	enum e_reports	report;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
@@ -505,15 +505,6 @@ void		set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,
 void		push_probe_task(t_nmap_config *cfg, t_scan_job *scan_job,
 				struct timeval *exec_time);
 void		pseudo_thread_worker(void);
-
-/*
-** Utils
-*/
-
-void		shitty_usleep(uint64_t ms);
-double		ts_msdiff(struct timeval *a, struct timeval *b);
-void		str_to_timespec(struct timespec *time, const char *str);
-int			is_passed(struct timeval *date, struct timeval *expiry);
 
 /*
 ** ft_nmap constants

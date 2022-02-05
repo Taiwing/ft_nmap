@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 10:36:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 20:47:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,12 @@
 # define	MAX_UDP_PAYLOAD_LENGTH		512
 # define	MAX_UDPFILE_TOKEN_LENGTH	(MAX_UDP_PAYLOAD_LENGTH)
 # define	TOKEN_COUNT					7
+
+// For time computation
+# define	uint128_t					__uint128_t
+# define	int128_t					__int128_t
+# define	MAX_TV_USEC					1000000
+# define	MIN_TV_USEC					(-MAX_TV_USEC)
 
 /*
 ** IP union (better than an unIP union I guess... ROFL) for v4 and v6
@@ -232,21 +238,21 @@ typedef struct		s_udp_payload
 */
 typedef struct		s_rtt_control
 {
-	struct timespec	initial_timeout;
-	struct timespec	min_timeout;
-	struct timespec	max_timeout;
-	struct timespec	smoothed;
-	struct timespec	variance;
-	struct timespec	timeout;
+	struct timeval	initial_timeout;
+	struct timeval	min_timeout;
+	struct timeval	max_timeout;
+	struct timeval	smoothed;
+	struct timeval	variance;
+	struct timeval	timeout;
 }					t_rtt_control;
 
 # define	DEF_TIMEOUT_MS				256
 # define	MIN_TIMEOUT_MS				4
 # define	MAX_TIMEOUT_MS				1024
-# define	MS_TO_TIMESPEC(ms)			{ 0, ms * 1000000 }
-# define	DEF_TIMEOUT					MS_TO_TIMESPEC(DEF_TIMEOUT_MS)
-# define	MIN_TIMEOUT					MS_TO_TIMESPEC(MIN_TIMEOUT_MS)
-# define	MAX_TIMEOUT					MS_TO_TIMESPEC(MAX_TIMEOUT_MS)
+# define	MS_TO_TIMEVAL(ms)			{ 0, ms * 1000 }
+# define	DEF_TIMEOUT					MS_TO_TIMEVAL(DEF_TIMEOUT_MS)
+# define	MIN_TIMEOUT					MS_TO_TIMEVAL(MIN_TIMEOUT_MS)
+# define	MAX_TIMEOUT					MS_TO_TIMEVAL(MAX_TIMEOUT_MS)
 
 # define	DEF_RTT {\
 	.initial_timeout = DEF_TIMEOUT,\
@@ -301,5 +307,24 @@ int			print_packet(void *packet, int domain, size_t size, char *exec);
 
 void		reset_packet(t_packet *packet, uint8_t *datap);
 void		init_packet(t_packet *packet, enum e_iphdr iph, uint8_t *datap);
+
+/*
+** Time functions
+*/
+
+void		shitty_usleep(struct timeval *time);
+double		ts_msdiff(struct timeval *a, struct timeval *b);
+void		str_to_timeval(struct timeval *time, const char *str);
+int			is_passed(struct timeval *date, struct timeval *expiry);
+int			timeval_add(struct timeval *dest, const struct timeval *left,
+				const struct timeval *right);
+int			timeval_sub(struct timeval *dest, const struct timeval *left,
+				const struct timeval *right);
+int			timeval_abs(struct timeval *dest, const struct timeval *src);
+int			timeval_div(struct timeval *dest, const struct timeval *src,
+				int div);
+int			timeval_mul(struct timeval *dest, const struct timeval *src,
+				int mul);
+int 		timeval_cmp(struct timeval *a, struct timeval *b);
 
 #endif

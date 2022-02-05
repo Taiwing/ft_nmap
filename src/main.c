@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 11:01:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 19:52:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ static void	check_config(t_nmap_config *cfg)
 		sizeof(cfg->rtt.timeout));
 	ft_memcpy(&cfg->rtt.smoothed, &cfg->rtt.initial_timeout,
 		sizeof(cfg->rtt.timeout));
-	//TODO: create timespec operation functions and check that min_timeout is
+	//TODO: create timeval operation functions and check that min_timeout is
 	//less or equal to initial_timeout which is itself less or equal to
 	//max_timeout (which is obviously the case by default, but the user will
 	//mess it all up as the good little ape he is).

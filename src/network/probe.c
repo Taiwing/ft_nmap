@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/30 16:19:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 20:04:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,8 @@ void		send_probe(t_nmap_config *cfg, t_scan_job *scan_job, uint16_t i)
 	if (cfg->speedup)
 		nmap_mutex_lock(&cfg->send_mutex, &g_send_locked);
 	if (cfg->sent_packet_count > 0
-		&& (cfg->scan_delay.tv_sec || cfg->scan_delay.tv_nsec))
-		nanosleep(&cfg->scan_delay, NULL);
+		&& (cfg->scan_delay.tv_sec || cfg->scan_delay.tv_usec))
+		shitty_usleep(&cfg->scan_delay);
 	if (sendto(cfg->send_sockets[scan_job->socket],
 		scan_job->probes[i]->raw_data, scan_job->probes[i]->size, 0,
 		(struct sockaddr *)scan_job->dstip, ip_sock_size(scan_job->dstip)) < 0)

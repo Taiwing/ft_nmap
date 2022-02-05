@@ -23,6 +23,7 @@ SRCC			=	debug.c\
 					print.c\
 					range_report.c\
 					option_utils.c\
+					timeval_ops.c\
 					verbose.c\
 					get_options.c\
 
@@ -104,6 +105,7 @@ get_destinfo.o: ft_nmap.h network.h libft.h
 layer4_headers.o: network.h libft.h
 ports.o: ft_nmap.h network.h libft.h
 packet.o: ft_nmap.h network.h libft.h
+timeval_ops.o: ft_nmap.h network.h libft.h
 verbose.o: ft_nmap.h network.h libft.h
 get_options.o: ft_nmap.h network.h libft.h
 %.o: %.c

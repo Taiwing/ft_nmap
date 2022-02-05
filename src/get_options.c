@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 10:51:35 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 19:52:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,8 +82,8 @@ const char	*g_description =
 "\tno argument is left. Then it will look at the --file option value if it\n"
 "\twas given and do the same. The host file format is one host per line.\n"
 "\n\tOptions that take a 'time' value are in milliseconds by default. They\n"
-"\tcan be appended a time unit which will be one of: ns (nanoseconds), us\n"
-"\t(microseconds), ms (milliseconds), s (seconds), m (minutes) or h (hours).\n"
+"\tcan be appended a time unit which will be one of: us (microseconds),\n"
+"\tms (milliseconds), s (seconds), m (minutes) or h (hours).\n"
 "\n\tEach scan type given in scan list is a column in the final host report\n"
 "\tand a series of letters is used to describe the result of a port scan:\n\n"
 "\tO --> Open\n"
@@ -135,11 +135,11 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 3: cfg->report = E_REPORT_RANGE;						break;
 			case 4: cfg->retries = parse_int(o.optarg, MIN_RETRIES,
 				MAX_RETRIES, "argument");								break;
-			case 5: str_to_timespec(&cfg->scan_delay, o.optarg);		break;
+			case 5: str_to_timeval(&cfg->scan_delay, o.optarg);			break;
 			case 6:
-				str_to_timespec(&cfg->rtt.initial_timeout, o.optarg);	break;
-			case 7: str_to_timespec(&cfg->rtt.min_timeout, o.optarg);	break;
-			case 8: str_to_timespec(&cfg->rtt.max_timeout, o.optarg);	break;
+				str_to_timeval(&cfg->rtt.initial_timeout, o.optarg);	break;
+			case 7: str_to_timeval(&cfg->rtt.min_timeout, o.optarg);	break;
+			case 8: str_to_timeval(&cfg->rtt.max_timeout, o.optarg);	break;
 			default: usage(cfg->exec, opt != 'h');
 		}
 	cfg->hosts = argv + o.optind;
