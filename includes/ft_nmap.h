@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/03 07:20:12 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 09:49:12 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,60 +256,10 @@ typedef struct		s_worker_config
 
 /*
 ** t_nmap_config: nmap configuration
-**
-** exec: executable name
-** speedup: number of parallel threads to use
-** verbose: additional printing option
-** debug: even more optional additional printing
-** complete: option to show every port and scan type
-** retries: number of retries per scan probe
-** scan_delay: wait time between probes (def: 0)
-** max_rtt_timeout: time before probe retry or timeout (def: 256ms)
-** report: type of report output
-** ports_to_scan: boolean array representing every port given as arguments
-** ports: compressed list with the first MAX_PORTS ports of ports_to_scan
-** nports: number of ports to scan in ports array
-** hosts: hosts list given by cmd arguments (argv + first_arg_index)
-** hosts_file: file containing a list of hosts
-** dev: interface on which to listen to given by user
-** scans: scans to perform as an array of booleans
-** nscans: number of scans to perform on each port
-** has_udp_scans: boolean set to true if UDP scan is set
-** has_tcp_scans: boolean set to true at least one TCP scan is set
-** scan_strings: store selected scan names
-** hosts_fd: file descriptor for the hosts_file
-** ifap: pointer to getifaddrs output (to be freed in cleanup)
-** ip_mode: ip configuration (IPv4/IPv6 enabled/disabled)
-** send_sockets: sockets for sending probe packets
-** recv_sockets: sockets to receive reply packets
-** netinf: information about the network interfaces
-** thread: threads array
-** nthreads: thread count
-** print_mutex: mutex for synchronizing printing
-** high_mutex: high priority mutex access to tasks list
-** low_mutex: low priority mutex access to tasks list
-** send_mutex: mutex for sending probes
-** udp_payloads: structure to fetch the udp payloads by port
-** worker_main_config: configuration of the main worker
-** worker_thread_config: configuration of the thread workers
-** host_job: current host_job
-** scan_jobs: scan_job array each corresponding to a scan
-** main_tasks: tasks to be executed by worker main
-** thread_tasks: tasks to be executed by worker threads
-** pending_tasks: boolean set to true if thread_tasks is not empty
-** running_tasks: count of actually running tasks
-** end: boolean signaling the end of ft_nmap's execution
-** start_ts: ft_nmap start timestamp (after tasks initialization)
-** end_ts: ft_nmap end timestamp (after thread_wait/listen)
-** host_count: number of hosts given by the user
-** sent_packet_count: count of packets sent
-** received_packet_count: count of received packets
-** icmp_count: count of icmp response packets
-** listen_breakloop: end LISTEN task
 */
 typedef struct		s_nmap_config
 {
-	// Initialized at startup
+	/* Initialized at startup */
 	const char		*exec;
 	int				speedup;
 	int				verbose;
@@ -345,7 +295,7 @@ typedef struct		s_nmap_config
 	t_udp_payload	**udp_payloads[PORTS_COUNT];
 	t_worker_config	worker_main_config;
 	t_worker_config	worker_thread_config;
-	// Modified during execution
+	/* Modified during execution */
 	t_host_job		host_job;
 	t_scan_job		*scan_jobs[MAX_PROBE];
 	t_list			*main_tasks;
@@ -362,19 +312,107 @@ typedef struct		s_nmap_config
 	_Atomic int		listen_breakloop;
 }					t_nmap_config;
 
-/*
-** TODO: Move nmap config field description here and use explicit names for
-** intializing them. This will be clearer and easier to update.
-*/
 # define	CONFIG_DEF				{\
-	*argv, DEF_SPEEDUP, 0, 0, 0, DEF_RETRIES, { 0 }, DEF_TIMEOUT, 0, { 0 },\
-	{ 0 }, 0, NULL, NULL, NULL, { 0 }, 0, 0, 0, { 0 }, -1, NULL, E_IPALL,\
-	{ -1, -1, -1, -1 }, { -1, -1, -1, -1, -1, -1, -1, -1 }, { 0 }, {{ 0 }}, 0,\
-	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,\
-	PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, { 0 },\
-	{ .type = E_WORKER_MAIN, .task_types = MAIN_TASKS },\
-	{ .type = E_WORKER_THREAD, .task_types = WORKER_TASKS },\
-	{ 0 }, { 0 }, NULL, NULL, 0, 0, 0, { 0 }, { 0 }, 0, 0, 0, 0, 0\
+	/* executable name */\
+	.exec = *argv,\
+	/* number of parallel threads to use */\
+	.speedup = DEF_SPEEDUP,\
+	/* additional printing option */\
+	.verbose = 0,\
+	/* even more optional additional printing */\
+	.debug = 0,\
+	/* option to show every port and scan type */\
+	.complete = 0,\
+	/* number of retries per scan probe */\
+	.retries = DEF_RETRIES,\
+	/*wait time between probes */\
+	.scan_delay = { 0 },\
+	/* time before probe retry or timeout */\
+	.max_rtt_timeout = DEF_TIMEOUT,\
+	/* type of report output */\
+	.report = 0,\
+	/* boolean array representing every port given as arguments */\
+	.ports_to_scan = { 0 },\
+	/* compressed list with the first MAX_PORTS ports of ports_to_scan */\
+	.ports = { 0 },\
+	/* number of ports to scan in ports array */\
+	.nports = 0,\
+	/* hosts list given by cmd arguments (argv + first_arg_index) */\
+	.hosts = NULL,\
+	/* file containing a list of hosts */\
+	.hosts_file = NULL,\
+	/* interface on which to listen to given by user */\
+	.dev = NULL,\
+	/* scans to perform as an array of booleans */\
+	.scans = { 0 },\
+	/* number of scans to perform on each port */\
+	.nscans = 0,\
+	/* boolean set to true if UDP scan is set */\
+	.has_udp_scans = 0,\
+	/* boolean set to true at least one TCP scan is set */\
+	.has_tcp_scans = 0,\
+	/* store selected scan names */\
+	.scan_strings = { 0 },\
+	/* file descriptor for the hosts_file */\
+	.hosts_fd = -1,\
+	/* pointer to getifaddrs output (to be freed in cleanup) */\
+	.ifap = NULL,\
+	/* ip configuration (IPv4/IPv6 enabled/disabled) */\
+	.ip_mode = E_IPALL,\
+	/* sockets for sending probe packets */\
+	.send_sockets = { -1, -1, -1, -1 },\
+	/* sockets to receive reply packets */\
+	.recv_sockets = { -1, -1, -1, -1, -1, -1, -1, -1 },\
+	/* information about the network interfaces */\
+	.netinf = { 0 },\
+	/* threads array */\
+	.thread = {{ 0 }},\
+	/* thread count */\
+	.nthreads = 0,\
+	/* mutex for synchronizing printing */\
+	.print_mutex = PTHREAD_MUTEX_INITIALIZER,\
+	/* high priority mutex access to tasks list */\
+	.high_mutex = PTHREAD_MUTEX_INITIALIZER,\
+	/* low priority mutex access to tasks list */\
+	.low_mutex = PTHREAD_MUTEX_INITIALIZER,\
+	/* mutex for sending probes */\
+	.send_mutex = PTHREAD_MUTEX_INITIALIZER,\
+	/* structure to fetch the udp payloads by port */\
+	.udp_payloads = { 0 },\
+	/* configuration of the main worker */\
+	.worker_main_config = { .type = E_WORKER_MAIN, .task_types = MAIN_TASKS },\
+	/* configuration of the thread workers */\
+	.worker_thread_config = {\
+		.type = E_WORKER_THREAD, .task_types = WORKER_TASKS\
+	},\
+	/* current host_job */\
+	.host_job = { 0 },\
+	/* scan_job array each corresponding to a scan */\
+	.scan_jobs = { 0 },\
+	/* tasks to be executed by worker main */\
+	.main_tasks = NULL,\
+	/* tasks to be executed by worker threads */\
+	.thread_tasks = NULL,\
+	/* boolean set to true if thread_tasks is not empty */\
+	.pending_tasks = 0,\
+	/* count of actually running tasks */\
+	.running_tasks = 0,\
+	/* boolean signaling the end of ft_nmap's execution */\
+	.end = 0,\
+	/* ft_nmap start timestamp (after tasks initialization) */\
+	.start_ts = { 0 },\
+	/* ft_nmap end timestamp (after thread_wait/listen) */\
+	.end_ts = { 0 },\
+	/* number of hosts given by the user */\
+	.host_count = 0,\
+	/* count of packets sent */\
+	.sent_packet_count = 0,\
+	/* count of received packets */\
+	.received_packet_count = 0,\
+	/* count of icmp response packets */\
+	.icmp_count = 0,\
+	/* end LISTEN task */\
+	.listen_breakloop = 0,\
 }
 
 /*
