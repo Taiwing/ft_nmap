@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/05 11:55:54 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 17:04:22 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 17:20:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,9 @@ _Static_assert(sizeof(time_t) < sizeof(int128_t),
 ** 
 ** Also, it is safe for dest to be equal to left or right, or even left and
 ** right. This is because the values are copied first and written at the end.
+**
+** Every timespec function returns 0 if everything went well and -1 if there
+** was an error (overflow, underlow or division by 0).
 */
 
 static void	check_timespec_result(int128_t *secptr, int128_t *nsecptr)
@@ -94,6 +97,21 @@ int	timespec_abs(struct timespec *dest, const struct timespec *src)
 	return (-!(dest->tv_sec == sec && dest->tv_nsec == nsec));
 }
 
+int	timespec_div(struct timespec *dest, const struct timespec *src, int div)
+{
+	int128_t	sec = (int128_t)src->tv_sec;
+	int128_t	nsec = (int128_t)src->tv_nsec;
+
+	if (!div)
+		return (-1);
+	sec /= div;
+	nsec /= div;
+	nsec += ((src->tv_sec % div) * MAX_TV_NSEC) / div;
+	dest->tv_sec = sec;
+	dest->tv_nsec = nsec;
+	return (-!(dest->tv_sec == sec && dest->tv_nsec == nsec));
+}
+
 int main(int argc, char **argv)
 {
 	struct timespec	left = { 0 };
@@ -101,7 +119,9 @@ int main(int argc, char **argv)
 	struct timespec	sum = { 0 };
 	struct timespec	sub = { 0 };
 	struct timespec	abs = { 0 };
-	int				ret_sum = 0, ret_sub = 0, ret_abs = 0;
+	struct timespec	div = { 0 };
+	int				ret_sum = 0, ret_sub = 0, ret_abs = 0, ret_div;
+	int				divisor;
 
 	if (argc > 1)
 		left.tv_sec = strtoll(argv[1], NULL, 10);
@@ -111,6 +131,8 @@ int main(int argc, char **argv)
 		right.tv_sec = strtoll(argv[3], NULL, 10);
 	if (argc > 4)
 		right.tv_nsec = strtoll(argv[4], NULL, 10);
+	if (argc > 5)
+		divisor = atoi(argv[5]);
 	printf("left - sec: %ld - nsec: %ld\n", left.tv_sec, left.tv_nsec);
 	printf("right - sec: %ld - nsec: %ld\n", right.tv_sec, right.tv_nsec);
 	ret_sum = timespec_add(&sum, &left, &right);
@@ -127,5 +149,11 @@ int main(int argc, char **argv)
 	ret_abs = timespec_abs(&abs, &abs);
 	printf("abs(right) - (return %d) - sec: %ld - nsec: %ld\n",
 		ret_abs, abs.tv_sec, abs.tv_nsec);
+	ret_div = timespec_div(&div, &left, divisor);
+	printf("left / %d - (return %d) - sec: %ld - nsec: %ld\n",
+		divisor, ret_div, div.tv_sec, div.tv_nsec);
+	ret_div = timespec_div(&div, &right, divisor);
+	printf("right / %d - (return %d) - sec: %ld - nsec: %ld\n",
+		divisor, ret_div, div.tv_sec, div.tv_nsec);
 	return (EXIT_SUCCESS);
 }
