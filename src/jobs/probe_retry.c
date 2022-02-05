@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 21:33:17 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 20:09:18 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 10:40:19 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,8 @@ void	probe_retry_time(struct timeval *exec_time)
 {
 	 if (gettimeofday(exec_time, NULL) < 0)
 		 ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
-	 exec_time->tv_sec += g_cfg->max_rtt_timeout.tv_sec;
-	 exec_time->tv_usec += g_cfg->max_rtt_timeout.tv_nsec / 1000;
+	 exec_time->tv_sec += g_cfg->rtt.timeout.tv_sec;
+	 exec_time->tv_usec += g_cfg->rtt.timeout.tv_nsec / 1000;
 }
 
 void	set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,

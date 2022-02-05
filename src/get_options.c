@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/04 19:47:43 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 10:51:35 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,23 +15,25 @@
 #define	FT_NMAP_OPT	"df:hi:p:S:s:v46"
 
 const t_opt	g_nmap_opt[] = {
-	{ "debug",				0,	NULL,	'd'	},
-	{ "file",				1,	NULL,	'f'	},
-	{ "help",				0,	NULL,	'h'	},
-	{ "interface",			1,	NULL,	'i'	},
-	{ "ports",				1,	NULL,	'p'	},
-	{ "speedup",			1,	NULL,	'S'	},
-	{ "scan",				1,	NULL,	's'	},
-	{ "verbose",			0,	NULL,	'v'	},
-	{ "ipv4",				0,	NULL,	'4'	},
-	{ "ipv6",				0,	NULL,	'6'	},
-	{ "complete",			0,	NULL,	1	},
-	{ "heatmap",			0,	NULL,	2	},
-	{ "range",				0,	NULL,	3	},
-	{ "max-retries",		1,	NULL,	4	},
-	{ "scan-delay",			1,	NULL,	5	},
-	{ "max-rtt-timeout",	1,	NULL,	6	},
-	{ NULL,					0,	NULL,	0	},
+	{ "debug",					0,	NULL,	'd'	},
+	{ "file",					1,	NULL,	'f'	},
+	{ "help",					0,	NULL,	'h'	},
+	{ "interface",				1,	NULL,	'i'	},
+	{ "ports",					1,	NULL,	'p'	},
+	{ "speedup",				1,	NULL,	'S'	},
+	{ "scan",					1,	NULL,	's'	},
+	{ "verbose",				0,	NULL,	'v'	},
+	{ "ipv4",					0,	NULL,	'4'	},
+	{ "ipv6",					0,	NULL,	'6'	},
+	{ "complete",				0,	NULL,	1	},
+	{ "heatmap",				0,	NULL,	2	},
+	{ "range",					0,	NULL,	3	},
+	{ "max-retries",			1,	NULL,	4	},
+	{ "scan-delay",				1,	NULL,	5	},
+	{ "initial-rtt-timeout",	1,	NULL,	6	},
+	{ "min-rtt-timeout",		1,	NULL,	7	},
+	{ "max-rtt-timeout",		1,	NULL,	8	},
+	{ NULL,						0,	NULL,	0	},
 };
 
 const char	*g_nmap_help[] = {
@@ -59,15 +61,18 @@ const char	*g_nmap_help[] = {
 	"Set max number of retries to for sending a probe (def: " xstr(DEF_RETRIES)
 	", min: " xstr(MIN_RETRIES) ", max: " xstr(MAX_RETRIES) ").",
 	"Adjust delay between probes.",
-	"Set how long to wait for a probe to respond before retry or timeout.",
+	"Set initial time to wait for a probe to respond before retry or timeout.",
+	"Set minimum value of the RTT timeout.",
+	"Set maximum value of the RTT timeout.",
 	NULL,
 };
 
 const char	*g_nmap_usage[] = {
 	"[-dhv46] [-f file_path] [-i interface] [-p port_list] [-S speedup]\n"
 	"\t\t[-s scan_list] [--complete | --heatmap | --range]\n"
-	"\t\t[--max-retries retries] [--scan-delay time] [--max-rtt-timeout time]\n"
-	"\t\thost ...",
+	"\t\t[--max-retries retries] [--scan-delay time]\n"
+	"\t\t[--initial-rtt-timeout time] [--min-rtt-timeout time]\n"
+	"\t\t[--max-rtt-timeout time] host ...",
 	NULL,
 };
 
@@ -131,7 +136,10 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 4: cfg->retries = parse_int(o.optarg, MIN_RETRIES,
 				MAX_RETRIES, "argument");								break;
 			case 5: str_to_timespec(&cfg->scan_delay, o.optarg);		break;
-			case 6: str_to_timespec(&cfg->max_rtt_timeout, o.optarg);	break;
+			case 6:
+				str_to_timespec(&cfg->rtt.initial_timeout, o.optarg);	break;
+			case 7: str_to_timespec(&cfg->rtt.min_timeout, o.optarg);	break;
+			case 8: str_to_timespec(&cfg->rtt.max_timeout, o.optarg);	break;
 			default: usage(cfg->exec, opt != 'h');
 		}
 	cfg->hosts = argv + o.optind;

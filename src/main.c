@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/31 08:40:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 10:48:20 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,10 @@ static void	check_config(t_nmap_config *cfg)
 			cfg->scans[cfg->nscans] = 1;
 	cfg->has_udp_scans = cfg->scans[E_UDP];
 	cfg->has_tcp_scans = !!(cfg->nscans - cfg->has_udp_scans);
+	ft_memcpy(&cfg->rtt.timeout, &cfg->rtt.initial_timeout,
+		sizeof(cfg->rtt.timeout));
+	ft_memcpy(&cfg->rtt.smoothed, &cfg->rtt.initial_timeout,
+		sizeof(cfg->rtt.timeout));
 }
 
 static void	init_config(t_nmap_config *cfg, int argc, char **argv)

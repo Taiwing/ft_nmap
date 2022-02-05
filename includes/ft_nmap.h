@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 09:49:12 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 10:31:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,8 +39,6 @@
 # define	MIN_RETRIES					0
 # define	MAX_RETRIES					100
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
-# define	DEF_TIMEOUT_MS				256
-# define	DEF_TIMEOUT					{ 0, DEF_TIMEOUT_MS * 1000000 }
 
 // Print format constants
 # define	SERVICE_NAME_MAXLEN			20
@@ -267,7 +265,6 @@ typedef struct		s_nmap_config
 	int				complete;
 	int				retries;
 	struct timespec	scan_delay;
-	struct timespec	max_rtt_timeout;
 	enum e_reports	report;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
@@ -292,6 +289,7 @@ typedef struct		s_nmap_config
 	pthread_mutex_t	high_mutex;
 	pthread_mutex_t	low_mutex;
 	pthread_mutex_t	send_mutex;
+	pthread_mutex_t	rtt_mutex;
 	t_udp_payload	**udp_payloads[PORTS_COUNT];
 	t_worker_config	worker_main_config;
 	t_worker_config	worker_thread_config;
@@ -310,6 +308,7 @@ typedef struct		s_nmap_config
 	int				received_packet_count;
 	_Atomic int		icmp_count;
 	_Atomic int		listen_breakloop;
+	t_rtt_control	rtt;
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
@@ -327,8 +326,6 @@ typedef struct		s_nmap_config
 	.retries = DEF_RETRIES,\
 	/*wait time between probes */\
 	.scan_delay = { 0 },\
-	/* time before probe retry or timeout */\
-	.max_rtt_timeout = DEF_TIMEOUT,\
 	/* type of report output */\
 	.report = 0,\
 	/* boolean array representing every port given as arguments */\
@@ -377,6 +374,8 @@ typedef struct		s_nmap_config
 	.low_mutex = PTHREAD_MUTEX_INITIALIZER,\
 	/* mutex for sending probes */\
 	.send_mutex = PTHREAD_MUTEX_INITIALIZER,\
+	/* mutex for rtt update and read */\
+	.rtt_mutex = PTHREAD_MUTEX_INITIALIZER,\
 	/* structure to fetch the udp payloads by port */\
 	.udp_payloads = { 0 },\
 	/* configuration of the main worker */\
@@ -413,6 +412,8 @@ typedef struct		s_nmap_config
 	.icmp_count = 0,\
 	/* end LISTEN task */\
 	.listen_breakloop = 0,\
+	/* RTT control structure for computing timeout */\
+	.rtt = DEF_RTT,\
 }
 
 /*

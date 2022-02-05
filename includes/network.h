@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/31 19:44:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 10:36:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,6 +219,40 @@ typedef struct		s_udp_payload
 	size_t			size;
 	uint8_t			*data;
 }					t_udp_payload;
+
+/*
+** t_rtt_control: estimate current RTT and compute timeout
+**
+** initial_timeout: value at wich the RTT timeout is initialized
+** min_timeout: minimum value of the RTT timeout
+** max_timeout: maximum value of the RTT timeout
+** smoothed: smoothed average RTT used to compute timeout
+** variance: observed variance in RTT used to compute timeout
+** timeout: current RTT timeout
+*/
+typedef struct		s_rtt_control
+{
+	struct timespec	initial_timeout;
+	struct timespec	min_timeout;
+	struct timespec	max_timeout;
+	struct timespec	smoothed;
+	struct timespec	variance;
+	struct timespec	timeout;
+}					t_rtt_control;
+
+# define	DEF_TIMEOUT_MS				256
+# define	MIN_TIMEOUT_MS				4
+# define	MAX_TIMEOUT_MS				1024
+# define	MS_TO_TIMESPEC(ms)			{ 0, ms * 1000000 }
+# define	DEF_TIMEOUT					MS_TO_TIMESPEC(DEF_TIMEOUT_MS)
+# define	MIN_TIMEOUT					MS_TO_TIMESPEC(MIN_TIMEOUT_MS)
+# define	MAX_TIMEOUT					MS_TO_TIMESPEC(MAX_TIMEOUT_MS)
+
+# define	DEF_RTT {\
+	.initial_timeout = DEF_TIMEOUT,\
+	.min_timeout = MIN_TIMEOUT,\
+	.max_timeout = MAX_TIMEOUT,\
+}
 
 /*
 ** IP utility functions
