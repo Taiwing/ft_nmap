@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 20:33:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/06 11:42:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,12 +142,13 @@ enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE, E_REPORT_HEATMAP };
 ** probes: scan_job probe packets
 ** probe_count: number of probe packets
 ** socket: send socket type
+** sent_ts: timestamp of last sent probe for this job
 */
 typedef struct				s_scan_job
 {
 	uint8_t					status;
 	_Atomic int				tries;
-	_Atomic enum e_scans	type;
+	enum e_scans			type;
 	t_ip					*srcip;
 	t_ip					*dstip;
 	uint16_t				srcp;
@@ -157,6 +158,7 @@ typedef struct				s_scan_job
 	t_packet				**probes;
 	uint16_t				probe_count;
 	enum e_send_sockets		socket;
+	struct timeval			sent_ts;
 }							t_scan_job;
 
 /*
@@ -204,13 +206,14 @@ typedef struct			s_host_job
 }						t_host_job;
 
 /*
-** Task structure: given to workers and main by next_task()
+** Task structure to be executed by workers
 **
 ** type: well, type of task (duh)
 ** scan_job: scan_job for type PROBE or REPLY (timeout)
-** reply: scan reply bytes for REPLY task
-** reply_size: scan reply packet size for REPLY task
-** reply_ip_header: scan reply ip header type
+** reply: scan REPLY bytes
+** reply_size: scan REPLY packet size
+** reply_ip_header: scan REPLY ip header type for
+** reply_time: timestamp of REPLY reception
 ** exec_time: timestamp from which the task can be executed (immediate if 0)
 */
 typedef struct		s_task
@@ -220,6 +223,7 @@ typedef struct		s_task
 	uint8_t			*reply;
 	size_t			reply_size;
 	enum e_iphdr	reply_ip_header;
+	struct timeval	reply_time;
 	struct timeval	exec_time;
 }					t_task;
 
@@ -499,7 +503,7 @@ void		push_tasks(t_list **dest, t_list *tasks,
 void		push_reply_task(t_nmap_config *cfg, t_task *task,
 				struct timeval *exec_time);
 void		init_tasks(t_nmap_config *cfg);
-void		probe_retry_time(struct timeval *exec_time);
+void		probe_retry_time(struct timeval *sent_ts, struct timeval *retry_ts);
 void		set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,
 				struct timeval *exec_time);
 void		push_probe_task(t_nmap_config *cfg, t_scan_job *scan_job,
@@ -528,6 +532,7 @@ extern __thread int			g_print_locked;
 extern __thread int			g_high_locked;
 extern __thread int			g_low_locked;
 extern __thread int			g_send_locked;
+extern __thread int			g_rtt_locked;
 extern t_nmap_config		*g_cfg;
 
 #endif

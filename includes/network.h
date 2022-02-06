@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 20:47:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/06 11:34:14 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,5 +326,6 @@ int			timeval_div(struct timeval *dest, const struct timeval *src,
 int			timeval_mul(struct timeval *dest, const struct timeval *src,
 				int mul);
 int 		timeval_cmp(struct timeval *a, struct timeval *b);
+void		rtt_update(struct timeval *sent, struct timeval *received);
 
 #endif

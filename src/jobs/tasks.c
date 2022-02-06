@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 11:14:22 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/06 11:40:20 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ static void	task_probe(t_task *task)
 {
 	int				tries;
 	int				payload_index;
-	struct timeval	exec_time = { 0 };
+	struct timeval	retry_ts = { 0 };
 
 	if (g_cfg->host_job.status & E_STATE_DONE)
 		return ;
@@ -78,11 +78,11 @@ static void	task_probe(t_task *task)
 		verbose_scan(g_cfg, task->scan_job,
 			task->scan_job->probes[payload_index], "Sending probe...");
 	send_probe(g_cfg, task->scan_job, payload_index);
-	probe_retry_time(&exec_time);
+	probe_retry_time(&task->scan_job->sent_ts, &retry_ts);
 	if (tries > 0)
-		push_probe_task(g_cfg, task->scan_job, &exec_time);
+		push_probe_task(g_cfg, task->scan_job, &retry_ts);
 	else
-		set_scan_job_timeout(g_cfg, task->scan_job, &exec_time);
+		set_scan_job_timeout(g_cfg, task->scan_job, &retry_ts);
 }
 
 static void	task_reply(t_task *task)
@@ -105,6 +105,8 @@ static void	task_reply(t_task *task)
 		push_front_tasks(&g_cfg->main_tasks, lst, g_cfg, !!g_cfg->speedup);
 		g_cfg->listen_breakloop = 1;
 	}
+	else if (result != E_STATE_NONE && !task->scan_job)
+		rtt_update(&scan_job->sent_ts, &task->reply_time);
 	ft_memdel((void **)&task->reply);
 }
 

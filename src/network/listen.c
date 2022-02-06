@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/31 08:37:58 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/05 22:08:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,8 @@ void		push_reply_task(t_nmap_config *cfg, t_task *task,
 	}
 }
 
-static void	pollin_handler(int listen_fd, enum e_recv_sockets recv_type)
+static void	pollin_handler(int listen_fd, enum e_recv_sockets recv_type,
+		struct timeval *reply_time)
 {
 	int				size;
 	char			bytes[RAW_DATA_MAXSIZE];
@@ -49,6 +50,7 @@ static void	pollin_handler(int listen_fd, enum e_recv_sockets recv_type)
 	else if (size)
 	{
 		++g_cfg->received_packet_count;
+		ft_memcpy(&task.reply_time, reply_time, sizeof(task.reply_time));
 		task.reply = ft_memdup(bytes, size);
 		task.reply_size = size;
 		task.reply_ip_header = SOCKET_SRECV_IS_IPV4(recv_type) ?
@@ -59,19 +61,22 @@ static void	pollin_handler(int listen_fd, enum e_recv_sockets recv_type)
 
 int			ft_listen(struct pollfd *listen_fds, int fds_count, int timeout)
 {
-	int	reply_count;
+	struct timeval	reply_time;
+	int				reply_count;
 
 	if (!(reply_count = poll(listen_fds, fds_count, timeout)))
 		return (reply_count);
 	else if (reply_count < 0)
 		ft_exit(EXIT_FAILURE, "%s: poll: %s", __func__, strerror(errno));
+	if (gettimeofday(&reply_time, NULL) < 0)
+		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	for (int i = 0; i < fds_count; ++i)
 	{
 		if (listen_fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
 			ft_exit(EXIT_FAILURE, "%s: received %hu revents on %s socket",
 				__func__, listen_fds[i].revents, g_socket_recv_strings[i]);
 		else if (listen_fds[i].revents & POLLIN)
-			pollin_handler(listen_fds[i].fd, i);
+			pollin_handler(listen_fds[i].fd, i, &reply_time);
 	}
 	return (reply_count);
 }

@@ -37,6 +37,7 @@ JOBSC			=	update_job.c\
 
 NETWORKC		=	filter.c\
 					next_host.c\
+					rtt_update.c\
 					print_headers.c\
 					parse_reply_packet.c\
 					udp_payloads.c\
@@ -91,6 +92,7 @@ range_report.o: ft_nmap.h network.h libft.h
 option_utils.o: ft_nmap.h network.h libft.h
 filter.o: ft_nmap.h network.h libft.h
 next_host.o: ft_nmap.h network.h libft.h
+rtt_update.o: ft_nmap.h network.h libft.h
 print_headers.o: network.h libft.h
 parse_reply_packet.o: ft_nmap.h network.h libft.h
 udp_payloads.o: ft_nmap.h network.h libft.h

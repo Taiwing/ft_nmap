@@ -6,18 +6,22 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 21:33:17 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 20:36:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/06 11:42:36 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-void	probe_retry_time(struct timeval *exec_time)
+void	probe_retry_time(struct timeval *sent_ts, struct timeval *retry_ts)
 {
-	 if (gettimeofday(exec_time, NULL) < 0)
-		 ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
-	 if (timeval_add(exec_time, exec_time, &g_cfg->rtt.timeout) < 0)
-		 ft_exit(EXIT_FAILURE, "timeval_add: overflow");
+	if (g_cfg->speedup)
+		nmap_mutex_lock(&g_cfg->rtt_mutex, &g_rtt_locked);
+	if (gettimeofday(sent_ts, NULL) < 0)
+		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
+	if (timeval_add(retry_ts, sent_ts, &g_cfg->rtt.timeout) < 0)
+		ft_exit(EXIT_FAILURE, "timeval_add: overflow");
+	if (g_cfg->speedup)
+		nmap_mutex_unlock(&g_cfg->rtt_mutex, &g_rtt_locked);
 }
 
 void	set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,
