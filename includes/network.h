@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 11:34:14 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/06 12:27:08 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,7 +249,7 @@ typedef struct		s_rtt_control
 # define	DEF_TIMEOUT_MS				256
 # define	MIN_TIMEOUT_MS				4
 # define	MAX_TIMEOUT_MS				1024
-# define	MS_TO_TIMEVAL(ms)			{ 0, ms * 1000 }
+# define	MS_TO_TIMEVAL(ms)			{ ms / 1000, (ms % 1000) * 1000 }
 # define	DEF_TIMEOUT					MS_TO_TIMEVAL(DEF_TIMEOUT_MS)
 # define	MIN_TIMEOUT					MS_TO_TIMEVAL(MIN_TIMEOUT_MS)
 # define	MAX_TIMEOUT					MS_TO_TIMEVAL(MAX_TIMEOUT_MS)

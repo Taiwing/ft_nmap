@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/06 11:10:58 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 11:43:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/06 12:35:20 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,12 @@ static void	rtt_timeout(void)
 		ft_exit(EXIT_FAILURE, "timeval_mul: error");
 	if (timeval_add(&g_cfg->rtt.timeout, &g_cfg->rtt.smoothed, &tmp) < 0)
 		ft_exit(EXIT_FAILURE, "timeval_add: overflow");
+	if (timeval_cmp(&g_cfg->rtt.timeout, &g_cfg->rtt.min_timeout) < 0)
+		ft_memcpy(&g_cfg->rtt.timeout, &g_cfg->rtt.min_timeout,
+			sizeof(g_cfg->rtt.timeout));
+	else if (timeval_cmp(&g_cfg->rtt.timeout, &g_cfg->rtt.max_timeout) > 0)
+		ft_memcpy(&g_cfg->rtt.timeout, &g_cfg->rtt.max_timeout,
+			sizeof(g_cfg->rtt.timeout));
 }
 
 /*
