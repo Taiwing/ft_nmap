@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 11:40:20 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/07 22:04:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ static void	task_listen(t_task *task)
 	while (!g_cfg->end && !g_cfg->listen_breakloop)
 	{
 		//while (ft_listen(listen_fds, SOCKET_RECV_COUNT, 0) > 0);
-		ft_listen(listen_fds, SOCKET_RECV_COUNT, 0);
+		ft_listen(listen_fds, SOCKET_RECV_COUNT, g_cfg->speedup ? 0 : 1);
 		if (!g_cfg->speedup)
 			pseudo_thread_worker();
 	}
@@ -124,19 +124,20 @@ static void	task_print_stats(t_task *task)
 
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
-	if (gettimeofday(&g_cfg->end_ts, NULL) < 0)
-		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
-	total_time = ts_msdiff(&g_cfg->end_ts, &g_cfg->start_ts) / 1000.0;
-	ft_printf("\n--- ft_nmap done ---\n%d address%s scanned in %g seconds\n",
-		g_cfg->host_count, g_cfg->host_count > 1 ? "es" : "", total_time);
+	if (g_cfg->end)
+		total_time = print_end_stats();
+	else
+		total_time = print_update_stats();
 	debug_print(g_cfg,
 		"total packets sent: %d (%g per second)\n"
 		"icmp packets received: %d (%g per second)\n"
 		"total packets received: %d (%g per second)\n",
-		g_cfg->sent_packet_count, g_cfg->sent_packet_count / total_time,
-		g_cfg->icmp_count, g_cfg->icmp_count / total_time,
+		g_cfg->sent_packet_count,
+		total_time ? g_cfg->sent_packet_count / total_time : -1,
+		g_cfg->icmp_count,
+		total_time ? g_cfg->icmp_count / total_time : -1,
 		g_cfg->received_packet_count,
-		g_cfg->received_packet_count / total_time);
+		total_time ? g_cfg->received_packet_count / total_time : -1);
 }
 
 const taskf	g_tasks[] = {

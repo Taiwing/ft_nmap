@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 08:01:16 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/31 08:44:58 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/07 21:39:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -271,7 +271,7 @@ static void	filter_ipv6_icmp(int sockfd, int protocol, t_nmap_config *cfg)
 		filter[i * 2 + 35].k = src->v6.sin6_addr.s6_addr[i];
 	filter[67].k = protocol;
 	filter[69].k = PORT_DEF;
-	filter[70].k = PORT_DEF + (cfg->nscans * cfg->nports) - 1;
+	filter[70].k = PORT_DEF + cfg->total_scan_count - 1;
 	filter[72].k = cfg->ports[0];
 	filter[73].k = cfg->ports[cfg->nports - 1];
 	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
@@ -294,7 +294,7 @@ static void	filter_ipv6_layer4(int sockfd, int protocol, t_nmap_config *cfg)
 	filter[67].k = cfg->ports[0];
 	filter[68].k = cfg->ports[cfg->nports - 1];
 	filter[70].k = PORT_DEF;
-	filter[71].k = PORT_DEF + (cfg->nscans * cfg->nports) - 1;
+	filter[71].k = PORT_DEF + cfg->total_scan_count - 1;
 	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
 		ft_exit(EXIT_FAILURE, "%s: setsockopt: %s", __func__, strerror(errno));
 }
@@ -312,7 +312,7 @@ static void	filter_ipv4_icmp(int sockfd, int protocol, t_nmap_config *cfg)
 	filter[5].k = htonl(src->v4.sin_addr.s_addr);
 	filter[7].k = protocol;
 	filter[9].k = PORT_DEF;
-	filter[10].k = PORT_DEF + (cfg->nscans * cfg->nports) - 1;
+	filter[10].k = PORT_DEF + cfg->total_scan_count - 1;
 	filter[12].k = cfg->ports[0];
 	filter[13].k = cfg->ports[cfg->nports - 1];
 	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
@@ -333,7 +333,7 @@ static void	filter_ipv4_layer4(int sockfd, int protocol, t_nmap_config *cfg)
 	filter[7].k = cfg->ports[0];
 	filter[8].k = cfg->ports[cfg->nports - 1];
 	filter[10].k = PORT_DEF;
-	filter[11].k = PORT_DEF + (cfg->nscans * cfg->nports) - 1;
+	filter[11].k = PORT_DEF + cfg->total_scan_count - 1;
 	if (setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) < 0)
 		ft_exit(EXIT_FAILURE, "%s: setsockopt: %s", __func__, strerror(errno));
 }

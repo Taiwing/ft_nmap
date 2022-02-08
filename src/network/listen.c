@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 22:08:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/06 20:46:01 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ const char	*g_socket_recv_strings[SOCKET_RECV_COUNT] = {
 	[E_SRECV_ICMP_UDPV6] = "ICMP_UDPV6",
 	[E_SRECV_ICMP_TCPV4] = "ICMP_TCPV4",
 	[E_SRECV_ICMP_TCPV6] = "ICMP_TCPV6",
+	[E_SRECV_STDIN] = "STDIN",
 };
 
 void		push_reply_task(t_nmap_config *cfg, t_task *task,
@@ -38,7 +39,7 @@ void		push_reply_task(t_nmap_config *cfg, t_task *task,
 	}
 }
 
-static void	pollin_handler(int listen_fd, enum e_recv_sockets recv_type,
+static void	socket_handler(int listen_fd, enum e_recv_sockets recv_type,
 		struct timeval *reply_time)
 {
 	int				size;
@@ -57,6 +58,19 @@ static void	pollin_handler(int listen_fd, enum e_recv_sockets recv_type,
 			E_IH_V4 : E_IH_V6;
 		push_reply_task(g_cfg, &task, NULL);
 	}
+}
+
+static void	pollin_handler(int listen_fd, enum e_recv_sockets recv_type,
+		struct timeval *reply_time)
+{
+	char			buf[1];
+	t_task			stats_task = { .type = E_TASK_PRINT_STATS };
+
+	if (recv_type != E_SRECV_STDIN)
+		return (socket_handler(listen_fd, recv_type, reply_time));
+	if (read(listen_fd, buf, 1) < 0)
+		ft_exit(EXIT_FAILURE, "read: %s", strerror(errno));
+	push_reply_task(g_cfg, &stats_task, NULL);
 }
 
 int			ft_listen(struct pollfd *listen_fds, int fds_count, int timeout)

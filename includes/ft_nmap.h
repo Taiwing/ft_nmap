@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 11:42:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/07 21:38:18 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,8 +75,10 @@ enum		e_tasks {
 };
 # define	LAST_TASK			E_TASK_PRINT_STATS
 # define	ALL_TASKS			((LAST_TASK << 1) - 1)
-# define	WORKER_TASKS		(E_TASK_PROBE | E_TASK_REPLY)
-# define	MAIN_TASKS			(ALL_TASKS ^ WORKER_TASKS)
+# define	WORKER_TASKS		\
+	(E_TASK_PROBE | E_TASK_REPLY | E_TASK_PRINT_STATS)
+# define	MAIN_TASKS			\
+	((ALL_TASKS ^ WORKER_TASKS) + E_TASK_PRINT_STATS)
 
 // Workers
 enum		e_workers {
@@ -102,7 +104,7 @@ enum		e_send_sockets {
 };
 
 // Receive sockets
-# define	SOCKET_RECV_COUNT	8
+# define	SOCKET_RECV_COUNT	9
 enum		e_recv_sockets {
 	E_SRECV_UDPV4 = 0,
 	E_SRECV_UDPV6,
@@ -112,16 +114,21 @@ enum		e_recv_sockets {
 	E_SRECV_ICMP_UDPV6,
 	E_SRECV_ICMP_TCPV4,
 	E_SRECV_ICMP_TCPV6,
+	E_SRECV_STDIN,
 };
 
 # define	SOCKET_SRECV_IS_IPV4(n)\
 	(n == E_SRECV_UDPV4 || n == E_SRECV_TCPV4\
 	|| n == E_SRECV_ICMP_UDPV4 || n == E_SRECV_ICMP_TCPV4)
-# define	SOCKET_SRECV_IS_IPV6(n)	(!SOCKET_SRECV_IS_IPV4(n))
+# define	SOCKET_SRECV_IS_IPV6(n)\
+	(n == E_SRECV_UDPV6 || n == E_SRECV_TCPV6\
+	|| n == E_SRECV_ICMP_UDPV6 || n == E_SRECV_ICMP_TCPV6)
 # define	SOCKET_SRECV_IS_UDP(n)\
 	(n == E_SRECV_UDPV4 || n == E_SRECV_ICMP_UDPV4\
 	|| n == E_SRECV_UDPV6 || n == E_SRECV_ICMP_UDPV6)
-# define	SOCKET_SRECV_IS_TCP(n)	(!SOCKET_SRECV_IS_UDP(n))
+# define	SOCKET_SRECV_IS_TCP(n)\
+	(n == E_SRECV_TCPV4 || n == E_SRECV_ICMP_TCPV4\
+	|| n == E_SRECV_TCPV6 || n == E_SRECV_ICMP_TCPV6)
 
 
 // Reports
@@ -141,6 +148,7 @@ enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE, E_REPORT_HEATMAP };
 ** port_job_id: index of the port_job in the host_job's port_jobs array
 ** probes: scan_job probe packets
 ** probe_count: number of probe packets
+** total_tries: total number of tries for this job (to initialize tries)
 ** socket: send socket type
 ** sent_ts: timestamp of last sent probe for this job
 */
@@ -157,6 +165,7 @@ typedef struct				s_scan_job
 	uint16_t				port_job_id;
 	t_packet				**probes;
 	uint16_t				probe_count;
+	int						total_tries;
 	enum e_send_sockets		socket;
 	struct timeval			sent_ts;
 }							t_scan_job;
@@ -280,6 +289,7 @@ typedef struct		s_nmap_config
 	uint8_t			nscans;
 	int				has_udp_scans;
 	int				has_tcp_scans;
+	int				total_scan_count;
 	const char		*scan_strings[SCAN_COUNT];
 	int				hosts_fd;
 	struct ifaddrs	*ifap;
@@ -352,6 +362,8 @@ typedef struct		s_nmap_config
 	.has_udp_scans = 0,\
 	/* boolean set to true at least one TCP scan is set */\
 	.has_tcp_scans = 0,\
+	/* Total number of scans to execute by host (nports * nscans) */\
+	.total_scan_count = 0,\
 	/* store selected scan names */\
 	.scan_strings = { 0 },\
 	/* file descriptor for the hosts_file */\
@@ -362,8 +374,8 @@ typedef struct		s_nmap_config
 	.ip_mode = E_IPALL,\
 	/* sockets for sending probe packets */\
 	.send_sockets = { -1, -1, -1, -1 },\
-	/* sockets to receive reply packets */\
-	.recv_sockets = { -1, -1, -1, -1, -1, -1, -1, -1 },\
+	/* sockets to receive reply packets or user input */\
+	.recv_sockets = { -1, -1, -1, -1, -1, -1, -1, -1, 0 },\
 	/* information about the network interfaces */\
 	.netinf = { 0 },\
 	/* threads array */\
@@ -509,6 +521,8 @@ void		set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,
 void		push_probe_task(t_nmap_config *cfg, t_scan_job *scan_job,
 				struct timeval *exec_time);
 void		pseudo_thread_worker(void);
+double		print_end_stats(void);
+double		print_update_stats(void);
 
 /*
 ** ft_nmap constants

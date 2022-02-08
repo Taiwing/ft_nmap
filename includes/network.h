@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 17:26:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/06 20:00:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -315,6 +315,7 @@ void		init_packet(t_packet *packet, enum e_iphdr iph, uint8_t *datap);
 void		shitty_usleep(struct timeval *time);
 double		ts_msdiff(struct timeval *a, struct timeval *b);
 void		str_to_timeval(struct timeval *time, const char *str);
+int			timeval_to_str(char *buf, size_t size, struct timeval *time);
 int			is_passed(struct timeval *date, struct timeval *expiry);
 int			timeval_add(struct timeval *dest, const struct timeval *left,
 				const struct timeval *right);
