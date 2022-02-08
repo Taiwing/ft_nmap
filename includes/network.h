@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 20:00:58 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/08 08:37:32 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,6 +261,39 @@ typedef struct		s_rtt_control
 }
 
 /*
+** t_send_window: adapt concurrent probe count to network conditions
+**
+** current: number of probes currently sent and waiting for a reply
+** size: actual size of the window (how many probes can be sent at once)
+** min: minimum size of the window
+** max: maximum size of the window
+** ssthresh: slow start threshold (start congestion avoidance)
+** avoid_count: increase this instead of size during congestion avoidance
+*/
+
+typedef struct		s_send_window
+{
+	_Atomic int		current;
+	_Atomic int		size;
+	int				min;
+	int				max;
+	int				ssthresh;
+	_Atomic int		avoid_count;
+}					t_send_window;
+
+# define	DEF_SIZE		16
+# define	DEF_MIN			4
+# define	DEF_MAX			(USHRT_MAX >> 2)
+# define	DEF_SSTHRESH	(DEF_MAX >> 2)
+
+# define	DEF_SEND_WINDOW {\
+	.size = DEF_SIZE,\
+	.min = DEF_MIN,\
+	.max = DEF_MAX,\
+	.ssthresh = DEF_SSTHRESH,\
+}
+
+/*
 ** IP utility functions
 */
 
@@ -328,5 +361,14 @@ int			timeval_mul(struct timeval *dest, const struct timeval *src,
 				int mul);
 int 		timeval_cmp(struct timeval *a, struct timeval *b);
 void		rtt_update(struct timeval *sent, struct timeval *received);
+
+/*
+** Window functions
+*/
+
+int			full_window(t_send_window *window);
+void		update_window(t_send_window *window, int is_reply);
+void		backoff_window(t_send_window *window);
+void		reset_window(t_send_window *window);
 
 #endif

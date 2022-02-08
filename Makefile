@@ -45,6 +45,7 @@ NETWORKC		=	filter.c\
 					ip_headers.c\
 					sockets.c\
 					ip.c\
+					window.c\
 					probe.c\
 					interfaces.c\
 					scan_result.c\
@@ -101,6 +102,7 @@ udp_payloads.o: ft_nmap.h network.h libft.h
 ip_headers.o: network.h libft.h
 sockets.o: ft_nmap.h network.h libft.h
 ip.o: ft_nmap.h network.h libft.h
+window.o: ft_nmap.h network.h libft.h
 probe.o: ft_nmap.h network.h libft.h
 interfaces.o: ft_nmap.h network.h libft.h
 scan_result.o: ft_nmap.h network.h libft.h

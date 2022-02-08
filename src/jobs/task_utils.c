@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/02 21:06:16 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/08 08:46:19 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,11 +74,25 @@ static int		valid_task(void *content_ref, void *element)
 	t_task			*task = (t_task *)element;
 	t_task_match	*task_match = (t_task_match *)content_ref;
 
-	if (!(task_match->task_types & task->type))
+	if (!(task_match->task_types & task->type) || (task->exec_time.tv_sec
+		&& !is_passed(&task_match->exec_time, &task->exec_time)))
 		return (1);
-	if (!task->exec_time.tv_sec)
-		return (0);
-	return (!is_passed(&task_match->exec_time, &task->exec_time));
+	else if (task->type == E_TASK_PROBE)
+	{
+		if (task->exec_time.tv_sec) //is retry TODO: maybe add bool to task for this
+		{
+			ft_bzero(&task->exec_time, sizeof(task->exec_time));
+			//TODO: Fix this. This is probably shit. The problem here is that
+			//instead of forgetting to decrease current counter when retrying
+			//to send a probe (because we basically gave on the last one), we
+			//decrease it when it should not be, like when a reply has actually
+			//been received but the retry task is still in the list (then it has
+			//already been decreased in the udpate_job function...).
+			update_window(&g_cfg->window, 0);
+		}
+		return (!!full_window(&g_cfg->window));
+	}
+	return (0);
 }
 
 static t_task	*get_task(t_list **src, t_task_match *task_match)
