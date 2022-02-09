@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/07 21:28:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/09 08:33:50 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,10 +67,20 @@ static t_scan_job	*init_scan_job(t_nmap_config *cfg, uint16_t scan_job_id,
 
 static void		build_probe_tasks(t_nmap_config *cfg)
 {
+	t_list		*probe_tasks = NULL;
+	t_task		task = { .type = E_TASK_PROBE };
+
 	for (uint16_t scan = 0, id = 0; scan < SCAN_COUNT; ++scan)
-		if (cfg->scans[scan])
-			for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
-				push_probe_task(cfg, init_scan_job(cfg, id, scan, port), NULL);
+	{
+		if (!cfg->scans[scan])
+			continue;
+		for (uint16_t port = 0; port < cfg->nports; ++port, ++id)
+		{
+			task.scan_job = init_scan_job(cfg, id, scan, port);
+			ft_lst_push_back(&probe_tasks, &task, sizeof(task));
+		}
+	}
+	push_back_tasks(&cfg->thread_tasks, probe_tasks, cfg, !!cfg->speedup);
 }
 
 static void	set_host_job_data(t_host_job *host_job, char *host,
