@@ -1,0 +1,119 @@
+1 address scanned in 1.36275 seconds
+total packets sent: 6245 (4582.64 per second)
+icmp packets received: 1022 (749.954 per second)
+total packets received: 6134 (4501.19 per second)
+yoyo @ yoyo-NUC10i7FNK ~/42_projects/ft_nmap (rtt_timeout)
+└─ $ ▶ sudo ./ft_nmap -d -S250 --range framasoft.org
+--- Network ---
+IPv4 Status: on
+IPv6 Status: on
+Default Interface: eno1
+
+--- Scan ---
+Number of threads: 250
+Number of ports to scan: 1024
+Scans to be performed: SYN ACK NULL FIN XMAS UDP
+
+Scanning framasoft.org: About 0.50% done; Time elapsed 612ms 200us;
+total packets sent: 49 (80.0392 per second)
+icmp packets received: 0 (0 per second)
+total packets received: 39 (63.7047 per second)
+
+Scanning framasoft.org: About 49.98% done; Time elapsed 3s 504ms;
+total packets sent: 14791 (4220.37 per second)
+icmp packets received: 0 (0 per second)
+total packets received: 2148 (612.896 per second)
+
+Scanning framasoft.org: About 80.86% done; Time elapsed 7s 368ms;
+total packets sent: 35580 (4828.6 per second)
+icmp packets received: 8 (1.08569 per second)
+total packets received: 2159 (293 per second)
+
+Scanning framasoft.org: About 99.86% done; Time elapsed 11s 243ms;
+total packets sent: 48438 (4308.08 per second)
+icmp packets received: 11 (0.97834 per second)
+total packets received: 2162 (192.288 per second)
+
+=================================================================
+==22803==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x
+7f960c046378 at pc 0x55bdaad6a821 bp 0x7f960c040f10 sp 0x7f960c040f00
+WRITE of size 1 at 0x7f960c046378 thread T188
+    #0 0x55bdaad6a820 in ft_memcpy src/memory/ft_memcpy.c:23
+    #1 0x55bdaad706d2 in pdata_add src/ft_printf/pdata_add.c:82
+    #2 0x55bdaad723ac in f_format src/ft_printf/float_formats.c:54
+    #3 0x55bdaad5a48a in efg_conversions src/ft_printf/efg_conversion
+s.c:83
+    #4 0x55bdaad53ac6 in convert src/ft_printf/parser.c:52
+    #5 0x55bdaad5412e in parser src/ft_printf/parser.c:70
+    #6 0x55bdaad53029 in ft_printf_internal src/ft_printf/ft_printf_i
+nternal.c:19
+    #7 0x55bdaad5a9cc in ft_printf src/ft_printf/ft_printf.c:26
+    #8 0x55bdaad18930 in print_update_stats src/jobs/stats.c:51
+    #9 0x55bdaad21900 in task_print_stats src/jobs/tasks.c:131
+    #10 0x55bdaad17561 in worker src/jobs/worker.c:74
+    #11 0x55bdaad52a74 in start_thread src/ft_thread/ft_thread_create
+.c:51
+    #12 0x7f966e919608 in start_thread /build/glibc-eX1tMB/glibc-2.31
+/nptl/pthread_create.c:477
+    #13 0x7f966ded3292 in __clone (/lib/x86_64-linux-gnu/libc.so.6+0x
+122292)
+
+Address 0x7f960c046378 is located in stack of thread T188 at offset 4
+184 in frame
+    #0 0x55bdaad536ed in convert src/ft_printf/parser.c:45
+
+  This frame has 1 object(s):
+    [32, 4184) 'loc_data' (line 46) <== Memory access at offset 4184
+overflows this variable
+HINT: this may be a false positive if your program uses some custom s
+tack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+Thread T188 created by T0 here:
+    #0 0x7f966e96d805 in pthread_create (/lib/x86_64-linux-gnu/libasa
+n.so.5+0x3a805)
+    #1 0x55bdaad52c57 in ft_thread_create src/ft_thread/ft_thread_cre
+ate.c:64
+    #2 0x55bdaad16a49 in start_worker_threads src/jobs/worker.c:42
+    #3 0x55bdaad1ec10 in task_worker_spawn src/jobs/tasks.c:20
+    #4 0x55bdaad17561 in worker src/jobs/worker.c:74
+    #5 0x55bdaad45efd in main src/main.c:89
+    #6 0x7f966ddd80b2 in __libc_start_main (/lib/x86_64-linux-gnu/lib
+c.so.6+0x270b2)
+
+SUMMARY: AddressSanitizer: stack-buffer-overflow src/memory/ft_memcpy
+.c:23 in ft_memcpy
+Shadow bytes around the buggy address:
+  0x0ff341800c10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0ff341800c20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0ff341800c30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0ff341800c40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0ff341800c50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x0ff341800c60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00[f3]
+  0x0ff341800c70: f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3
+  0x0ff341800c80: f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3
+  0x0ff341800c90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0ff341800ca0: 00 00 f1 f1 f1 f1 00 00 04 f3 f3 f3 f3 f3 00 00
+  0x0ff341800cb0: 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==22803==ABORTING
+yoyo @ yoyo-NUC10i7FNK ~/42_projects/ft_nmap (rtt_timeout)
+└─ $ ▶
