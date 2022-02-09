@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 10:50:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/09 20:51:20 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,12 +48,15 @@ void		start_worker_threads(t_nmap_config *cfg)
 	}
 }
 
+# define	MAX_PSEUDO_THREAD_TASKS	16
+
 void		pseudo_thread_worker(void)
 {
 	t_worker_config	wcfg = {
 		.type = E_WORKER_PSEUDO_THREAD,
 		.task_list = &g_cfg->thread_tasks,
 		.task_types = WORKER_TASKS,
+		.task_max = MAX_PSEUDO_THREAD_TASKS,
 	};
 
 	worker(&wcfg);
@@ -74,6 +77,8 @@ void		*worker(void *ptr)
 		g_tasks[task->type](task);
 		--g_cfg->running_tasks;
 		ft_memdel((void **)&task);
+		if (wcfg->type == E_WORKER_PSEUDO_THREAD && --wcfg->task_max <= 0)
+			break;
 	}
 	if (wcfg->type == E_WORKER_MAIN || wcfg->type == E_WORKER_THREAD)
 		ft_atexit(NULL);

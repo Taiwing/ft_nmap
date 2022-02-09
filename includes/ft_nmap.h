@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/08 07:57:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/09 20:48:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -257,12 +257,14 @@ typedef struct		s_task_match
 ** type: type of worker
 ** task_list: the list of tasks to be executed
 ** task_types: the kind of tasks the worker must execute
+** task_max: max number of tasks to be executed (only for PSEUDO_THREADS)
 */
 typedef struct		s_worker_config
 {
 	enum e_workers	type;
 	t_list			**task_list;
 	int				task_types;
+	int				task_max;
 }					t_worker_config;
 
 /*

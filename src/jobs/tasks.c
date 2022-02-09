@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/07 22:04:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/09 21:07:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ static void	task_new_host(t_task *task)
 
 static void	task_listen(t_task *task)
 {
+	int				reply_count;
 	uint16_t		family = g_cfg->host_job.family;
 	struct pollfd	listen_fds[SOCKET_RECV_COUNT] = { 0 };
 
@@ -52,9 +53,8 @@ static void	task_listen(t_task *task)
 	}
 	while (!g_cfg->end && !g_cfg->listen_breakloop)
 	{
-		//while (ft_listen(listen_fds, SOCKET_RECV_COUNT, 0) > 0);
-		ft_listen(listen_fds, SOCKET_RECV_COUNT, g_cfg->speedup ? 0 : 1);
-		if (!g_cfg->speedup)
+		reply_count = ft_listen(listen_fds, SOCKET_RECV_COUNT, 0);
+		if (!g_cfg->speedup && !reply_count)
 			pseudo_thread_worker();
 	}
 	g_cfg->listen_breakloop = 0;
