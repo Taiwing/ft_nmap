@@ -6,11 +6,19 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 21:33:17 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 11:42:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/12 10:47:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
+
+void	reset_timeout(t_nmap_config *cfg)
+{
+	ft_memcpy(&cfg->rtt.timeout, &cfg->rtt.initial_timeout,
+		sizeof(cfg->rtt.timeout));
+	ft_memcpy(&cfg->rtt.smoothed, &cfg->rtt.initial_timeout,
+		sizeof(cfg->rtt.timeout));
+}
 
 void	probe_retry_time(struct timeval *sent_ts, struct timeval *retry_ts)
 {

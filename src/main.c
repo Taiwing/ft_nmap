@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/07 21:36:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/12 10:46:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,10 +51,6 @@ static void	check_config(t_nmap_config *cfg)
 	if (timeval_cmp(&cfg->rtt.initial_timeout, &cfg->rtt.max_timeout) > 0)
 		ft_exit(EXIT_FAILURE, "initial-rtt-timeout is greater"
 			" than max-rtt-timeout");
-	ft_memcpy(&cfg->rtt.timeout, &cfg->rtt.initial_timeout,
-		sizeof(cfg->rtt.timeout));
-	ft_memcpy(&cfg->rtt.smoothed, &cfg->rtt.initial_timeout,
-		sizeof(cfg->rtt.timeout));
 }
 
 static void	init_config(t_nmap_config *cfg, int argc, char **argv)

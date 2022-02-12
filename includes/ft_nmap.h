@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/09 20:48:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/12 10:47:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -528,6 +528,7 @@ void		push_probe_task(t_nmap_config *cfg, t_scan_job *scan_job,
 void		pseudo_thread_worker(void);
 double		print_end_stats(void);
 double		print_update_stats(void);
+void		reset_timeout(t_nmap_config *cfg);
 
 /*
 ** ft_nmap constants
