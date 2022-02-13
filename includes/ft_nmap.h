@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 12:57:19 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 16:53:14 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,7 +326,7 @@ typedef struct		s_nmap_config
 	_Atomic int		icmp_count;
 	_Atomic int		listen_breakloop;
 	t_rtt_control	rtt;
-	t_send_window	window;
+	t_send_window	window[SCAN_COUNT];
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
@@ -434,8 +434,8 @@ typedef struct		s_nmap_config
 	.listen_breakloop = 0,\
 	/* RTT control structure for computing timeout */\
 	.rtt = DEF_RTT,\
-	/* send window for congestion handling */\
-	.window = DEF_SEND_WINDOW,\
+	/* send window for congestion handling of each scan*/\
+	.window = {{ 0 }},\
 }
 
 /*

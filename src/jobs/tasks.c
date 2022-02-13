@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 12:59:17 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 16:52:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ static void	task_timeout(t_task *task)
 		debug_task(g_cfg, task, 0);
 	if (--task->scan_job->tries > 0)
 	{
-		update_window(&g_cfg->window, 1);
+		update_window(&g_cfg->window[task->scan_job->type], 1);
 		push_task(&g_cfg->thread_tasks, g_cfg, &probe_task, 0);
 	}
 	else

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 12:23:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 16:50:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ static int		valid_task(void *content_ref, void *element)
 		&& !is_passed(&task_match->exec_time, &task->exec_time)))
 		return (1);
 	else if (task->type == E_TASK_PROBE)
-		return (!!full_window(&g_cfg->window));
+		return (!!full_window(&g_cfg->window[task->scan_job->type]));
 	return (0);
 }
 

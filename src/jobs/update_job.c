@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 02:26:25 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/12 19:45:16 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 16:49:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,6 @@ int		update_job(t_nmap_config *cfg, t_scan_job *scan_job, uint8_t result,
 	scan_job->status |= E_STATE_DONE | result;
 	if (++port_job->done == cfg->nscans && (ret = end_job(cfg, port_job)))
 		print_host_job(&cfg->host_job, cfg);
-	update_window(&cfg->window, timeout);
+	update_window(&cfg->window[scan_job->type], timeout);
 	return (ret);
 }
