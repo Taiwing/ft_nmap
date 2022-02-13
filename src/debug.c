@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/30 17:00:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 12:56:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ const char	*g_nmap_task_strings[] = {
 	[E_TASK_LISTEN]			= "LISTEN",
 	[E_TASK_PROBE]			= "PROBE",
 	[E_TASK_REPLY]			= "REPLY",
+	[E_TASK_TIMEOUT]		= "TIMEOUT",
 	[E_TASK_WORKER_WAIT]	= "WORKER_WAIT",
 	[E_TASK_PRINT_STATS]	= "PRINT_STATS",
 };

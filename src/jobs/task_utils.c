@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/08 09:02:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 12:23:32 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,18 @@ void			push_front_tasks(t_list **dest, t_list *tasks,
 	}
 }
 
+void			push_task(t_list **dest, t_nmap_config *cfg, t_task *task,
+					int front)
+{
+	t_list	*new_task;
+
+	new_task = ft_lstnew(task, sizeof(t_task));
+	if (front)
+		push_front_tasks(dest, new_task, cfg, !!cfg->speedup);
+	else
+		push_back_tasks(dest, new_task, cfg, !!cfg->speedup);
+}
+
 static int		valid_task(void *content_ref, void *element)
 {
 	t_task			*task = (t_task *)element;
@@ -78,24 +90,7 @@ static int		valid_task(void *content_ref, void *element)
 		&& !is_passed(&task_match->exec_time, &task->exec_time)))
 		return (1);
 	else if (task->type == E_TASK_PROBE)
-	{
-		if (task->exec_time.tv_sec)
-			return (0);
-		/*
-		if (task->exec_time.tv_sec) //is retry TODO: maybe add bool to task for this
-		{
-			ft_bzero(&task->exec_time, sizeof(task->exec_time));
-			//TODO: Fix this. This is probably shit. The problem here is that
-			//instead of forgetting to decrease current counter when retrying
-			//to send a probe (because we basically gave on the last one), we
-			//decrease it when it should not be, like when a reply has actually
-			//been received but the retry task is still in the list (then it has
-			//already been decreased in the udpate_job function...).
-			update_window(&g_cfg->window, 0);
-		}
-		*/
 		return (!!full_window(&g_cfg->window));
-	}
 	return (0);
 }
 

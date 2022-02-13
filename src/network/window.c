@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 08:01:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/08 08:37:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/12 19:49:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,13 +54,15 @@ static void	slow_start(t_send_window *window)
 }
 
 /*
-** Decrease current count when receiving reply. Then increase the send window
-** using an algorithm or the other depending on ssthresh value.
+** Decrease current count when receiving reply or on timeout. Then increase the
+** send window using an algorithm or the other depending on ssthresh value.
+** Execute exponential backoff if too many drops are detected.
 */
-void		update_window(t_send_window *window, int is_reply)
+void		update_window(t_send_window *window, int is_timeout)
 {
-	--window->current;
-	if (is_reply)
+	if (--window->current < 0)
+		window->current = 0;
+	if (!is_timeout)
 	{
 		if (window->size <= window->ssthresh)
 			slow_start(window);

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 20:46:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 12:44:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,21 +23,6 @@ const char	*g_socket_recv_strings[SOCKET_RECV_COUNT] = {
 	[E_SRECV_ICMP_TCPV6] = "ICMP_TCPV6",
 	[E_SRECV_STDIN] = "STDIN",
 };
-
-void		push_reply_task(t_nmap_config *cfg, t_task *task,
-		struct timeval *exec_time)
-{
-	t_list		*new_task;
-
-	new_task = ft_lstnew(task, sizeof(t_task));
-	if (!exec_time)
-		push_front_tasks(&cfg->thread_tasks, new_task, cfg, !!cfg->speedup);
-	else
-	{
-		ft_memcpy(&task->exec_time, exec_time, sizeof(struct timeval));
-		push_back_tasks(&cfg->thread_tasks, new_task, cfg, !!cfg->speedup);
-	}
-}
 
 static void	socket_handler(int listen_fd, enum e_recv_sockets recv_type,
 		struct timeval *reply_time)
@@ -56,7 +41,7 @@ static void	socket_handler(int listen_fd, enum e_recv_sockets recv_type,
 		task.reply_size = size;
 		task.reply_ip_header = SOCKET_SRECV_IS_IPV4(recv_type) ?
 			E_IH_V4 : E_IH_V6;
-		push_reply_task(g_cfg, &task, NULL);
+		push_task(&g_cfg->thread_tasks, g_cfg, &task, 1);
 	}
 }
 
@@ -70,7 +55,7 @@ static void	pollin_handler(int listen_fd, enum e_recv_sockets recv_type,
 		return (socket_handler(listen_fd, recv_type, reply_time));
 	if (read(listen_fd, buf, 1) < 0)
 		ft_exit(EXIT_FAILURE, "read: %s", strerror(errno));
-	push_reply_task(g_cfg, &stats_task, NULL);
+	push_task(&g_cfg->thread_tasks, g_cfg, &stats_task, 1);
 }
 
 int			ft_listen(struct pollfd *listen_fds, int fds_count, int timeout)

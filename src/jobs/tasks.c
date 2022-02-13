@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/09 21:07:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 12:59:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,13 @@ static void	task_worker_spawn(t_task *task)
 
 static void	task_new_host(t_task *task)
 {
-	t_task          new_task = { .type = E_TASK_LISTEN };
+	t_task          listen_task = { .type = E_TASK_LISTEN };
 
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
 	if (new_host(g_cfg))
 		push_front_tasks(&g_cfg->main_tasks,
-			ft_lstnew(&new_task, sizeof(new_task)), g_cfg, 0);
+			ft_lstnew(&listen_task, sizeof(listen_task)), g_cfg, 0);
 }
 
 static void	task_listen(t_task *task)
@@ -62,52 +62,69 @@ static void	task_listen(t_task *task)
 
 static void	task_probe(t_task *task)
 {
-	int				tries;
 	int				payload_index;
-	struct timeval	retry_ts = { 0 };
+	int				tries = task->scan_job->tries;
+	t_task			timeout_task = {
+		.type = E_TASK_TIMEOUT, .scan_job = task->scan_job,
+	};
 
-	if (g_cfg->host_job.status & E_STATE_DONE)
+	if (g_cfg->host_job.status & E_STATE_DONE || tries < 0)
 		return ;
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
-	if (task->scan_job->tries < 0)
-		return ;
-	tries = --task->scan_job->tries;
-	payload_index = (tries + 1) % task->scan_job->probe_count;
+	payload_index = tries % task->scan_job->probe_count;
 	if (g_cfg->verbose)
 		verbose_scan(g_cfg, task->scan_job,
 			task->scan_job->probes[payload_index], "Sending probe...");
 	send_probe(g_cfg, task->scan_job, payload_index);
-	probe_retry_time(&task->scan_job->sent_ts, &retry_ts);
-	if (tries > 0)
-		push_probe_task(g_cfg, task->scan_job, &retry_ts);
-	else
-		set_scan_job_timeout(g_cfg, task->scan_job, &retry_ts);
+	probe_timeout(&task->scan_job->sent_ts, &timeout_task.exec_time);
+	push_task(&g_cfg->thread_tasks, g_cfg, &timeout_task, 0);
 }
 
 static void	task_reply(t_task *task)
 {
-	t_list          *lst;
 	uint8_t         result;
+	int				timeout = !!task->scan_job;
 	t_scan_job		*scan_job = task->scan_job;
 	enum e_iphdr	iph = task->reply_ip_header;
-	t_task          new_task = { .type = E_TASK_NEW_HOST };
+	t_task          new_host_task = { .type = E_TASK_NEW_HOST };
 
 	if (g_cfg->host_job.status & E_STATE_DONE)
 		return ;
-	result = !scan_job ? parse_reply_packet(task, g_cfg, &scan_job, iph)
-		: scan_result(scan_job->type, NULL);
+	if (timeout)
+		result = scan_result(scan_job->type, NULL);
+	else
+		result = parse_reply_packet(task, g_cfg, &scan_job, iph);
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, result);
-	if (result != E_STATE_NONE && update_job(g_cfg, scan_job, result))
+	if (result != E_STATE_NONE && update_job(g_cfg, scan_job, result, timeout))
 	{
-		lst = ft_lstnew(&new_task, sizeof(new_task));
-		push_front_tasks(&g_cfg->main_tasks, lst, g_cfg, !!g_cfg->speedup);
+		push_task(&g_cfg->main_tasks, g_cfg, &new_host_task, 1);
 		g_cfg->listen_breakloop = 1;
 	}
-	else if (result != E_STATE_NONE && !task->scan_job)
+	else if (result != E_STATE_NONE && !timeout)
 		rtt_update(&scan_job->sent_ts, &task->reply_time);
 	ft_memdel((void **)&task->reply);
+}
+
+static void	task_timeout(t_task *task)
+{
+	t_task	probe_task = { .type = E_TASK_PROBE, .scan_job = task->scan_job };
+
+	if (g_cfg->host_job.status & E_STATE_DONE || task->scan_job->tries < 0)
+		return ;
+	if (g_cfg->debug > 1)
+		debug_task(g_cfg, task, 0);
+	if (--task->scan_job->tries > 0)
+	{
+		update_window(&g_cfg->window, 1);
+		push_task(&g_cfg->thread_tasks, g_cfg, &probe_task, 0);
+	}
+	else
+	{
+		task->type = E_TASK_REPLY;
+		task_reply(task);
+	}
 }
 
 static void	task_worker_wait(t_task *task)
@@ -146,6 +163,7 @@ const taskf	g_tasks[] = {
 	[E_TASK_LISTEN] = task_listen,
 	[E_TASK_PROBE] = task_probe,
 	[E_TASK_REPLY] = task_reply,
+	[E_TASK_TIMEOUT] = task_timeout,
 	[E_TASK_WORKER_WAIT] = task_worker_wait,
 	[E_TASK_PRINT_STATS] = task_print_stats,
 };

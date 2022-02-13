@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/12 10:47:54 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 12:57:19 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,13 +70,14 @@ enum		e_tasks {
 	E_TASK_LISTEN			= 0x04,
 	E_TASK_PROBE			= 0x08,
 	E_TASK_REPLY			= 0x10,
-	E_TASK_WORKER_WAIT		= 0x20,
-	E_TASK_PRINT_STATS		= 0x40,
+	E_TASK_TIMEOUT			= 0x20,
+	E_TASK_WORKER_WAIT		= 0x40,
+	E_TASK_PRINT_STATS		= 0x80,
 };
 # define	LAST_TASK			E_TASK_PRINT_STATS
 # define	ALL_TASKS			((LAST_TASK << 1) - 1)
 # define	WORKER_TASKS		\
-	(E_TASK_PROBE | E_TASK_REPLY | E_TASK_PRINT_STATS)
+	(E_TASK_PROBE | E_TASK_REPLY | E_TASK_TIMEOUT | E_TASK_PRINT_STATS)
 # define	MAIN_TASKS			\
 	((ALL_TASKS ^ WORKER_TASKS) + E_TASK_PRINT_STATS)
 
@@ -502,7 +503,7 @@ void		start_worker_threads(t_nmap_config *cfg);
 void		wait_worker_threads(t_nmap_config *cfg);
 void		*worker(void *ptr);
 int			update_job(t_nmap_config *cfg, t_scan_job *scan_job,
-				uint8_t result);
+				uint8_t result, int timeout);
 void		print_config(t_nmap_config *cfg);
 void		print_host_job(t_host_job *host_job, t_nmap_config *cfg);
 void		port_report(t_host_job *host_job, t_nmap_config *cfg);
@@ -515,16 +516,10 @@ void		push_back_tasks(t_list **dest, t_list *tasks,
 t_task		*pop_task(t_list **src, t_nmap_config *cfg, int prio,
 				t_task_match *task_match);
 void		flush_tasks(t_list **dest, t_nmap_config *cfg, int prio);
-void		push_tasks(t_list **dest, t_list *tasks,
-				t_nmap_config *cfg, int prio);
-void		push_reply_task(t_nmap_config *cfg, t_task *task,
-				struct timeval *exec_time);
+void		push_task(t_list **dest, t_nmap_config *cfg, t_task *task,
+				int front);
 void		init_tasks(t_nmap_config *cfg);
-void		probe_retry_time(struct timeval *sent_ts, struct timeval *retry_ts);
-void		set_scan_job_timeout(t_nmap_config *cfg, t_scan_job *scan_job,
-				struct timeval *exec_time);
-void		push_probe_task(t_nmap_config *cfg, t_scan_job *scan_job,
-				struct timeval *exec_time);
+void		probe_timeout(struct timeval *sent_ts, struct timeval *timeout_ts);
 void		pseudo_thread_worker(void);
 double		print_end_stats(void);
 double		print_update_stats(void);
