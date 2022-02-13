@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 08:01:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/12 19:49:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 16:11:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,13 +62,18 @@ void		update_window(t_send_window *window, int is_timeout)
 {
 	if (--window->current < 0)
 		window->current = 0;
-	if (!is_timeout)
+	if (is_timeout && ++window->timeout_count < window->reply_count
+		&& ++window->successive_timeout_count == window->timeoutthresh)
+		return (backoff_window(window));
+	else if (!is_timeout)
 	{
-		if (window->size <= window->ssthresh)
-			slow_start(window);
-		else
-			congestion_avoidance(window);
+		++window->reply_count;
+		window->successive_timeout_count = 0;
 	}
+	if (window->size <= window->ssthresh)
+		slow_start(window);
+	else
+		congestion_avoidance(window);
 }
 
 void		reset_window(t_send_window *window)

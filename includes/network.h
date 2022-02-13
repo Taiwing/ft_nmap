@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/08 08:37:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 16:01:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -269,6 +269,9 @@ typedef struct		s_rtt_control
 ** max: maximum size of the window
 ** ssthresh: slow start threshold (start congestion avoidance)
 ** avoid_count: increase this instead of size during congestion avoidance
+** reply_count: total reply count
+** timeout_count: total timeout count
+** successive_timeout_count: count of successive timeouts
 */
 
 typedef struct		s_send_window
@@ -278,19 +281,25 @@ typedef struct		s_send_window
 	int				min;
 	int				max;
 	int				ssthresh;
+	int				timeoutthresh;
 	_Atomic int		avoid_count;
+	_Atomic int		reply_count;
+	_Atomic int		timeout_count;
+	_Atomic int		successive_timeout_count;
 }					t_send_window;
 
-# define	DEF_SIZE		16
-# define	DEF_MIN			4
-# define	DEF_MAX			(USHRT_MAX >> 2)
-# define	DEF_SSTHRESH	(DEF_MAX >> 2)
+# define	DEF_SIZE			16
+# define	DEF_MIN				4
+# define	DEF_MAX				(USHRT_MAX >> 2)
+# define	DEF_SSTHRESH		(DEF_MAX >> 2)
+# define	DEF_TIMEOUTTHRESH	16
 
 # define	DEF_SEND_WINDOW {\
 	.size = DEF_SIZE,\
 	.min = DEF_MIN,\
 	.max = DEF_MAX,\
 	.ssthresh = DEF_SSTHRESH,\
+	.timeoutthresh = DEF_TIMEOUTTHRESH,\
 }
 
 /*
