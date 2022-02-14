@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 08:01:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 16:11:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/14 09:20:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,10 +60,9 @@ static void	slow_start(t_send_window *window)
 */
 void		update_window(t_send_window *window, int is_timeout)
 {
-	if (--window->current < 0)
-		window->current = 0;
+	--window->current;
 	if (is_timeout && ++window->timeout_count < window->reply_count
-		&& ++window->successive_timeout_count == window->timeoutthresh)
+		&& !(++window->successive_timeout_count % window->timeoutthresh))
 		return (backoff_window(window));
 	else if (!is_timeout)
 	{
