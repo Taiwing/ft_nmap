@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/14 11:12:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/14 16:01:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,10 +268,13 @@ typedef struct		s_rtt_control
 ** min: minimum size of the window
 ** max: maximum size of the window
 ** ssthresh: slow start threshold (start congestion avoidance)
+** timeoutthresh: max number of successive packet loss before backoff
+** exponential_backoff: boolean to apply exponential_backoff or not
 ** avoid_count: increase this instead of size during congestion avoidance
 ** reply_count: total reply count
 ** timeout_count: total timeout count
 ** successive_timeout_count: count of successive timeouts
+** responsive: does host look responsive on this scan
 */
 
 typedef struct		s_send_window
@@ -282,17 +285,20 @@ typedef struct		s_send_window
 	int				max;
 	int				ssthresh;
 	int				timeoutthresh;
+	int				exponential_backoff;
 	_Atomic int		avoid_count;
 	_Atomic int		reply_count;
 	_Atomic int		timeout_count;
 	_Atomic int		successive_timeout_count;
+	_Atomic int		responsive;
 }					t_send_window;
 
-# define	DEF_SIZE			16
-# define	DEF_MIN				4
-# define	DEF_MAX				(USHRT_MAX >> 2)
-# define	DEF_SSTHRESH		(DEF_MAX >> 2)
-# define	DEF_TIMEOUTTHRESH	4
+# define	DEF_SIZE				16
+# define	DEF_MIN					4
+# define	DEF_MAX					(USHRT_MAX >> 2)
+# define	DEF_SSTHRESH			(DEF_MAX >> 2)
+# define	DEF_TIMEOUTTHRESH		4
+# define	MAX_RESPONSIVE_TIMEOUT	4
 
 # define	DEF_SEND_WINDOW {\
 	.size = DEF_SIZE,\
