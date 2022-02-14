@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 08:01:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/14 12:10:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/14 13:11:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,14 +32,15 @@ int			full_window(t_send_window *window)
 
 void		exponential_backoff(t_send_window *window)
 {
-	window->size /= 2;
+	window->ssthresh = window->size;
+	window->size = window->ssthresh / 2;
 	if (window->size < window->min)
 		window->size = window->min;
 }
 
 static void	congestion_avoidance(t_send_window *window)
 {
-	if (++window->avoid_count == window->size)
+	if (++window->avoid_count >= window->size)
 	{
 		window->avoid_count = 0;
 		if (++window->size > window->max)
