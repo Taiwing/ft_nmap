@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 08:01:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/14 09:20:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/14 12:10:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ int			full_window(t_send_window *window)
 	return (0);
 }
 
-void		backoff_window(t_send_window *window)
+void		exponential_backoff(t_send_window *window)
 {
 	window->size /= 2;
 	if (window->size < window->min)
@@ -63,7 +63,7 @@ void		update_window(t_send_window *window, int is_timeout)
 	--window->current;
 	if (is_timeout && ++window->timeout_count < window->reply_count
 		&& !(++window->successive_timeout_count % window->timeoutthresh))
-		return (backoff_window(window));
+		return (exponential_backoff(window));
 	else if (!is_timeout)
 	{
 		++window->reply_count;

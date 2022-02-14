@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 16:01:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/14 11:12:04 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -292,7 +292,7 @@ typedef struct		s_send_window
 # define	DEF_MIN				4
 # define	DEF_MAX				(USHRT_MAX >> 2)
 # define	DEF_SSTHRESH		(DEF_MAX >> 2)
-# define	DEF_TIMEOUTTHRESH	16
+# define	DEF_TIMEOUTTHRESH	4
 
 # define	DEF_SEND_WINDOW {\
 	.size = DEF_SIZE,\
