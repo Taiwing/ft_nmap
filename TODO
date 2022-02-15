@@ -18,6 +18,16 @@
   --scan option, or no argument for every scan]). Or MAYBE, just MAYBE leave it
   as is. This is not high-priority. The UDP scan should handle ICMP rate limits
   just fine if it is done on its one (meaning -sU is given to ft_nmap).
+  UPDATE: Also, there is a problem with the fact that the rate limit is fixed to
+  1 ICMP packet per second. This is not necessarily true. Sometimes the real
+  limit seems to be 2 or even 3 ICMP packets per second, so the rate-limiting
+  should adapt to the observed rate (maybe always a little lower, but still).
+  And there is also a problem with 'real' Open|Filtered ports which make the
+  scan last way longer than it should since they are retried as much as the
+  other ports and limited all the same. Once again, this is not a very big
+  problem, and it can even be fixed with the option --max-retries where the user
+  can manually limit the retry count so that it does not take too long to send
+  useless non-responsive probes. So not a big priority, but it should be noted.
 
 - FIX potential infinite loop if there is a fatal error in a thread while a task
   is executing after the end of a host task. This is very unlikely to happen,
