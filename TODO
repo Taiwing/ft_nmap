@@ -1,15 +1,6 @@
 ---- FIX ----
 
 - FIX ALL THAT SHIT
-  3: Add a function/task to detect rate-limiting for ICMP
-  or RST responses (and maybe any type of response for
-  that matter). Then, only send one probe at a time and
-  wait for the rate-limit each time (so once per second
-  most of the time). First begin by making an adaptative
-  rtt timeout system like the original nmap, and then add
-  an algorithm to handle congestion and therefore rate
-  limiting (with a congestion window and the slow start with
-  the exponential backoff algorithm). It should be better.
   4: The RTT of a response are very different from a host
   to an other. So execute a ping first, then wait for 10
   responses and use the average RTT as a basis for
