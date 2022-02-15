@@ -8,6 +8,17 @@
   the host is up or not, so ft_nmap will skip scanning
   all together if the host is down (like the original).
 
+- FIX false non-responsive diagonostic on some UDP scans. This is because when
+  UDP scan is done together with other scans an other one might potentially
+  'exhaust out' a host's ICMP rate limit before the UDP scan. So ICMP rate
+  limiting needs to be detected globally. Then the rate-limit can be applied if
+  ICMP responses are detected on the UDP scan (or on an other scan as an
+  exponential-backoff option could be created to explicitly wait for ICMP
+  replies on the given list of scan [it would take the same arguments as the
+  --scan option, or no argument for every scan]). Or MAYBE, just MAYBE leave it
+  as is. This is not high-priority. The UDP scan should handle ICMP rate limits
+  just fine if it is done on its one (meaning -sU is given to ft_nmap).
+
 - FIX potential infinite loop if there is a fatal error in a thread while a task
   is executing after the end of a host task. This is very unlikely to happen,
   but theoretically it could. If it did, the running task counter would never be
