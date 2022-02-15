@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/12 20:43:03 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/31 08:56:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 14:51:01 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ uint8_t			parse_reply_packet(t_task *task, t_nmap_config *cfg,
 	uint8_t			result = E_STATE_NONE;
 
 	check_reply_size(task, iph);
-	init_packet(&reply, iph, bytes);
+	ft_packet_init(&reply, iph, bytes);
 	if (is_icmp(&reply))
 		++cfg->icmp_count;
 	if (reply.size > task->reply_size)

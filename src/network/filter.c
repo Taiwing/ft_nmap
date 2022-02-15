@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 08:01:16 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/07 21:39:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 15:15:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ const struct sock_filter	g_bpfcode_ipv4_layer4[] = {
 	{ 0x25,  1,  0, 0000000000 },	// biggest destination port (11)
 
 	// Return Match or Drop
-	{ 0x06,  0,  0, RAW_DATA_MAXSIZE },
+	{ 0x06,  0,  0, MAX_RAW_DATA_SIZE },
 	{ 0x06,  0,  0, 0000000000 },
 };
 
@@ -69,7 +69,7 @@ const struct sock_filter	g_bpfcode_ipv4_icmp[] = {
 	{ 0x25,  1,  0, 0000000000 },	// biggest destination port (13)
 
 	// Return Match or Drop
-	{ 0x06,  0,  0, RAW_DATA_MAXSIZE },
+	{ 0x06,  0,  0, MAX_RAW_DATA_SIZE },
 	{ 0x06,  0,  0, 0000000000 },
 };
 
@@ -158,7 +158,7 @@ const struct sock_filter	g_bpfcode_ipv6_layer4[] = {
 	{ 0x25,  1,  0, 0000000000 },	// biggest destination port (71)
 
 	// Return Match or Drop
-	{ 0x06,  0,  0, RAW_DATA_MAXSIZE },
+	{ 0x06,  0,  0, MAX_RAW_DATA_SIZE },
 	{ 0x06,  0,  0, 0000000000 },
 };
 
@@ -250,7 +250,7 @@ const struct sock_filter	g_bpfcode_ipv6_icmp[] = {
 	{ 0x25,  1,  0, 0000000000 },	// biggest destination port (73)
 
 	// Return Match or Drop
-	{ 0x06,  0,  0, RAW_DATA_MAXSIZE },
+	{ 0x06,  0,  0, MAX_RAW_DATA_SIZE },
 	{ 0x06,  0,  0, 0000000000 },
 };
 

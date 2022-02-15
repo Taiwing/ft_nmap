@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 07:37:42 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 12:44:09 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 15:18:08 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,10 @@ static void	socket_handler(int listen_fd, enum e_recv_sockets recv_type,
 		struct timeval *reply_time)
 {
 	int				size;
-	char			bytes[RAW_DATA_MAXSIZE];
+	char			bytes[MAX_RAW_DATA_SIZE];
 	t_task			task = { .type = E_TASK_REPLY };
 
-	if ((size = recv(listen_fd, bytes, RAW_DATA_MAXSIZE, MSG_DONTWAIT)) < 0)
+	if ((size = recv(listen_fd, bytes, MAX_RAW_DATA_SIZE, MSG_DONTWAIT)) < 0)
 		ft_exit(EXIT_FAILURE, "%s: recv: %s", __func__, strerror(errno));
 	else if (size)
 	{

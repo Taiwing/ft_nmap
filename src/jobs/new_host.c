@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/15 06:51:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 14:51:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ static t_packet		**init_scan_probes(t_nmap_config *cfg, t_scan_job *scan_job,
 	}
 	for (int i = 0; i < scan_job->probe_count; ++i)
 	{
-		reset_packet(probes[i], NULL);
+		ft_packet_reset(probes[i], NULL);
 		if (scan == E_UDP && cfg->udp_payloads[port])
 			build_probe_packet(probes[i], scan_job,
 				cfg->udp_payloads[port][i]->data,
@@ -93,12 +93,12 @@ static void	set_host_job_data(t_host_job *host_job, char *host,
 		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	host_job->family = host_job->ip.family;
 	if (host_job->family == AF_INET)
-		host_job->dev = !ip_cmp(&cfg->netinf.defdev_v4->ip, &host_job->ip)
-			|| !ip_cmp(&cfg->netinf.loopback_v4->ip, &host_job->ip) ?
+		host_job->dev = !ft_ip_cmp(&cfg->netinf.defdev_v4->ip, &host_job->ip)
+			|| !ft_ip_cmp(&cfg->netinf.loopback_v4->ip, &host_job->ip) ?
 			cfg->netinf.loopback_v4 : cfg->netinf.defdev_v4;
 	else
-		host_job->dev = !ip_cmp(&cfg->netinf.defdev_v6->ip, &host_job->ip)
-			|| !ip_cmp(&cfg->netinf.loopback_v6->ip, &host_job->ip) ?
+		host_job->dev = !ft_ip_cmp(&cfg->netinf.defdev_v6->ip, &host_job->ip)
+			|| !ft_ip_cmp(&cfg->netinf.loopback_v6->ip, &host_job->ip) ?
 			cfg->netinf.loopback_v6 : cfg->netinf.defdev_v6;
 	ft_bzero((void *)&host_job->end_ts, sizeof(host_job->end_ts));
 	for (int i = 0; i < cfg->nports; ++i)

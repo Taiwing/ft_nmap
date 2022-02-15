@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/05 20:04:03 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 15:16:57 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ void		send_probe(t_nmap_config *cfg, t_scan_job *scan_job, uint16_t i)
 		shitty_usleep(&cfg->scan_delay);
 	if (sendto(cfg->send_sockets[scan_job->socket],
 		scan_job->probes[i]->raw_data, scan_job->probes[i]->size, 0,
-		(struct sockaddr *)scan_job->dstip, ip_sock_size(scan_job->dstip)) < 0)
+		(struct sockaddr *)scan_job->dstip,
+		ft_ip_sock_size(scan_job->dstip)) < 0)
 		ft_exit(EXIT_FAILURE, "sendto: %s", strerror(errno));
 	++cfg->sent_packet_count;
 	if (cfg->speedup)
@@ -53,12 +54,12 @@ static void	init_layer4_header(t_packet *dest, uint16_t protocol,
 		.win = 0xfff };
 
 	if (protocol == IP_HEADER_UDP)
-		init_udp_header(dest->raw_data + ipsz, dest->raw_data,
+		ft_init_udp_header(dest->raw_data + ipsz, dest->raw_data,
 			scan_job->srcp, scan_job->dstp);
 	else if (protocol == IP_HEADER_TCP)
 	{
 		set_tcpflags(&tcpargs, scan_job->type);
-		init_tcp_header(dest->raw_data + ipsz, &tcpargs);
+		ft_init_tcp_header(dest->raw_data + ipsz, &tcpargs);
 	}
 }
 
@@ -70,7 +71,7 @@ void	build_probe_packet(t_packet *dest, t_scan_job *scan_job,
 		.srcip = scan_job->srcip, .protocol = scan_job->type == E_UDP ?
 		IP_HEADER_UDP : IP_HEADER_TCP, .hop_limit = 255, .layer5_len = l5_len };
 
-	init_ip_header(dest->raw_data, &ipargs);
+	ft_init_ip_header(dest->raw_data, &ipargs);
 	if (layer5 && l5_len && (ipargs.protocol == IP_HEADER_TCP
 		|| ipargs.protocol == IP_HEADER_UDP))
 		ft_memcpy(dest->raw_data
@@ -78,5 +79,5 @@ void	build_probe_packet(t_packet *dest, t_scan_job *scan_job,
 			+ (ipargs.protocol == IP_HEADER_TCP ? sizeof(struct tcphdr)
 			: sizeof(struct udphdr)), layer5, l5_len);
 	init_layer4_header(dest, ipargs.protocol, version, scan_job);
-	init_packet(dest, version == 4 ? E_IH_V4 : E_IH_V6, NULL);
+	ft_packet_init(dest, version == 4 ? E_IH_V4 : E_IH_V6, NULL);
 }

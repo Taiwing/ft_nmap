@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 12:56:43 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 14:46:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ void	debug_invalid_packet(t_nmap_config *cfg, t_packet *packet, char *action)
 	if (cfg->speedup)
 		ft_printf("Worker Thread %llu (%#llx)\n",
 				ft_thread_self(), pthread_self());
-	print_packet(packet->raw_data, cfg->host_job.family,
+	ft_print_packet(packet->raw_data, cfg->host_job.family,
 			packet->size, (char *)cfg->exec);
 	if (cfg->speedup)
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);

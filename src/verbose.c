@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 06:17:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/05 16:35:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 14:46:18 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ void	verbose_scan(t_nmap_config *cfg, t_scan_job *scan_job,
 			ft_thread_self(), pthread_self());
 	ft_printf("%s\n", action);
 	if (packet)
-		print_packet(packet->raw_data, cfg->host_job.family,
+		ft_print_packet(packet->raw_data, cfg->host_job.family,
 			packet->size, (char *)cfg->exec);
 	if (cfg->speedup)
 		nmap_mutex_unlock(&cfg->print_mutex, &g_print_locked);

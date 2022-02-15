@@ -6,14 +6,14 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/15 06:50:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 15:11:55 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_NMAP_H
 # define FT_NMAP_H
 
-# include "network.h"
+# include "ft_nmap_network.h"
 # include <limits.h>
 # include <fcntl.h>
 # include <pthread.h>

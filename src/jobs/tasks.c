@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 16:52:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/13 18:37:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,6 +135,30 @@ static void	task_worker_wait(t_task *task)
 		wait_worker_threads(g_cfg);
 }
 
+static void	print_windows(void)
+{
+	for (int i = 0; i < SCAN_COUNT; ++i)
+	{
+		if (!g_cfg->scans[i])
+			continue ;
+		debug_print(g_cfg,
+			"%s scan window:\n"
+			"current: %d\n"
+			"size: %d\n"
+			"avoid_count: %d\n"
+			"reply_count: %d\n"
+			"timeout_count: %d\n"
+			"successive_timeout_count: %d\n",
+			g_nmap_scan_strings[i],
+			g_cfg->window[i].current,
+			g_cfg->window[i].size,
+			g_cfg->window[i].avoid_count,
+			g_cfg->window[i].reply_count,
+			g_cfg->window[i].timeout_count,
+			g_cfg->window[i].successive_timeout_count);
+	}
+}
+
 static void	task_print_stats(t_task *task)
 {
 	double	total_time;
@@ -155,6 +179,7 @@ static void	task_print_stats(t_task *task)
 		total_time ? g_cfg->icmp_count / total_time : -1,
 		g_cfg->received_packet_count,
 		total_time ? g_cfg->received_packet_count / total_time : -1);
+	print_windows();
 }
 
 const taskf	g_tasks[] = {
