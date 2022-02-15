@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/14 16:03:15 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 06:51:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,7 @@ int		new_host(t_nmap_config *cfg)
 			continue ;
 		reset_window(&cfg->window[i]);
 		if (i == E_UDP)
-			cfg->window[i].exponential_backoff = 1;
+			cfg->window[i].exponential_backoff = cfg->exponential_backoff;
 	}
 	cfg->host_job.done = 0;
 	build_probe_tasks(cfg);

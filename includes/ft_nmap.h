@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 16:53:14 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 06:50:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,6 +282,7 @@ typedef struct		s_nmap_config
 	int				retries;
 	struct timeval	scan_delay;
 	enum e_reports	report;
+	int				exponential_backoff;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
 	uint16_t		nports;
@@ -346,6 +347,8 @@ typedef struct		s_nmap_config
 	.scan_delay = { 0 },\
 	/* type of report output */\
 	.report = 0,\
+	/* wait for ICMP packets during UDP scans on rate-limit */\
+	.exponential_backoff = 1,\
 	/* boolean array representing every port given as arguments */\
 	.ports_to_scan = { 0 },\
 	/* compressed list with the first MAX_PORTS ports of ports_to_scan */\
