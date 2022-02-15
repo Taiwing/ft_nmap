@@ -10,21 +10,6 @@
   an algorithm to handle congestion and therefore rate
   limiting (with a congestion window and the slow start with
   the exponential backoff algorithm). It should be better.
-  UPDATE: There also seem to be some rate-limiting when
-  running all the scans on the 1024 ports in monothreaded
-  mode. Ironically, I think this is because multithreaded
-  mode is less efficient at sending probes, which means
-  they must be a little bit spaced out, whereas it just
-  sends them as fast as possible in monothreaded mode. To
-  limit this flooding effect, an initial execution time
-  could be set to make sure the probes are at least a little
-  bit spaced out (but first make sure it's really the cause).
-  UPDATE2: Im not sure this is due to the timing between
-  probes as even with long scan-delays we still lose almost
-  every probe in monothreaded mode. Looping on listen in the
-  LISTEN task make this a little bit better because we handle
-  multiple responses before re-sending probes. Maybe the scan
-  delay does not work really as I expected... I don't know.
   4: The RTT of a response are very different from a host
   to an other. So execute a ping first, then wait for 10
   responses and use the average RTT as a basis for
@@ -75,38 +60,6 @@
 - then stress-test the shit out of this program (really)
 
 ---- MAYBE ----
-
-- It looks like each scan works as expected if executed
-  individually (except maybe UDP, which is more complicated
-  than the others as it takes at least 20min on a full 1024
-  ports scan for  the original nmap). The scans should probably
-  be done consecutively, meaning that each scan type and their
-  retries should be done on every port before the next scan
-  type. This looks like the problem is caused by crossing the
-  streams as the ghost busters would put it. If we try a lot of
-  scans of different types at the same time, it just fails,
-  probably because of firewall rules or network overload.
-  UPDATE: For UDP and the closed/filtered states and
-  for NULL/FIN/XMAS and the filtered state, the problem
-  is that the linux kernel caps outgoing icmp packets to
-  1 per second. This is why the UDP scan takes around 20
-  minutes for 1024 ports. There is no workaround for this.
-  The only way is to scan once per second and limit retries
-  to one. An other way to accelerate the process would be
-  to start with the ports where there are probes defined in
-  nmap-payloads, as they have at least a chance to instantly
-  return a UDP response (although, the time earned would be
-  very small compared to the total time the scan would take).
-
-- If multiple scans are given and ACK is one of them, do it
-  first. This is because it can be used to guess wich ports
-  are most likely to respond to the other scans. For example
-  if every port is filtered except for 80, 443 and 995 in
-  the ACK scan, then the SYN scan can begin by probing these
-  ports. This will minimize the problem of missing open ports
-  at the end of the list. These are probably due to rate
-  limiting on the host end. By being scan first these ports
-  are less likely to be rate-limited.
 
 - Implement a "watch" mode for the heatmap option where
   ft_nmap would be continuously scanning the target
