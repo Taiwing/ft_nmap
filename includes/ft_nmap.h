@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/15 15:11:55 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 16:41:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -484,7 +484,6 @@ void		init_send_sockets(t_nmap_config *cfg);
 void		init_recv_sockets(t_nmap_config *cfg);
 void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
-int			get_destinfo(t_ip *dest_ip, const char *target, t_nmap_config *cfg);
 char		*next_host(t_ip *ip, t_nmap_config *cfg);
 int			new_host(t_nmap_config *cfg);
 void		build_probe_packet(t_packet *dest, t_scan_job *scan_job,

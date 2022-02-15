@@ -47,7 +47,6 @@ NETWORKC		=	filter.c\
 					interfaces.c\
 					scan_result.c\
 					listen.c\
-					get_destinfo.c\
 					ports.c\
 
 ODIR			=	obj
@@ -99,7 +98,6 @@ probe.o: ft_nmap.h ft_nmap_network.h libft.h
 interfaces.o: ft_nmap.h ft_nmap_network.h libft.h
 scan_result.o: ft_nmap.h ft_nmap_network.h libft.h
 listen.o: ft_nmap.h ft_nmap_network.h libft.h
-get_destinfo.o: ft_nmap.h ft_nmap_network.h libft.h
 ports.o: ft_nmap.h ft_nmap_network.h libft.h
 timeval_ops.o: ft_nmap.h ft_nmap_network.h libft.h
 verbose.o: ft_nmap.h ft_nmap_network.h libft.h

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/15 15:23:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/15 16:39:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@
 # include <netinet/if_ether.h>
 # include <linux/if.h>
 # include <ifaddrs.h>
-# include <netdb.h>
 
 # define	PORT_DEF					45654	//TODO: TBD, not sure we will keep this one
 
