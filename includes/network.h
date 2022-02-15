@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/14 16:01:58 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/14 18:45:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,6 +275,9 @@ typedef struct		s_rtt_control
 ** timeout_count: total timeout count
 ** successive_timeout_count: count of successive timeouts
 ** responsive: does host look responsive on this scan
+** rate_limit: estimated rate limit in probes per second
+** rate_limit_ts: timestamp to start rate liming from
+** rate_limit_current: number of rate limited probes sent from timestamp
 */
 
 typedef struct		s_send_window
@@ -291,10 +294,14 @@ typedef struct		s_send_window
 	_Atomic int		timeout_count;
 	_Atomic int		successive_timeout_count;
 	_Atomic int		responsive;
+	_Atomic int		rate_limit;
+	_Atomic int64_t	rate_limit_ts;
+	_Atomic int		rate_limit_current;
 }					t_send_window;
 
+
 # define	DEF_SIZE				16
-# define	DEF_MIN					4
+# define	DEF_MIN					1
 # define	DEF_MAX					(USHRT_MAX >> 2)
 # define	DEF_SSTHRESH			(DEF_MAX >> 2)
 # define	DEF_TIMEOUTTHRESH		4
@@ -361,6 +368,7 @@ void		init_packet(t_packet *packet, enum e_iphdr iph, uint8_t *datap);
 */
 
 void		shitty_usleep(struct timeval *time);
+void		shitty_ms_usleep(double ms);
 double		ts_msdiff(struct timeval *a, struct timeval *b);
 void		str_to_timeval(struct timeval *time, const char *str);
 int			timeval_to_str(char *buf, size_t size, struct timeval *time);
@@ -382,6 +390,7 @@ void		rtt_update(struct timeval *sent, struct timeval *received);
 */
 
 int			full_window(t_send_window *window);
+int			rate_limit(t_send_window *window, int64_t ts);
 void		update_window(t_send_window *window, int is_reply);
 void		backoff_window(t_send_window *window);
 void		reset_window(t_send_window *window);

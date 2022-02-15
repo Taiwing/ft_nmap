@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 08:01:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/14 16:07:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/14 19:21:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,12 +30,28 @@ int			full_window(t_send_window *window)
 	return (0);
 }
 
-void		exponential_backoff(t_send_window *window)
+int			rate_limit(t_send_window *window, int64_t ts)
 {
+	if (ts > window->rate_limit_ts)
+	{
+		window->rate_limit_ts = ts;
+		window->rate_limit_current = 0;
+	}
+	if (++window->rate_limit_current > window->rate_limit
+		|| full_window(window))
+	{
+		--window->rate_limit_current;
+		return (1);
+	}
+	return (0);
+}
+
+void		set_rate_limit(t_send_window *window)
+{
+	window->size = 1;
 	window->ssthresh = window->size;
-	window->size = window->ssthresh / 2;
-	if (window->size < window->min)
-		window->size = window->min;
+	window->max = window->size;
+	window->rate_limit = 1;
 }
 
 static void	congestion_avoidance(t_send_window *window)
@@ -57,10 +73,7 @@ static void	slow_start(t_send_window *window)
 /*
 ** Decrease current count when receiving reply or on timeout. Then increase the
 ** send window using an algorithm or the other depending on ssthresh value.
-** Execute exponential backoff if too many timeouts are detected on a responsive
-** host during a UDP scan (it is basically useless on TCP scans, or at least
-** I did not encounter a case where the network was actually limiting TCP probes
-** so it does not really matter because I dont have all the time in the world).
+** If exponential_backoff is set (eg: if the scan is UDP), set rate limit.
 */
 void		update_window(t_send_window *window, int is_timeout)
 {
@@ -69,8 +82,9 @@ void		update_window(t_send_window *window, int is_timeout)
 	{
 		++window->timeout_count;
 		if (window->exponential_backoff && window->responsive
+			&& window->reply_count <= DEF_SIZE
 			&& !(++window->successive_timeout_count % window->timeoutthresh))
-			return (exponential_backoff(window));
+			return (set_rate_limit(window));
 	}
 	else if (!is_timeout)
 	{
