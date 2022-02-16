@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/30 11:58:34 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/15 15:16:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/16 11:28:57 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,11 +19,9 @@ void		send_probe(t_nmap_config *cfg, t_scan_job *scan_job, uint16_t i)
 	if (cfg->sent_packet_count > 0
 		&& (cfg->scan_delay.tv_sec || cfg->scan_delay.tv_usec))
 		shitty_usleep(&cfg->scan_delay);
-	if (sendto(cfg->send_sockets[scan_job->socket],
-		scan_job->probes[i]->raw_data, scan_job->probes[i]->size, 0,
-		(struct sockaddr *)scan_job->dstip,
-		ft_ip_sock_size(scan_job->dstip)) < 0)
-		ft_exit(EXIT_FAILURE, "sendto: %s", strerror(errno));
+	if (ft_packet_send(cfg->send_sockets[scan_job->socket], scan_job->dstip,
+		scan_job->probes[i], 0) < 0)
+		ft_exit(EXIT_FAILURE, "ft_packet_send: %s", ft_strerror(ft_errno));
 	++cfg->sent_packet_count;
 	if (cfg->speedup)
 		nmap_mutex_unlock(&cfg->send_mutex, &g_send_locked);
