@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/16 07:04:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/16 16:03:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 # include "libft.h"
 # include <poll.h>
 # include <errno.h>
-# include <netinet/if_ether.h>
 # include <linux/if.h>
 # include <ifaddrs.h>
 

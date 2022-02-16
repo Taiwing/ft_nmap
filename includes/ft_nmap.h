@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/15 16:41:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/16 15:59:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,11 @@ enum		e_send_sockets {
 	E_SSEND_UDPV6,
 	E_SSEND_TCPV6,
 };
+
+# define	SOCKET_SSEND_IS_IPV4(n)	(n == E_SSEND_UDPV4 || n == E_SSEND_TCPV4)
+# define	SOCKET_SSEND_IS_IPV6(n)	(n == E_SSEND_UDPV6 || n == E_SSEND_TCPV6)
+# define	SOCKET_SSEND_IS_UDP(n)	(n == E_SSEND_UDPV4 || n == E_SSEND_UDPV6)
+# define	SOCKET_SSEND_IS_TCP(n)	(n == E_SSEND_TCPV4 || n == E_SSEND_TCPV6)
 
 // Receive sockets
 # define	SOCKET_RECV_COUNT	9
