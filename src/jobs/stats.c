@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/06 19:07:52 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/07 21:49:04 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/18 19:40:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,8 @@ double	print_update_stats(void)
 		scans_todo += g_cfg->scan_jobs[i]->total_tries;
 	}
 	done = (double)scans_done / (double)scans_todo * 100.0;
-	if (timeval_sub(&elapsed, &now, &g_cfg->host_job.start_ts) < 0)
-		ft_exit(EXIT_FAILURE, "timeval_sub: error");
+	if (ft_timeval_sub(&elapsed, &now, &g_cfg->host_job.start_ts) < 0)
+		ft_exit(EXIT_FAILURE, "ft_timeval_sub: %s", ft_strerror(ft_errno));
 	if (timeval_to_str(buf, TIME_BUF_SIZE, &elapsed) < 0)
 		ft_exit(EXIT_FAILURE, "timeval_to_str: error");
 	ft_printf("Scanning %s: About %02.2f%% done; Time elapsed %s;\n",

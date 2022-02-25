@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/16 16:03:29 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/19 22:39:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,12 +26,6 @@
 # define	MAX_UDP_PAYLOAD_LENGTH		MAX_PACKET_PAYLOAD_SIZE
 # define	MAX_UDPFILE_TOKEN_LENGTH	(MAX_UDP_PAYLOAD_LENGTH)
 # define	TOKEN_COUNT					7
-
-// For time computation
-# define	uint128_t					__uint128_t
-# define	int128_t					__int128_t
-# define	MAX_TV_USEC					1000000
-# define	MIN_TV_USEC					(-MAX_TV_USEC)
 
 /*
 ** Network info: (built with getifaddrs())
@@ -194,17 +188,6 @@ void		shitty_ms_usleep(double ms);
 double		ts_msdiff(struct timeval *a, struct timeval *b);
 void		str_to_timeval(struct timeval *time, const char *str);
 int			timeval_to_str(char *buf, size_t size, struct timeval *time);
-int			is_passed(struct timeval *date, struct timeval *expiry);
-int			timeval_add(struct timeval *dest, const struct timeval *left,
-				const struct timeval *right);
-int			timeval_sub(struct timeval *dest, const struct timeval *left,
-				const struct timeval *right);
-int			timeval_abs(struct timeval *dest, const struct timeval *src);
-int			timeval_div(struct timeval *dest, const struct timeval *src,
-				int div);
-int			timeval_mul(struct timeval *dest, const struct timeval *src,
-				int mul);
-int 		timeval_cmp(struct timeval *a, struct timeval *b);
 void		rtt_update(struct timeval *sent, struct timeval *received);
 
 /*

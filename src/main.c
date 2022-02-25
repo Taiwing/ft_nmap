@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/12 10:46:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/18 19:30:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,10 +45,10 @@ static void	check_config(t_nmap_config *cfg)
 	cfg->has_udp_scans = cfg->scans[E_UDP];
 	cfg->has_tcp_scans = !!(cfg->nscans - cfg->has_udp_scans);
 	cfg->total_scan_count = cfg->nports * cfg->nscans;
-	if (timeval_cmp(&cfg->rtt.min_timeout, &cfg->rtt.initial_timeout) > 0)
+	if (ft_timeval_cmp(&cfg->rtt.min_timeout, &cfg->rtt.initial_timeout) > 0)
 		ft_exit(EXIT_FAILURE, "min-rtt-timeout is greater"
 			" than initial-rtt-timeout");
-	if (timeval_cmp(&cfg->rtt.initial_timeout, &cfg->rtt.max_timeout) > 0)
+	if (ft_timeval_cmp(&cfg->rtt.initial_timeout, &cfg->rtt.max_timeout) > 0)
 		ft_exit(EXIT_FAILURE, "initial-rtt-timeout is greater"
 			" than max-rtt-timeout");
 }

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 15:14:19 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/15 06:12:16 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/02/18 20:00:15 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ static int		valid_task(void *content_ref, void *element)
 	t_task_match	*task_match = (t_task_match *)content_ref;
 
 	if (!(task_match->task_types & task->type) || (task->exec_time.tv_sec
-		&& !is_passed(&task_match->exec_time, &task->exec_time)))
+		&& !ft_timeval_is_expired(&task_match->exec_time, &task->exec_time)))
 		return (1);
 	else if (task->type == E_TASK_PROBE)
 	{
