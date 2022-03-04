@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/19 22:39:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/04 08:01:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 # include <poll.h>
 # include <errno.h>
 # include <linux/if.h>
-# include <ifaddrs.h>
 
 # define	PORT_DEF					45654	//TODO: TBD, not sure we will keep this one
 
@@ -26,20 +25,19 @@
 # define	MAX_UDP_PAYLOAD_LENGTH		MAX_PACKET_PAYLOAD_SIZE
 # define	MAX_UDPFILE_TOKEN_LENGTH	(MAX_UDP_PAYLOAD_LENGTH)
 # define	TOKEN_COUNT					7
+# define	FT_NMAP_IFACE_COUNT			4
 
 /*
-** Network info: (built with getifaddrs())
+** Network info: built with ft_net_listiface
 **
-** iflist: list of valid IPv4 or IPv6 network interfaces
 ** defdev_v4: IPv4 default interface
 ** defdev_v6: IPv6 default interface
 ** loopback_v4: IPv4 loopback interface for localhost scanning
 ** loopback_v6: IPv6 loopback interface for localhost scanning
 */
-
 typedef struct		s_netinfo
 {
-	t_list			*iflist;
+	t_ifinfo		iface[FT_NMAP_IFACE_COUNT];
 	t_ifinfo		*defdev_v4;
 	t_ifinfo		*defdev_v6;
 	t_ifinfo		*loopback_v4;

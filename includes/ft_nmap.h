@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/16 15:59:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/04 08:34:32 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -301,7 +301,6 @@ typedef struct		s_nmap_config
 	int				total_scan_count;
 	const char		*scan_strings[SCAN_COUNT];
 	int				hosts_fd;
-	struct ifaddrs	*ifap;
 	enum e_ip_modes	ip_mode;
 	int				send_sockets[SOCKET_SEND_COUNT];
 	int				recv_sockets[SOCKET_RECV_COUNT];
@@ -380,8 +379,6 @@ typedef struct		s_nmap_config
 	.scan_strings = { 0 },\
 	/* file descriptor for the hosts_file */\
 	.hosts_fd = -1,\
-	/* pointer to getifaddrs output (to be freed in cleanup) */\
-	.ifap = NULL,\
 	/* ip configuration (IPv4/IPv6 enabled/disabled) */\
 	.ip_mode = E_IPALL,\
 	/* sockets for sending probe packets */\
@@ -389,7 +386,7 @@ typedef struct		s_nmap_config
 	/* sockets to receive reply packets or user input */\
 	.recv_sockets = { -1, -1, -1, -1, -1, -1, -1, -1, 0 },\
 	/* information about the network interfaces */\
-	.netinf = { 0 },\
+	.netinf = { .iface = {{{ 0 }, 0, { 0 }, { 0 }}} },\
 	/* threads array */\
 	.thread = {{ 0 }},\
 	/* thread count */\
