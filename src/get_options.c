@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/15 06:56:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/09 02:05:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ const t_opt	g_nmap_opt[] = {
 	{ "min-rtt-timeout",		1,	NULL,	7	},
 	{ "max-rtt-timeout",		1,	NULL,	8	},
 	{ "disable-backoff",		0,	NULL,	9	},
+	{ "disable-ping",			0,	NULL,	10	},
+	{ "skip-non-responsive",	0,	NULL,	11	},
 	{ NULL,						0,	NULL,	0	},
 };
 
@@ -66,6 +68,8 @@ const char	*g_nmap_help[] = {
 	"Set minimum value of the RTT timeout.",
 	"Set maximum value of the RTT timeout.",
 	"Disable UDP probe backoff in case of ICMP rate limit.",
+	"Disable ping echo scans.",
+	"Skip hosts that do not respond to echo scans.",
 	NULL,
 };
 
@@ -74,7 +78,8 @@ const char	*g_nmap_usage[] = {
 	"\t\t[-s scan_list] [--complete | --heatmap | --range]\n"
 	"\t\t[--max-retries retries] [--scan-delay time]\n"
 	"\t\t[--initial-rtt-timeout time] [--min-rtt-timeout time]\n"
-	"\t\t[--max-rtt-timeout time] [--disable-backoff] host ...",
+	"\t\t[--max-rtt-timeout time] [--disable-backoff] [--disable-ping]\n"
+	"\t\t[--skip-non-responsive] host ...",
 	NULL,
 };
 
@@ -143,6 +148,8 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 7: str_to_timeval(&cfg->rtt.min_timeout, o.optarg);	break;
 			case 8: str_to_timeval(&cfg->rtt.max_timeout, o.optarg);	break;
 			case 9: cfg->exponential_backoff = 0;						break;
+			case 10: cfg->ping_scan = 0;								break;
+			case 11: cfg->skip_non_responsive = 1;						break;
 			default: usage(cfg->exec, opt != 'h');
 		}
 	cfg->hosts = argv + o.optind;

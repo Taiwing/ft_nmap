@@ -6,18 +6,19 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 12:54:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/18 19:37:00 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/06 12:38:44 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-void	reset_timeout(t_nmap_config *cfg)
+void	reset_timeout(t_nmap_config *cfg, struct timeval *init)
 {
-	ft_memcpy(&cfg->rtt.timeout, &cfg->rtt.initial_timeout,
-		sizeof(cfg->rtt.timeout));
-	ft_memcpy(&cfg->rtt.smoothed, &cfg->rtt.initial_timeout,
-		sizeof(cfg->rtt.timeout));
+	if (!init)
+		init = &cfg->rtt.initial_timeout;
+	ft_memcpy(&cfg->rtt.timeout, init, sizeof(cfg->rtt.timeout));
+	ft_memcpy(&cfg->rtt.smoothed, init, sizeof(cfg->rtt.smoothed));
+	ft_bzero(&cfg->rtt.variance, sizeof(cfg->rtt.variance));
 }
 
 void	probe_timeout(struct timeval *sent_ts, struct timeval *timeout_ts)

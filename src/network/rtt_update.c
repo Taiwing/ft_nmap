@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/06 11:10:58 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/18 19:40:07 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/06 10:52:54 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,13 @@ static void	rtt_timeout(void)
 			sizeof(g_cfg->rtt.timeout));
 }
 
+void	rtt_update_from_instance_rtt(struct timeval *instance_rtt)
+{
+	rtt_variance(instance_rtt);
+	rtt_smoothed(instance_rtt);
+	rtt_timeout();
+}
+
 /*
 ** Implement orginal nmap's RTT timeout computation algorithm described here:
 ** https://nmap.org/book/port-scanning-algorithms.html
@@ -69,9 +76,7 @@ void	rtt_update(struct timeval *sent, struct timeval *received)
 		nmap_mutex_lock(&g_cfg->rtt_mutex, &g_rtt_locked);
 	if (ft_timeval_sub(&instance_rtt, received, sent) < 0)
 		ft_exit(EXIT_FAILURE, "ft_timeval_sub: %s", ft_strerror(ft_errno));
-	rtt_variance(&instance_rtt);
-	rtt_smoothed(&instance_rtt);
-	rtt_timeout();
+	rtt_update_from_instance_rtt(&instance_rtt);
 	if (g_cfg->speedup)
 		nmap_mutex_unlock(&g_cfg->rtt_mutex, &g_rtt_locked);
 }

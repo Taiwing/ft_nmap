@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/06 19:07:52 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/18 19:40:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/09 02:16:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,14 @@ double	print_end_stats(void)
 	if (gettimeofday(&g_cfg->end_ts, NULL) < 0)
 		ft_exit(EXIT_FAILURE, "gettimeofday: %s", strerror(errno));
 	total_time = ts_msdiff(&g_cfg->end_ts, &g_cfg->start_ts) / 1000.0;
-	ft_printf("\n--- ft_nmap done ---\n%d address%s scanned in %g seconds\n",
-		g_cfg->host_count, g_cfg->host_count > 1 ? "es" : "", total_time);
+	ft_printf("\n--- ft_nmap done ---\n");
+	if (g_cfg->ping_scan && g_cfg->skip_non_responsive)
+		ft_printf("%d address%s scanned (%d host%s up) in %g seconds\n",
+			g_cfg->host_count, g_cfg->host_count > 1 ? "es" : "",
+			g_cfg->host_up, g_cfg->host_up > 1 ? "s" : "", total_time);
+	else
+		ft_printf("%d address%s scanned in %g seconds\n",
+			g_cfg->host_count, g_cfg->host_count > 1 ? "es" : "", total_time);
 	return (total_time);
 }
 

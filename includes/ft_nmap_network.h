@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/04 08:01:58 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/06 10:54:19 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,6 +186,7 @@ void		shitty_ms_usleep(double ms);
 double		ts_msdiff(struct timeval *a, struct timeval *b);
 void		str_to_timeval(struct timeval *time, const char *str);
 int			timeval_to_str(char *buf, size_t size, struct timeval *time);
+void		rtt_update_from_instance_rtt(struct timeval *instance_rtt);
 void		rtt_update(struct timeval *sent, struct timeval *received);
 
 /*

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/04 08:34:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/09 02:05:02 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -288,6 +288,8 @@ typedef struct		s_nmap_config
 	struct timeval	scan_delay;
 	enum e_reports	report;
 	int				exponential_backoff;
+	int				ping_scan;
+	int				skip_non_responsive;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
 	uint16_t		nports;
@@ -326,6 +328,7 @@ typedef struct		s_nmap_config
 	struct timeval	start_ts;
 	struct timeval	end_ts;
 	int				host_count;
+	int				host_up;
 	int				sent_packet_count;
 	int				received_packet_count;
 	_Atomic int		icmp_count;
@@ -353,6 +356,10 @@ typedef struct		s_nmap_config
 	.report = 0,\
 	/* wait for ICMP packets during UDP scans on rate-limit */\
 	.exponential_backoff = 1,\
+	/* execute ping scan before port scanning (to check if host is up) */\
+	.ping_scan = 1,\
+	/* skip non responsive hosts if ping scan is set */\
+	.skip_non_responsive = 0,\
 	/* boolean array representing every port given as arguments */\
 	.ports_to_scan = { 0 },\
 	/* compressed list with the first MAX_PORTS ports of ports_to_scan */\
@@ -429,6 +436,8 @@ typedef struct		s_nmap_config
 	.end_ts = { 0 },\
 	/* number of hosts given by the user */\
 	.host_count = 0,\
+	/* number of hosts given by the user that are up (if ping_scan) */\
+	.host_up = 0,\
 	/* count of packets sent */\
 	.sent_packet_count = 0,\
 	/* count of received packets */\
@@ -527,7 +536,7 @@ void		probe_timeout(struct timeval *sent_ts, struct timeval *timeout_ts);
 void		pseudo_thread_worker(void);
 double		print_end_stats(void);
 double		print_update_stats(void);
-void		reset_timeout(t_nmap_config *cfg);
+void		reset_timeout(t_nmap_config *cfg, struct timeval *init);
 
 /*
 ** ft_nmap constants
