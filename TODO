@@ -1,34 +1,5 @@
 ---- FIX ----
 
-- FIX ALL THAT SHIT
-  4: The RTT of a response are very different from a host
-  to an other. So execute a ping first, then wait for 10
-  responses and use the average RTT as a basis for
-  computing the timeout of probes. This will also say if
-  the host is up or not, so ft_nmap will skip scanning
-  all together if the host is down (like the original).
-
-- FIX false non-responsive diagonostic on some UDP scans. This is because when
-  UDP scan is done together with other scans an other one might potentially
-  'exhaust out' a host's ICMP rate limit before the UDP scan. So ICMP rate
-  limiting needs to be detected globally. Then the rate-limit can be applied if
-  ICMP responses are detected on the UDP scan (or on an other scan as an
-  exponential-backoff option could be created to explicitly wait for ICMP
-  replies on the given list of scan [it would take the same arguments as the
-  --scan option, or no argument for every scan]). Or MAYBE, just MAYBE leave it
-  as is. This is not high-priority. The UDP scan should handle ICMP rate limits
-  just fine if it is done on its one (meaning -sU is given to ft_nmap).
-  UPDATE: Also, there is a problem with the fact that the rate limit is fixed to
-  1 ICMP packet per second. This is not necessarily true. Sometimes the real
-  limit seems to be 2 or even 3 ICMP packets per second, so the rate-limiting
-  should adapt to the observed rate (maybe always a little lower, but still).
-  And there is also a problem with 'real' Open|Filtered ports which make the
-  scan last way longer than it should since they are retried as much as the
-  other ports and limited all the same. Once again, this is not a very big
-  problem, and it can even be fixed with the option --max-retries where the user
-  can manually limit the retry count so that it does not take too long to send
-  useless non-responsive probes. So not a big priority, but it should be noted.
-
 - FIX potential infinite loop if there is a fatal error in a thread while a task
   is executing after the end of a host task. This is very unlikely to happen,
   but theoretically it could. If it did, the running task counter would never be
@@ -48,33 +19,70 @@
   because even with one probe, zero retry and only timeout, some time should
   pass between new_host and the last reply. But it's not impossible.
 
+- FIX false non-responsive diagonostic on some UDP scans. This is because when
+  UDP scan is done together with other scans an other one might potentially
+  'exhaust out' a host's ICMP rate limit before the UDP scan. So ICMP rate
+  limiting needs to be detected globally. Then the rate-limit can be applied if
+  ICMP responses are detected on the UDP scan (or on an other scan as an
+  exponential-backoff option could be created to explicitly wait for ICMP
+  replies on the given list of scan [it would take the same arguments as the
+  --scan option, or no argument for every scan]). Or MAYBE, just MAYBE leave it
+  as is. This is not high-priority. The UDP scan should handle ICMP rate limits
+  just fine if it is done on its own (meaning -sU is given to ft_nmap).
+  UPDATE: Also, there is a problem with the fact that the rate limit is fixed to
+  1 ICMP packet per second. This is not necessarily true. Sometimes the real
+  limit seems to be 2 or even 3 ICMP packets per second, so the rate-limiting
+  should adapt to the observed rate (maybe always a little lower, but still).
+  And there is also a problem with 'real' Open|Filtered ports which make the
+  scan last way longer than it should since they are retried as much as the
+  other ports and limited all the same. Once again, this is not a very big
+  problem, and it can even be fixed with the option --max-retries where the user
+  can manually limit the retry count so that it does not take too long to send
+  useless non-responsive probes. So not a big priority, but it should be noted.
+
+- Scans that potentially can receive a lot of responses (like gitlab.com,
+  interdixions.org, framasoft.org, laquadrature.net, wikipedia.org, etc...)
+  tend to do worse when scanning from the hosts file (-f tests/hosts). Meaning
+  a lot of responses are missed. It's weird because when executing these scans
+  on their own they seem to do just fine most of the time. So there must be one
+  or more mistakes somewhere when resetting ft_nmap data in between hosts or
+  some other thing that I don't know about (like a weird limit on packet
+  reception ? [I don't believe that for one second, it's simply to illustrate
+  what I'm saying]).
+
 ---- TODO ----
 
-- Because of ICMP rate-limiting, I can justify a runtime of
-  arount 20min for the UDP scan only not 8 hours. So ft_nmap
-  with every scan flag and no speedup should take around 20
-  minutes too. However, this might be wrong because NULL,
-  FIN and XMAS scans also depend on ICMP to get an accurate
-  result. In fact, there is only SYN and ACK which dont
-  have any problem with ICMP rate-limiting. Although RST
-  responses can also be rate-limited. So this still might
-  be a problem there too.
-
-- check what happens now when we scan on port listened on
-  by an other process (like with drake_simulator on 8080)
-- when all this is done, check that the scan results are
-  the same as the original nmap and that it does not take
-  too much time to execute
-- Make sure time options (and options in general) cannot
-  be given values that would make ft_nmap lose its mind.
-  Like, what happens if the max_rtt_timeout value makes
-  the probe_retry_time overflow on the expiry timestamp?
+- check what happens now when we scan on port listened on by an other process
+  (like with drake_simulator on 8080)
+- when all this is done, check that the scan results are the same as the
+  original nmap and that it does not take too much time to execute
+- Make sure time options (and options in general) cannot be given values that
+  would make ft_nmap lose its mind. Like, what happens if the max_rtt_timeout
+  value makes the probe_retry_time overflow on the expiry timestamp ?
 - then stress-test the shit out of this program (really)
+
+- See how NULL FIN and XMAS scans should handle ICMP rate-limiting. Does it make
+  sense to backoff too in these cases. Also, shoud the backoff algorithm be on
+  by default as it is the case now ? Because most of the time the information is
+  very long to get and not very informative (especially for NULL FIN and XMAS as
+  they are almost always non-responsive).
+
+- The multithreaded mode (speedup > 0) is lame as fuck. As the name indicates,
+  it is supposed to accelerate ft_nmap's execution, but it does not. It's
+  actually slower. This is probably because the thread overhead (not even
+  counting initilisation) is greater than what is gained by parallelizing what
+  can be parallelized. The problem could probably be mitigated if more resources
+  were allocated for the multithreaded mode. Like adding sockets to parallelize
+  some of the sending (or even just using one mutex per socket). But I dont
+  think the performance gains would be very big. The entire structure of ft_nmap
+  probably needs to be reworked. Otherwise, the multithreaded mode might as well
+  be removed. The entire tasks/worker system has been thought to work better in
+  a multithreaded environment. It's basically useless in monothreaded mode (the
+  responses/timeout is the only use and it could be done in an other way, just
+  by listing the responses/probes directly instead of using tasks).
 
 ---- MAYBE ----
 
-- Implement a "watch" mode for the heatmap option where
-  ft_nmap would be continuously scanning the target
-  ports on a regular interval. Updating the map as it
-  eventually changes and notifying the user when they
-  do occur.
+- Implement a "watch" mode for the heatmap option where ft_nmap would be
+  continuously scanning the target ports on a regular interval. Updating the map
+  as it eventually changes and notifying the user when they do occur.
