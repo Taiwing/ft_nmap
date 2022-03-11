@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/06 11:03:58 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/11 07:16:09 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,8 @@ static void	main_thread_cleanup(void)
 
 static void	check_config(t_nmap_config *cfg)
 {
-	if (!*cfg->hosts && !cfg->hosts_file)
+	if (!*cfg->hosts && !cfg->hosts_file
+		&& !cfg->adventure && !cfg->web_adventure)
 		ft_exit(EXIT_FAILURE, "target host missing (use --help for more info)");
 	if (!cfg->nports)
 	{

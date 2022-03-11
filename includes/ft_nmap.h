@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/09 02:05:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/11 07:39:30 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -290,6 +290,8 @@ typedef struct		s_nmap_config
 	int				exponential_backoff;
 	int				ping_scan;
 	int				skip_non_responsive;
+	int				adventure;
+	int				web_adventure;
 	uint8_t			ports_to_scan[PORTS_COUNT];
 	uint16_t		ports[MAX_PORTS + 1];
 	uint16_t		nports;
@@ -335,6 +337,8 @@ typedef struct		s_nmap_config
 	_Atomic int		listen_breakloop;
 	t_rtt_control	rtt;
 	t_send_window	window[SCAN_COUNT];
+	int				adventure_count;
+	int				web_adventure_count;
 }					t_nmap_config;
 
 # define	CONFIG_DEF				{\
@@ -360,6 +364,10 @@ typedef struct		s_nmap_config
 	.ping_scan = 1,\
 	/* skip non responsive hosts if ping scan is set */\
 	.skip_non_responsive = 0,\
+	/* sets adventure mode */\
+	.adventure = 0,\
+	/* sets web-adventure mode */\
+	.web_adventure = 0,\
 	/* boolean array representing every port given as arguments */\
 	.ports_to_scan = { 0 },\
 	/* compressed list with the first MAX_PORTS ports of ports_to_scan */\
@@ -450,6 +458,10 @@ typedef struct		s_nmap_config
 	.rtt = DEF_RTT,\
 	/* send window for congestion handling of each scan*/\
 	.window = {{ 0 }},\
+	/* sets adventure count (-1 for infinite) */\
+	.adventure_count = -1,\
+	/* sets web-adventure count (-1 for infinite) */\
+	.web_adventure_count = -1,\
 }
 
 /*

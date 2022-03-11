@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/09 02:05:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/11 07:39:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,10 @@ const t_opt	g_nmap_opt[] = {
 	{ "disable-backoff",		0,	NULL,	9	},
 	{ "disable-ping",			0,	NULL,	10	},
 	{ "skip-non-responsive",	0,	NULL,	11	},
+	{ "adventure",				0,	NULL,	12	},
+	{ "web-adventure",			0,	NULL,	13	},
+	{ "adventure-count",		1,	NULL,	14	},
+	{ "web-adventure-count",	1,	NULL,	15	},
 	{ NULL,						0,	NULL,	0	},
 };
 
@@ -70,6 +74,15 @@ const char	*g_nmap_help[] = {
 	"Disable UDP probe backoff in case of ICMP rate limit.",
 	"Disable ping echo scans.",
 	"Skip hosts that do not respond to echo scans.",
+	"Sets adventure mode. This will look for random hosts in the IPv4 space\n"
+	"\t\t(it is therefore incompatible with -6 option). Echo ping scans are\n"
+	"\t\tused to find them.",
+	"Same as the adventure mode but uses tcp syn scans instead of pings to\n"
+	"\t\tfind responsive web servers (either on port 80 or on port 443).\n"
+	"\t\tTheir ip is also printed as an address so that they can be easily\n"
+	"\t\topened in the web browser.",
+	"Sets the count of hosts for adventure mode.",
+	"Sets the count of hosts for web-adventure mode.",
 	NULL,
 };
 
@@ -79,7 +92,8 @@ const char	*g_nmap_usage[] = {
 	"\t\t[--max-retries retries] [--scan-delay time]\n"
 	"\t\t[--initial-rtt-timeout time] [--min-rtt-timeout time]\n"
 	"\t\t[--max-rtt-timeout time] [--disable-backoff] [--disable-ping]\n"
-	"\t\t[--skip-non-responsive] host ...",
+	"\t\t[--skip-non-responsive] [--adventure] [--web-adventure]\n"
+	"\t\t[--adventure-count count] [--web-adventure-count count] host ...",
 	NULL,
 };
 
@@ -88,6 +102,9 @@ const char	*g_description =
 "\tin the /etc/hosts file or domain names. ft_nmap will loop on them until\n"
 "\tno argument is left. Then it will look at the --file option value if it\n"
 "\twas given and do the same. The host file format is one host per line.\n"
+"\tAnd once the file is exhausted it will switch to adventure mode if it was\n"
+"\tset. Regular adventure first and web-adventure once the host count is\n"
+"\texhausted. If no count is provided it just goes on indefinitely.\n"
 "\n\tOptions that take a 'time' value are in milliseconds by default. They\n"
 "\tcan be appended a time unit which will be one of: us (microseconds),\n"
 "\tms (milliseconds), s (seconds), m (minutes) or h (hours).\n"
@@ -150,6 +167,12 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 9: cfg->exponential_backoff = 0;						break;
 			case 10: cfg->ping_scan = 0;								break;
 			case 11: cfg->skip_non_responsive = 1;						break;
+			case 12: cfg->adventure = 1;								break;
+			case 13: cfg->web_adventure = 1;							break;
+			case 14: cfg->adventure_count = parse_int(o.optarg, 1, INT_MAX,
+				"argument");											break;
+			case 15: cfg->web_adventure_count = parse_int(o.optarg, 1, INT_MAX,
+				"argument");											break;
 			default: usage(cfg->exec, opt != 'h');
 		}
 	cfg->hosts = argv + o.optind;
