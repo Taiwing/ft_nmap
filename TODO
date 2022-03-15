@@ -74,6 +74,9 @@
 
 ---- MAYBE ----
 
+- Implement adventure mode with random IPv4 hosts (it would be really cool but
+  it needs to better thought out and it would take time).
+
 - Implement a "watch" mode for the heatmap option where ft_nmap would be
   continuously scanning the target ports on a regular interval. Updating the map
   as it eventually changes and notifying the user when they do occur.
