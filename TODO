@@ -33,9 +33,6 @@
 
 ---- TODO ----
 
-- Make sure time options (and options in general) cannot be given values that
-  would make ft_nmap lose its mind. Like, what happens if the max_rtt_timeout
-  value makes the probe_retry_time overflow on the expiry timestamp ?
 - then stress-test the shit out of this program (really)
 
 - See how NULL FIN and XMAS scans should handle ICMP rate-limiting. Does it make
