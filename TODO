@@ -1,15 +1,5 @@
 ---- FIX ----
 
-- CHECK and maybe FIX possible concurrency issue for the main_tasks list. The
-  listen task is added without mutex locking, which is not a problem at this
-  moment since no thread should be editing it because the listening has not
-  started so replies cannot have been received. But when the scanning is done,
-  when the last probe has been replied to or has timed out, the main_tasks list
-  will be edited with a mutex lock. This is a problem because it could happen
-  at the same time the listening task is added. I mean this really theoretical
-  because even with one probe, zero retry and only timeout, some time should
-  pass between new_host and the last reply. But it's not impossible.
-
 - FIX false non-responsive diagonostic on some UDP scans. This is because when
   UDP scan is done together with other scans an other one might potentially
   'exhaust out' a host's ICMP rate limit before the UDP scan. So ICMP rate
