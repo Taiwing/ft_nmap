@@ -1,14 +1,5 @@
 ---- FIX ----
 
-- FIX potential infinite loop if there is a fatal error in a thread while a task
-  is executing after the end of a host task. This is very unlikely to happen,
-  but theoretically it could. If it did, the running task counter would never be
-  decreased, so the loop would just keep on looping on. The simple fix would be
-  to add '&& !cfg->end' because the atexit handler of the threads will set this
-  value to true when they're called. It would bypass the running tasks waiting
-  loop. The cfg->end value would need to be checked after the loop to abort the
-  function (this is in the new_host() function at the running tasks while loop).
-
 - CHECK and maybe FIX possible concurrency issue for the main_tasks list. The
   listen task is added without mutex locking, which is not a problem at this
   moment since no thread should be editing it because the listening has not
