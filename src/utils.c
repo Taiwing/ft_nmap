@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/06 04:35:54 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/18 19:55:30 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/15 16:26:01 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,13 +51,17 @@ const char	*g_nmap_time_unit_strings[] = { "us", "ms", "s", "m", "h", NULL };
 const int	g_nmap_us_time_units[] = { 1, 1000 };
 const int	g_nmap_s_time_units[] = { 1, 60, 3600 };
 
+//TODO: maybe one day define a MAX_TIME_VALUE per time unit because this is a
+//bit rough for smaller units which can't go above ~500000
+#define MAX_TIME_VALUE	(INT_MAX / g_nmap_s_time_units[2])
+
 void	str_to_timeval(struct timeval *time, const char *str)
 {
 	const char	*unit_str = NULL, *p;
 	int			i = 0, value = 0, second = 1;
 
 	p = str;
-	value = parse_int_prefix(p, 0, INT_MAX, "time value");
+	value = parse_int_prefix(p, 0, MAX_TIME_VALUE, "time value");
 	while (ft_isdigit(*p))
 		++p;
 	unit_str = !*p ? "s" : p;
