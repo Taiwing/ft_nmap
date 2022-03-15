@@ -33,10 +33,6 @@
 
 ---- TODO ----
 
-- check what happens now when we scan on port listened on by an other process
-  (like with drake_simulator on 8080)
-- when all this is done, check that the scan results are the same as the
-  original nmap and that it does not take too much time to execute
 - Make sure time options (and options in general) cannot be given values that
   would make ft_nmap lose its mind. Like, what happens if the max_rtt_timeout
   value makes the probe_retry_time overflow on the expiry timestamp ?
