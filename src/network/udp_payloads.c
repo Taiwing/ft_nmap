@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/30 19:50:50 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/22 09:35:39 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/17 17:37:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,6 +225,7 @@ static void	parse_udpfile(t_nmap_config *cfg, int fd)
 
 	while ((ret = get_next_line(fd, (char **)&line)) >= 0)
 	{
+		tokenize(&token, NULL);
 		while (token.type != E_UF_TOKEN_EOF
 			&& (token.type = tokenize(&token, line)) != E_UF_TOKEN_NONE)
 			parse_token(cfg, &token, &payload, data);
