@@ -33,7 +33,8 @@
 
 ---- TODO ----
 
-- then stress-test the shit out of this program (really)
+- Update libft to last version and create (or update) nmap_libft branch to block
+  libft's version and add -DTHREAD_SAFE to '.genmake' and Makefile.
 
 - See how NULL FIN and XMAS scans should handle ICMP rate-limiting. Does it make
   sense to backoff too in these cases. Also, shoud the backoff algorithm be on
