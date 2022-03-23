@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:12:12 by yforeau           #+#    #+#             */
-/*   Updated: 2022/01/16 22:17:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/23 05:45:44 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,11 +41,11 @@ void		usage(const char *exec, int exit_value)
 
 int			parse_int(const char *str, int min, int max, const char *type)
 {
-	int	ret, result = 0;
+	int	result = 0;
 
-	if ((ret = ft_secatoi(&result, min, max, str)))
+	if (ft_secatoi(&result, min, max, str) < 0)
 	{
-		if (ret == FT_E_NOT_A_NUMBER)
+		if (ft_errno == E_FTERR_NOT_A_NUMBER)
 			ft_exit(EXIT_FAILURE, "invalid %s: '%s'", type, str);
 		else
 			ft_exit(EXIT_FAILURE, "invalid %s: '%s': "
