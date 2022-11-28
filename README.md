@@ -112,34 +112,38 @@ ms (milliseconds), s (seconds), m (minutes) or h (hours).
 Each scan type given in scan list is a column in the final host report
 and a series of letters is used to describe the result of a port scan:
 
-O --> Open
-C --> Closed
-U --> Unfiltered
-F --> Filtered
-OF --> Open|Filtered
+- O --> Open
+- C --> Closed
+- U --> Unfiltered
+- F --> Filtered
+- OF --> Open|Filtered
 
 ### Possible responses and states by scan type:
 
-#### SYN:
+### SYN:
 
-Open --> tcp SYN or tcp SYN/ACK
-Closed --> tcp RST
-Filtered --> icmp type 3 code 0/1/2/3/9/10/13 or timeout
+Possible responses and states:
+- Open --> tcp SYN or tcp SYN/ACK
+- Closed --> tcp RST
+- Filtered --> icmp type 3 code 0/1/2/3/9/10/13 or timeout
 
 #### ACK:
 
-Unfiltered --> tcp RST
-Filtered --> icmp type 3 code 0/1/2/3/9/10/13 or timeout
+Possible responses and states:
+- Unfiltered --> tcp RST
+- Filtered --> icmp type 3 code 0/1/2/3/9/10/13 or timeout
 
 #### UDP:
 
-Open --> udp
-Closed --> icmp type 3 code 3
-Filtered --> icmp type 3 code 0/1/2/9/10/13
-Open|Filetered --> timeout
+Possible responses and states:
+- Open --> udp
+- Closed --> icmp type 3 code 3
+- Filtered --> icmp type 3 code 0/1/2/9/10/13
+- Open|Filetered --> timeout
 
 #### NULL, FIN, XMAS:
 
-Closed --> tcp RST
-Filtered --> icmp type 3 code 0/1/2/3/9/10/13
-Open|Filetered --> timeout
+Possible responses and states:
+- Closed --> tcp RST
+- Filtered --> icmp type 3 code 0/1/2/3/9/10/13
+- Open|Filetered --> timeout
