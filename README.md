@@ -107,7 +107,7 @@ Options that take a 'time' value are in milliseconds by default. They
 can be appended a time unit which will be one of: us (microseconds),
 ms (milliseconds), s (seconds), m (minutes) or h (hours).
 
-## Scans
+## Scans states
 
 Each scan type given in scan list is a column in the final host report
 and a series of letters is used to describe the result of a port scan:
@@ -118,22 +118,69 @@ and a series of letters is used to describe the result of a port scan:
 - F --> Filtered
 - OF --> Open|Filtered
 
-### Possible responses and states by scan type:
+### Open
 
-### SYN:
+An application is actively listening on the given port. It expects TCP or UDP
+packets to initiate a connection in order to interact with the host. Finding
+these type of ports is the primary goal of a security scan. Each open port is a
+potential vulnerability that could be exploited by an attacker.
+
+### Closed
+
+The given port is responding to user requests but no application is listening on
+it. This can be useful for host detection (confirming that a host is up) or for
+OS detection (as different OS will typically have different open/closed/filtered
+ports schemes by default). Closed ports might also be checked again later as a
+service could be started after the scan.
+
+### Unfiltered
+
+This state can only be obtained on ACK scans. If a RST response is sent in reply
+to an ACK scan then the port is not filtered. This means that the port is
+not blocked by a firewall and can therefore be reached. The information is not
+precise but it is easy and fast to obtain.
+
+### Filtered
+
+The port is not responsive or is returning an ICMP error indicating a violation
+of some network policy. This typically means that a firewall has been set up on
+the targeted host, or on a router or that a system limit has been reached.
+
+### Open | Filtered
+
+This means that the given scan has not received any response for a UDP or
+NULL/FIN/XMAS scan. ft\_nmap is not able to say if the port is opened or if it
+has been filtered.
+
+## Scan Types
+
+### SYN
+
+Initiate a TCP connection by sending a TCP packet with the SYN bit set. This can
+result in an Open state for the TCP port.
 
 Possible responses and states:
 - Open --> tcp SYN or tcp SYN/ACK
 - Closed --> tcp RST
 - Filtered --> icmp type 3 code 0/1/2/3/9/10/13 or timeout
 
-#### ACK:
+### ACK
+
+Send an ACK packet out of the blue which can only be responded to by a RST
+packet, an error or a timeout. This is a fast scan that makes it easy to detect
+a protected host.
 
 Possible responses and states:
 - Unfiltered --> tcp RST
 - Filtered --> icmp type 3 code 0/1/2/3/9/10/13 or timeout
 
-#### UDP:
+### UDP
+
+Try to initiate a UDP connection on the given port. This is the hardest type of
+scan as open UDP ports are rarer and more protected than TCP ports. Also most
+UDP applications will not respond if the UDP packet initiating the connection
+does not respect the specific service protocol. This means that different probes
+must be sent for each possible service on each port.
 
 Possible responses and states:
 - Open --> udp
@@ -141,7 +188,12 @@ Possible responses and states:
 - Filtered --> icmp type 3 code 0/1/2/9/10/13
 - Open|Filetered --> timeout
 
-#### NULL, FIN, XMAS:
+### NULL, FIN, XMAS
+
+Try to elicit an RST response to check if a port is closed. This scan cannot
+return an open state as the TCP packet being sent is not valid. This is sneaky
+way to possibly skip some firewall rules and obtaining more information than
+with an ACK scan.
 
 Possible responses and states:
 - Closed --> tcp RST
