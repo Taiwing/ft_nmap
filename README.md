@@ -5,6 +5,11 @@ network scanner and a port mapper. It can be used to diagnostic networking
 issues or to gather infromations on a given network in an offensive security
 setting.
 
+<br />
+<p align="center">
+	<img src="https://github.com/Taiwing/ft_nmap/blob/master/resources/eye.png?raw=true" alt="eye" style="width: 50%;" />
+</p>
+
 ## Setup
 
 ```shell
