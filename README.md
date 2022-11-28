@@ -179,8 +179,8 @@ Possible responses and states:
 Try to initiate a UDP connection on the given port. This is the hardest type of
 scan as listening UDP services are rarer than TCP and also tend to be more
 protected. Also UDP applications will typically not respond if the UDP packet
-initiating the connection does not the specific service's protocol. This means
-that different probes must be sent for each possible service on each port.
+initiating the connection does respect not the specific service's protocol. This
+means that different probes must be sent for each possible service on each port.
 
 Possible responses and states:
 - Open --> udp
