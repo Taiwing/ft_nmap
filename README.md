@@ -177,10 +177,10 @@ Possible responses and states:
 ### UDP
 
 Try to initiate a UDP connection on the given port. This is the hardest type of
-scan as open UDP ports are rarer and more protected than TCP ports. Also most
-UDP applications will not respond if the UDP packet initiating the connection
-does not respect the specific service protocol. This means that different probes
-must be sent for each possible service on each port.
+scan as listening UDP services are rarer than TCP and also tend to be more
+protected. Also UDP applications will typically not respond if the UDP packet
+initiating the connection does not the specific service's protocol. This means
+that different probes must be sent for each possible service on each port.
 
 Possible responses and states:
 - Open --> udp
@@ -191,9 +191,9 @@ Possible responses and states:
 ### NULL, FIN, XMAS
 
 Try to elicit an RST response to check if a port is closed. This scan cannot
-return an open state as the TCP packet being sent is not valid. This is sneaky
-way to possibly skip some firewall rules and obtaining more information than
-with an ACK scan.
+return an open state as the TCP packet being sent is not valid. This is a sneaky
+way to possibly skip some firewall rules and obtain more information than with
+an ACK scan.
 
 Possible responses and states:
 - Closed --> tcp RST
