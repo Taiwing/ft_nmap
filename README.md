@@ -107,7 +107,7 @@ Options that take a 'time' value are in milliseconds by default. They
 can be appended a time unit which will be one of: us (microseconds),
 ms (milliseconds), s (seconds), m (minutes) or h (hours).
 
-## Scans states
+## Scan states
 
 Each scan type given in scan list is a column in the final host report
 and a series of letters is used to describe the result of a port scan:
