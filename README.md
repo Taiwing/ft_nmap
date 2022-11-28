@@ -96,6 +96,41 @@ Options:
 		Skip hosts that do not respond to echo scans.
 ```
 
+#### example:
+
+```shell
+# execute every scan type on the first 1024 ports of google.com
+./ft_nmap google.com
+```
+
+possible output:
+
+```
+--- Network ---
+IPv4 Status: on
+IPv6 Status: on
+Default Interface: tap0
+
+--- Scan ---
+Number of threads: 0
+Number of ports to scan: 1024
+Scans to be performed: SYN ACK NULL FIN XMAS UDP
+
+Host: google.com
+Scan took 5.61052 seconds
+IP address: 142.250.179.78
+Ports not shown: 1022 Closed
+
+Open ports:
+| Port  | Service              | SYN  | ACK  | NULL | FIN  | XMAS | UDP  |
+--------------------------------------------------------------------------
+| 80    | http                 | O    | U    | C    | C    | C    | OF   |
+| 443   | https                | O    | U    | C    | C    | C    | OF   |
+
+--- ft_nmap done ---
+1 address scanned in 5.65263 seconds
+```
+
 ## Description
 
 The host arguments can either be IPv4, IPv6 addresses, hosts as defined
