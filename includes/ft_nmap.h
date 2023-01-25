@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/09 02:05:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/25 23:08:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,13 @@ enum		e_recv_sockets {
 
 // Reports
 enum		e_reports { E_REPORT_PORT = 0, E_REPORT_RANGE, E_REPORT_HEATMAP };
+
+// Adventure modes
+enum		e_adventure_modes {
+	E_ADVENTURE_OFF = 0,
+	E_ADVENTURE_ON,
+	E_ADVENTURE_WEB,
+};
 
 /*
 ** t_scan_job: nmap scan_jobs
@@ -276,66 +283,67 @@ typedef struct		s_worker_config
 /*
 ** t_nmap_config: nmap configuration
 */
-typedef struct		s_nmap_config
+typedef struct				s_nmap_config
 {
 	/* Initialized at startup */
-	const char		*exec;
-	int				speedup;
-	int				verbose;
-	int				debug;
-	int				complete;
-	int				retries;
-	struct timeval	scan_delay;
-	enum e_reports	report;
-	int				exponential_backoff;
-	int				ping_scan;
-	int				skip_non_responsive;
-	uint8_t			ports_to_scan[PORTS_COUNT];
-	uint16_t		ports[MAX_PORTS + 1];
-	uint16_t		nports;
-	char			**hosts;
-	const char		*hosts_file;
-	const char		*dev;
-	uint8_t			scans[SCAN_COUNT];
-	uint8_t			nscans;
-	int				has_udp_scans;
-	int				has_tcp_scans;
-	int				total_scan_count;
-	const char		*scan_strings[SCAN_COUNT];
-	int				hosts_fd;
-	enum e_ip_modes	ip_mode;
-	int				send_sockets[SOCKET_SEND_COUNT];
-	int				recv_sockets[SOCKET_RECV_COUNT];
-	t_netinfo		netinf;
-	t_ft_thread		thread[MAX_THREADS];
-	uint8_t			nthreads;
-	pthread_mutex_t	print_mutex;
-	pthread_mutex_t	high_mutex;
-	pthread_mutex_t	low_mutex;
-	pthread_mutex_t	send_mutex;
-	pthread_mutex_t	rtt_mutex;
-	t_udp_payload	**udp_payloads[PORTS_COUNT];
-	t_worker_config	worker_main_config;
-	t_worker_config	worker_thread_config;
+	const char				*exec;
+	int						speedup;
+	int						verbose;
+	int						debug;
+	int						complete;
+	int						retries;
+	struct timeval			scan_delay;
+	enum e_reports			report;
+	int						exponential_backoff;
+	int						ping_scan;
+	int						skip_non_responsive;
+	enum e_adventure_modes	adventure_mode;
+	uint8_t					ports_to_scan[PORTS_COUNT];
+	uint16_t				ports[MAX_PORTS + 1];
+	uint16_t				nports;
+	char					**hosts;
+	const char				*hosts_file;
+	const char				*dev;
+	uint8_t					scans[SCAN_COUNT];
+	uint8_t					nscans;
+	int						has_udp_scans;
+	int						has_tcp_scans;
+	int						total_scan_count;
+	const char				*scan_strings[SCAN_COUNT];
+	int						hosts_fd;
+	enum e_ip_modes			ip_mode;
+	int						send_sockets[SOCKET_SEND_COUNT];
+	int						recv_sockets[SOCKET_RECV_COUNT];
+	t_netinfo				netinf;
+	t_ft_thread				thread[MAX_THREADS];
+	uint8_t					nthreads;
+	pthread_mutex_t			print_mutex;
+	pthread_mutex_t			high_mutex;
+	pthread_mutex_t			low_mutex;
+	pthread_mutex_t			send_mutex;
+	pthread_mutex_t			rtt_mutex;
+	t_udp_payload			**udp_payloads[PORTS_COUNT];
+	t_worker_config			worker_main_config;
+	t_worker_config			worker_thread_config;
 	/* Modified during execution */
-	t_host_job		host_job;
-	t_scan_job		*scan_jobs[MAX_PROBE];
-	t_list			*main_tasks;
-	t_list			*thread_tasks;
-	_Atomic int		pending_tasks;
-	_Atomic int		running_tasks;
-	_Atomic int		end;
-	struct timeval	start_ts;
-	struct timeval	end_ts;
-	int				host_count;
-	int				host_up;
-	int				sent_packet_count;
-	int				received_packet_count;
-	_Atomic int		icmp_count;
-	_Atomic int		listen_breakloop;
-	t_rtt_control	rtt;
-	t_send_window	window[SCAN_COUNT];
-}					t_nmap_config;
+	t_host_job				host_job;
+	t_scan_job				*scan_jobs[MAX_PROBE];
+	t_list					*main_tasks;
+	t_list					*thread_tasks;
+	_Atomic int				pending_tasks;
+	_Atomic int				running_tasks;
+	_Atomic int				end;
+	struct timeval			start_ts;
+	struct timeval			end_ts;
+	int						host_count;
+	int						host_up;
+	int						sent_packet_count;
+	int						received_packet_count;
+	_Atomic int				icmp_count;
+	_Atomic int				listen_breakloop;
+	t_rtt_control			rtt;
+	t_send_window			window[SCAN_COUNT];
+}							t_nmap_config;
 
 # define	CONFIG_DEF				{\
 	/* executable name */\
@@ -360,6 +368,8 @@ typedef struct		s_nmap_config
 	.ping_scan = 1,\
 	/* skip non responsive hosts if ping scan is set */\
 	.skip_non_responsive = 0,\
+	/* adventure mode */\
+	.adventure_mode = E_ADVENTURE_OFF,\
 	/* boolean array representing every port given as arguments */\
 	.ports_to_scan = { 0 },\
 	/* compressed list with the first MAX_PORTS ports of ports_to_scan */\

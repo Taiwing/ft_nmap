@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 23:11:55 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/09 02:05:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/25 23:07:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@ const t_opt	g_nmap_opt[] = {
 	{ "disable-backoff",		0,	NULL,	9	},
 	{ "disable-ping",			0,	NULL,	10	},
 	{ "skip-non-responsive",	0,	NULL,	11	},
+	{ "adventure",				0,	NULL,	12	},
+	{ "web-adventure",			0,	NULL,	13	},
 	{ NULL,						0,	NULL,	0	},
 };
 
@@ -70,6 +72,11 @@ const char	*g_nmap_help[] = {
 	"Disable UDP probe backoff in case of ICMP rate limit.",
 	"Disable ping echo scans.",
 	"Skip hosts that do not respond to echo scans.",
+	"Find random responding hosts and scan them. Adventure mode will start\n"
+	"\t\twhen ft_nmap is done scanning the hosts provided as arguments and in\n"
+	"\t\tthe file if any. NOTE: works best with IPv4 flag (IPv6 hosts are\n"
+	"\t\treally hard to find at random)",
+	"Same as adventure mode but only on hosts listening on port 80 and 443.",
 	NULL,
 };
 
@@ -79,7 +86,7 @@ const char	*g_nmap_usage[] = {
 	"\t\t[--max-retries retries] [--scan-delay time]\n"
 	"\t\t[--initial-rtt-timeout time] [--min-rtt-timeout time]\n"
 	"\t\t[--max-rtt-timeout time] [--disable-backoff] [--disable-ping]\n"
-	"\t\t[--skip-non-responsive] host ...",
+	"\t\t[--skip-non-responsive] [--adventure | --web-adventure] host ...",
 	NULL,
 };
 
@@ -150,6 +157,8 @@ void		get_options(t_nmap_config *cfg, int argc, char **argv)
 			case 9: cfg->exponential_backoff = 0;						break;
 			case 10: cfg->ping_scan = 0;								break;
 			case 11: cfg->skip_non_responsive = 1;						break;
+			case 12: cfg->adventure_mode = E_ADVENTURE_ON;				break;
+			case 13: cfg->adventure_mode = E_ADVENTURE_WEB;				break;
 			default: usage(cfg->exec, opt != 'h');
 		}
 	cfg->hosts = argv + o.optind;
