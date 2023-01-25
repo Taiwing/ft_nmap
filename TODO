@@ -60,6 +60,15 @@
 
 - Implement adventure mode with random IPv4 hosts (it would be really cool but
   it needs to better thought out and it would take time).
+  - Create a HOST_DISCOVERY task (or ADVENTURE_TASK maybe ?)
+  - Add an ip list or array with a max value (maybe) to store the valid ips
+  - In the new task generate a lot of random ips, ping them, and add the results
+    to the ip list (execute a tcp scan on 80 and/or 443 for website version)
+  - Add a condition in the get_target() function (in network/next_host.c) that
+    works the same as for the files. When the ip list is empty execute/add the
+	HOST_DISCOVERY task (execute with pseudo thread if not multithreaded). Then
+	if the list contains a valid ip pop it from the list and return it as the
+	new target.
 
 - Implement a "watch" mode for the heatmap option where ft_nmap would be
   continuously scanning the target ports on a regular interval. Updating the map
