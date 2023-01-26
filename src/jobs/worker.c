@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/09 20:51:20 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/26 21:36:24 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,13 +50,14 @@ void		start_worker_threads(t_nmap_config *cfg)
 
 # define	MAX_PSEUDO_THREAD_TASKS	16
 
-void		pseudo_thread_worker(void)
+void		pseudo_thread_worker(int task_max)
 {
 	t_worker_config	wcfg = {
 		.type = E_WORKER_PSEUDO_THREAD,
 		.task_list = &g_cfg->thread_tasks,
 		.task_types = WORKER_TASKS,
-		.task_max = MAX_PSEUDO_THREAD_TASKS,
+		.task_max = task_max <= 0 || task_max > MAX_PSEUDO_THREAD_TASKS ?
+			MAX_PSEUDO_THREAD_TASKS : task_max,
 	};
 
 	worker(&wcfg);

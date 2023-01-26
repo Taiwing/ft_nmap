@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/13 18:37:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/26 21:24:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,12 @@ static void	task_new_host(t_task *task)
 	if (new_host(g_cfg))
 		push_front_tasks(&g_cfg->main_tasks,
 			ft_lstnew(&listen_task, sizeof(listen_task)), g_cfg, 0);
+}
+
+static void task_host_discovery(t_task *task)
+{
+	if (g_cfg->debug > 1)
+		debug_task(g_cfg, task, 0);
 }
 
 static void	task_listen(t_task *task)
@@ -55,7 +61,7 @@ static void	task_listen(t_task *task)
 	{
 		reply_count = ft_listen(listen_fds, SOCKET_RECV_COUNT, 0);
 		if (!g_cfg->speedup && !reply_count)
-			pseudo_thread_worker();
+			pseudo_thread_worker(0);
 	}
 	g_cfg->listen_breakloop = 0;
 }
@@ -185,6 +191,7 @@ static void	task_print_stats(t_task *task)
 const taskf	g_tasks[] = {
 	[E_TASK_WORKER_SPAWN] = task_worker_spawn,
 	[E_TASK_NEW_HOST] = task_new_host,
+	[E_TASK_HOST_DISCOVERY] = task_host_discovery,
 	[E_TASK_LISTEN] = task_listen,
 	[E_TASK_PROBE] = task_probe,
 	[E_TASK_REPLY] = task_reply,

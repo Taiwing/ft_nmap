@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/25 23:08:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/26 21:22:42 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,17 +67,24 @@ enum		e_states {
 enum		e_tasks {
 	E_TASK_WORKER_SPAWN		= 0x01,
 	E_TASK_NEW_HOST			= 0x02,
-	E_TASK_LISTEN			= 0x04,
-	E_TASK_PROBE			= 0x08,
-	E_TASK_REPLY			= 0x10,
-	E_TASK_TIMEOUT			= 0x20,
-	E_TASK_WORKER_WAIT		= 0x40,
-	E_TASK_PRINT_STATS		= 0x80,
+	E_TASK_HOST_DISCOVERY	= 0x04,
+	E_TASK_LISTEN			= 0x08,
+	E_TASK_PROBE			= 0x10,
+	E_TASK_REPLY			= 0x20,
+	E_TASK_TIMEOUT			= 0x40,
+	E_TASK_WORKER_WAIT		= 0x80,
+	E_TASK_PRINT_STATS		= 0x100,
 };
 # define	LAST_TASK			E_TASK_PRINT_STATS
 # define	ALL_TASKS			((LAST_TASK << 1) - 1)
 # define	WORKER_TASKS		\
-	(E_TASK_PROBE | E_TASK_REPLY | E_TASK_TIMEOUT | E_TASK_PRINT_STATS)
+	(\
+		E_TASK_HOST_DISCOVERY\
+		| E_TASK_PROBE\
+		| E_TASK_REPLY\
+		| E_TASK_TIMEOUT\
+		| E_TASK_PRINT_STATS\
+	)
 # define	MAIN_TASKS			\
 	((ALL_TASKS ^ WORKER_TASKS) + E_TASK_PRINT_STATS)
 
@@ -301,8 +308,6 @@ typedef struct				s_nmap_config
 	uint8_t					ports_to_scan[PORTS_COUNT];
 	uint16_t				ports[MAX_PORTS + 1];
 	uint16_t				nports;
-	char					**hosts;
-	const char				*hosts_file;
 	const char				*dev;
 	uint8_t					scans[SCAN_COUNT];
 	uint8_t					nscans;
@@ -310,7 +315,6 @@ typedef struct				s_nmap_config
 	int						has_tcp_scans;
 	int						total_scan_count;
 	const char				*scan_strings[SCAN_COUNT];
-	int						hosts_fd;
 	enum e_ip_modes			ip_mode;
 	int						send_sockets[SOCKET_SEND_COUNT];
 	int						recv_sockets[SOCKET_RECV_COUNT];
@@ -326,6 +330,9 @@ typedef struct				s_nmap_config
 	t_worker_config			worker_main_config;
 	t_worker_config			worker_thread_config;
 	/* Modified during execution */
+	char					**hosts;
+	const char				*hosts_file;
+	int						hosts_fd;
 	t_host_job				host_job;
 	t_scan_job				*scan_jobs[MAX_PROBE];
 	t_list					*main_tasks;
@@ -376,10 +383,6 @@ typedef struct				s_nmap_config
 	.ports = { 0 },\
 	/* number of ports to scan in ports array */\
 	.nports = 0,\
-	/* hosts list given by cmd arguments (argv + first_arg_index) */\
-	.hosts = NULL,\
-	/* file containing a list of hosts */\
-	.hosts_file = NULL,\
 	/* interface on which to listen to given by user */\
 	.dev = NULL,\
 	/* scans to perform as an array of booleans */\
@@ -394,8 +397,6 @@ typedef struct				s_nmap_config
 	.total_scan_count = 0,\
 	/* store selected scan names */\
 	.scan_strings = { 0 },\
-	/* file descriptor for the hosts_file */\
-	.hosts_fd = -1,\
 	/* ip configuration (IPv4/IPv6 enabled/disabled) */\
 	.ip_mode = E_IPALL,\
 	/* sockets for sending probe packets */\
@@ -426,6 +427,12 @@ typedef struct				s_nmap_config
 	.worker_thread_config = {\
 		.type = E_WORKER_THREAD, .task_types = WORKER_TASKS\
 	},\
+	/* hosts list given by cmd arguments (argv + first_arg_index) */\
+	.hosts = NULL,\
+	/* file containing a list of hosts */\
+	.hosts_file = NULL,\
+	/* file descriptor for the hosts_file */\
+	.hosts_fd = -1,\
 	/* current host_job */\
 	.host_job = { 0 },\
 	/* scan_job array each corresponding to a scan */\
@@ -543,7 +550,7 @@ void		push_task(t_list **dest, t_nmap_config *cfg, t_task *task,
 				int front);
 void		init_tasks(t_nmap_config *cfg);
 void		probe_timeout(struct timeval *sent_ts, struct timeval *timeout_ts);
-void		pseudo_thread_worker(void);
+void		pseudo_thread_worker(int task_max);
 double		print_end_stats(void);
 double		print_update_stats(void);
 void		reset_timeout(t_nmap_config *cfg, struct timeval *init);

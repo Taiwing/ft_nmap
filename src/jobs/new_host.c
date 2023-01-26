@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/15 14:44:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/26 20:35:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ static void		build_probe_tasks(t_nmap_config *cfg)
 			ft_lst_push_back(&probe_tasks, &task, sizeof(task));
 		}
 	}
-	push_back_tasks(&cfg->thread_tasks, probe_tasks, cfg, !!cfg->speedup);
+	push_front_tasks(&cfg->thread_tasks, probe_tasks, cfg, !!cfg->speedup);
 }
 
 static void	set_host_job_data(t_host_job *host_job, char *host,

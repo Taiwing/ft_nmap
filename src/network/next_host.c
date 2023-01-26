@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 09:02:59 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/09 02:11:47 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/26 21:44:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ static int	ping_scan(t_ip *ip, t_nmap_config *cfg)
 	return (!count);
 }
 
+//TODO: pass ip to this function so that it can be loaded directly in adventure mode
 static char	*get_target(t_nmap_config *cfg)
 {
 	char	*ret = NULL;
@@ -59,6 +60,19 @@ static char	*get_target(t_nmap_config *cfg)
 	else if (!cfg->hosts && cfg->hosts_fd >= 0
 		&& get_next_line(cfg->hosts_fd, (char **)&ret) < 0)
 		ft_exit(EXIT_FAILURE, "get_next_line: unknown error");
+	else if (!cfg->hosts && cfg->hosts_fd >= 0 && !ret)
+	{
+		cfg->hosts_file = NULL;
+		close(cfg->hosts_fd);
+		cfg->hosts_fd = -1;
+	}
+	/*
+	if (!cfg->hosts && !cfg->hosts_file
+		&& cfg->adventure_mode != E_ADVENTURE_OFF)
+	{
+		//TODO: host discovery
+	}
+	*/
 	return (ret);
 }
 

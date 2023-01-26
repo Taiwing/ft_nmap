@@ -1,5 +1,6 @@
 ft_nmap
 obj/
 *.swp
+*.swo
 *.out
 exec
