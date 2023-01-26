@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/26 21:24:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/26 22:10:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,28 @@ static void	task_new_host(t_task *task)
 			ft_lstnew(&listen_task, sizeof(listen_task)), g_cfg, 0);
 }
 
+#define RANDOM_IPS_SIZE	256
+
 static void task_host_discovery(t_task *task)
 {
+	t_ip	*valid_host = NULL;
+	t_ip	random_ips[RANDOM_IPS_SIZE] = { 0 };
+
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
+	while (!valid_host)
+	{
+		if (ft_ip_rand(random_ips, RANDOM_IPS_SIZE, g_cfg->ip_mode == E_IPALL
+			? AF_UNSPEC : g_cfg->ip_mode == E_IPV4 ? AF_INET : AF_INET6, 0) < 0)
+			ft_exit(EXIT_FAILURE, "ft_ip_rand: %s", ft_strerror(ft_errno));
+		for (int i = 0; i < RANDOM_IPS_SIZE && !valid_host; ++i)
+		{
+			// TODO: ping or scan 80 and 443 on the address
+			//if (ping_or_scan_80_443(random_ips[i]))
+			//	valid_host = random_ips + i;
+		}
+	}
+	//TODO: add valid_host to the ip list/array and we are done!
 }
 
 static void	task_listen(t_task *task)
