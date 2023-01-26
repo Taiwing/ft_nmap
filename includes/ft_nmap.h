@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/26 21:22:42 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/26 22:41:55 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@
 # define	MIN_RETRIES					0
 # define	MAX_RETRIES					100
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
+# define	MAX_ADVENTURE_HOSTS			256
 
 // Print format constants
 # define	SERVICE_NAME_MAXLEN			20
@@ -333,6 +334,7 @@ typedef struct				s_nmap_config
 	char					**hosts;
 	const char				*hosts_file;
 	int						hosts_fd;
+	t_ip					adventure_hosts[MAX_ADVENTURE_HOSTS];
 	t_host_job				host_job;
 	t_scan_job				*scan_jobs[MAX_PROBE];
 	t_list					*main_tasks;
@@ -433,6 +435,8 @@ typedef struct				s_nmap_config
 	.hosts_file = NULL,\
 	/* file descriptor for the hosts_file */\
 	.hosts_fd = -1,\
+	/* array of random hosts for adventure mode */\
+	.adventure_hosts = {{ 0 }},\
 	/* current host_job */\
 	.host_job = { 0 },\
 	/* scan_job array each corresponding to a scan */\
