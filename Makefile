@@ -33,10 +33,10 @@ NETWORKC		=	filter.c\
 					next_host.c\
 					parse_reply_packet.c\
 					interfaces.c\
+					adventure.c\
 					probe.c\
 					udp_payloads.c\
 					rtt_update.c\
-					host_discovery.c\
 					ports.c\
 					sockets.c\
 
@@ -82,10 +82,10 @@ window.o: ft_nmap.h ft_nmap_network.h libft.h
 next_host.o: ft_nmap.h ft_nmap_network.h libft.h
 parse_reply_packet.o: ft_nmap.h ft_nmap_network.h libft.h
 interfaces.o: ft_nmap.h ft_nmap_network.h libft.h
+adventure.o: ft_nmap.h ft_nmap_network.h libft.h
 probe.o: ft_nmap.h ft_nmap_network.h libft.h
 udp_payloads.o: ft_nmap.h ft_nmap_network.h libft.h
 rtt_update.o: ft_nmap.h ft_nmap_network.h libft.h
-host_discovery.o: ft_nmap.h ft_nmap_network.h libft.h
 ports.o: ft_nmap.h ft_nmap_network.h libft.h
 sockets.o: ft_nmap.h ft_nmap_network.h libft.h
 debug.o: ft_nmap.h ft_nmap_network.h libft.h ft_printf_internal.h

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 11:36:40 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/26 20:35:31 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 20:23:07 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,7 @@ int		new_host(t_nmap_config *cfg)
 	char		*host = NULL;
 
 	cfg->host_job.done = cfg->nports;
+	cfg->adventure_breakloop = 1;
 	flush_tasks(&cfg->thread_tasks, cfg, !!cfg->speedup);
 	while (cfg->running_tasks > 1 && !cfg->end);
 	reset_timeout(cfg, NULL);

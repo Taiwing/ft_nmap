@@ -6,14 +6,13 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 09:02:59 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 19:13:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 21:39:19 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
-//TODO: pass ip to this function so that it can be loaded directly in adventure mode
-static char	*get_target(t_nmap_config *cfg)
+static char	*get_target(t_nmap_config *cfg, t_ip *ip)
 {
 	char	*ret = NULL;
 
@@ -33,23 +32,9 @@ static char	*get_target(t_nmap_config *cfg)
 		close(cfg->hosts_fd);
 		cfg->hosts_fd = -1;
 	}
-	/*
 	if (!cfg->hosts && !cfg->hosts_file
 		&& cfg->adventure_mode != E_ADVENTURE_OFF)
-	{
-		//TODO: add the needed number of host discovery tasks, one and only one
-		// if cfg->speedup == 0 and as much as the max count of hosts we want
-		// minus how many we already have in the array if in multithreaded mode
-
-		//TODO: then loop while there's no adventure host available
-		// in cfg->speedup == 0 execute --> pseudo_thread_worker(1)
-		// and MAYBE print some message that we are looking for a valid random
-		// host (TBD)
-
-		//TODO: once a host is found copy the ip to the future ip parameter of
-		// the get_target function and strdup a stringified version to ret
-	}
-	*/
+		ret = adventure(ip, cfg);
 	return (ret);
 }
 
@@ -60,15 +45,16 @@ char		*next_host(t_ip *ip, t_nmap_config *cfg)
 	int		family = cfg->ip_mode == E_IPALL ? AF_UNSPEC
 		: cfg->ip_mode == E_IPV4 ? AF_INET : AF_INET6;
 
-	while ((target = get_target(cfg)))
+	while ((target = get_target(cfg, ip)))
 	{
 		++cfg->host_count;
-		//TODO: reorganize this for when we are in adventure mode (we do not
-		// need to ping again or to use ft_get_ip(), actually we can just break)
+		if (!cfg->hosts && !cfg->hosts_file
+			&& cfg->adventure_mode != E_ADVENTURE_OFF)
+			break;
 		if ((ret = ft_get_ip(ip, target, family)))
 			ft_dprintf(2, "%s: %s: %s\n", cfg->exec, target, gai_strerror(ret));
 		else if (!cfg->ping_scan
-			|| !(ret = ping_host_discovery(ip, DEF_PING_COUNT, cfg))
+			|| !(ret = ping_adventure(ip, DEF_PING_COUNT, cfg))
 			|| !cfg->skip_non_responsive)
 			break;
 		ft_memdel((void **)&target);

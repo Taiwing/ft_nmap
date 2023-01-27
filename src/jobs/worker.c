@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/23 21:26:35 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/26 21:36:24 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 20:00:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ static void	worker_exit(void)
 	nmap_mutex_unlock(&g_cfg->low_mutex, &g_low_locked);
 	nmap_mutex_unlock(&g_cfg->send_mutex, &g_send_locked);
 	nmap_mutex_unlock(&g_cfg->rtt_mutex, &g_rtt_locked);
+	nmap_mutex_unlock(&g_cfg->adventure_mutex, &g_adventure_locked);
 	if (g_cfg->debug > 1)
 		debug_print(g_cfg, "worker_exit - worker %llu (%llx)!\n",
 			ft_thread_self(), pthread_self());

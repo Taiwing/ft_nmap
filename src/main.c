@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/25 23:11:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 20:04:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ static void	main_thread_cleanup(void)
 	nmap_mutex_unlock(&g_cfg->low_mutex, &g_low_locked);
 	nmap_mutex_unlock(&g_cfg->send_mutex, &g_send_locked);
 	nmap_mutex_unlock(&g_cfg->rtt_mutex, &g_rtt_locked);
+	nmap_mutex_unlock(&g_cfg->adventure_mutex, &g_adventure_locked);
 	wait_worker_threads(g_cfg);
 	if (g_cfg->hosts_fd >= 0)
 		close(g_cfg->hosts_fd);
@@ -27,9 +28,8 @@ static void	main_thread_cleanup(void)
 
 static void	check_config(t_nmap_config *cfg)
 {
-	//TODO: add a check for adventure_mode here (like
-	// cfg->adventure_mode == E_ADVENTURE_OFF)
-	if (!*cfg->hosts && !cfg->hosts_file)
+	if (!*cfg->hosts && !cfg->hosts_file
+		&& cfg->adventure_mode == E_ADVENTURE_OFF)
 		ft_exit(EXIT_FAILURE, "target host missing (use --help for more info)");
 	if (!cfg->nports)
 	{

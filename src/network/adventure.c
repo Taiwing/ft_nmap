@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   host_discovery.c                                   :+:      :+:    :+:   */
+/*   adventure.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yforeau <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/01/27 18:54:37 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 19:38:32 by yforeau          ###   ########.fr       */
+/*   Created: 2023/01/27 20:29:52 by yforeau           #+#    #+#             */
+/*   Updated: 2023/01/27 21:41:10 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 ** Send probes to check if a host is up and eventually estimate rtt. Return 0
 ** if host is up and ready to be scanned, 1 otherwise. Exits on error.
 */
-int	ping_host_discovery(t_ip *ip, unsigned scan_count, t_nmap_config *cfg)
+int	ping_adventure(t_ip *ip, unsigned scan_count, t_nmap_config *cfg)
 {
 	t_scan			scan;
 	unsigned		count;
@@ -46,7 +46,7 @@ int	ping_host_discovery(t_ip *ip, unsigned scan_count, t_nmap_config *cfg)
 ** Send TCP probes to check if the host is up and is a website. Return 0 if host
 ** is up and ready to be scanned, 1 otherwise. Exits on error.
 */
-int	web_host_discovery(t_ip *ip)
+int	web_adventure(t_ip *ip)
 {
 	t_scan			scan;
 	t_scanres		result;
@@ -65,4 +65,58 @@ int	web_host_discovery(t_ip *ip)
 		ft_exit(EXIT_FAILURE, "ft_tcp_syn: %s", ft_strerror(ft_errno));
 	ft_scan_close(scan);
 	return (!result.open);
+}
+
+t_ip	*push_adventure_host(t_nmap_config *cfg, t_ip *ip, int prio)
+{
+	t_ip	*ret = NULL;	
+
+	if (prio)
+		nmap_mutex_lock(&cfg->adventure_mutex, &g_adventure_locked);
+	if (ip && cfg->adventure_host_count < MAX_ADVENTURE_HOSTS)
+		ret = ft_memcpy(cfg->adventure_hosts + cfg->adventure_host_count++,
+			ip, sizeof(*ip));
+	if (prio)
+		nmap_mutex_unlock(&cfg->adventure_mutex, &g_adventure_locked);
+	return (ret);
+}
+
+t_ip	*pop_adventure_host(t_ip *dest, t_nmap_config *cfg, int prio)
+{
+	t_ip	*ret = NULL;	
+	
+	if (prio)
+		nmap_mutex_lock(&cfg->adventure_mutex, &g_adventure_locked);
+	if (dest && cfg->adventure_host_count > 0)
+		ret = ft_memcpy(dest,
+			cfg->adventure_hosts + --cfg->adventure_host_count, sizeof(*dest));
+	if (prio)
+		nmap_mutex_unlock(&cfg->adventure_mutex, &g_adventure_locked);
+	return (ret);
+}
+
+//TODO: maybe print a message when waiting like a dumbass
+char	*adventure(t_ip *adventure_host, t_nmap_config *cfg)
+{
+	int		task_count;
+	t_list	*adventure_tasks = NULL;
+	t_task	task = { .type = E_TASK_ADVENTURE };
+
+	cfg->adventure_breakloop = 0;
+	task_count = !!cfg->speedup ?
+		MAX_ADVENTURE_HOSTS - cfg->adventure_host_count : 1;
+	while (task_count--)
+		ft_lst_push_front(&adventure_tasks, &task, sizeof(task));
+	if (adventure_tasks)
+		push_front_tasks(&cfg->thread_tasks,
+			adventure_tasks, cfg, cfg->speedup);
+	while (!cfg->adventure_host_count && !cfg->end)
+		if (!cfg->speedup)
+			pseudo_thread_worker(1);
+	if (pop_adventure_host(adventure_host, cfg, !!cfg->speedup))
+	{
+		++cfg->host_up;
+		return (ft_strdup(ft_ip_str(adventure_host)));
+	}
+	return (NULL);
 }

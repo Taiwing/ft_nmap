@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 19:39:47 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 21:29:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@
 # define	MIN_RETRIES					0
 # define	MAX_RETRIES					100
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
-# define	MAX_ADVENTURE_HOSTS			256
+# define	MAX_ADVENTURE_HOSTS			128
 # define 	DEF_PING_COUNT				5
 # define	DEF_HOST_DISCOVERY_TIMEOUT	{ 0, 400000 }
 
@@ -70,7 +70,7 @@ enum		e_states {
 enum		e_tasks {
 	E_TASK_WORKER_SPAWN		= 0x01,
 	E_TASK_NEW_HOST			= 0x02,
-	E_TASK_HOST_DISCOVERY	= 0x04,
+	E_TASK_ADVENTURE		= 0x04,
 	E_TASK_LISTEN			= 0x08,
 	E_TASK_PROBE			= 0x10,
 	E_TASK_REPLY			= 0x20,
@@ -82,7 +82,7 @@ enum		e_tasks {
 # define	ALL_TASKS			((LAST_TASK << 1) - 1)
 # define	WORKER_TASKS		\
 	(\
-		E_TASK_HOST_DISCOVERY\
+		E_TASK_ADVENTURE\
 		| E_TASK_PROBE\
 		| E_TASK_REPLY\
 		| E_TASK_TIMEOUT\
@@ -329,6 +329,7 @@ typedef struct				s_nmap_config
 	pthread_mutex_t			low_mutex;
 	pthread_mutex_t			send_mutex;
 	pthread_mutex_t			rtt_mutex;
+	pthread_mutex_t			adventure_mutex;
 	t_udp_payload			**udp_payloads[PORTS_COUNT];
 	t_worker_config			worker_main_config;
 	t_worker_config			worker_thread_config;
@@ -337,6 +338,8 @@ typedef struct				s_nmap_config
 	const char				*hosts_file;
 	int						hosts_fd;
 	t_ip					adventure_hosts[MAX_ADVENTURE_HOSTS];
+	_Atomic int				adventure_host_count;
+	_Atomic int				adventure_breakloop;
 	t_host_job				host_job;
 	t_scan_job				*scan_jobs[MAX_PROBE];
 	t_list					*main_tasks;
@@ -423,6 +426,8 @@ typedef struct				s_nmap_config
 	.send_mutex = PTHREAD_MUTEX_INITIALIZER,\
 	/* mutex for rtt update and read */\
 	.rtt_mutex = PTHREAD_MUTEX_INITIALIZER,\
+	/* mutex for adventure ip array update and read */\
+	.adventure_mutex = PTHREAD_MUTEX_INITIALIZER,\
 	/* structure to fetch the udp payloads by port */\
 	.udp_payloads = { 0 },\
 	/* configuration of the main worker */\
@@ -439,6 +444,10 @@ typedef struct				s_nmap_config
 	.hosts_fd = -1,\
 	/* array of random hosts for adventure mode */\
 	.adventure_hosts = {{ 0 }},\
+	/* count of adventure hosts in the array */\
+	.adventure_host_count = 0,\
+	/* end ADVENTURE tasks */\
+	.adventure_breakloop = 0,\
 	/* current host_job */\
 	.host_job = { 0 },\
 	/* scan_job array each corresponding to a scan */\
@@ -519,9 +528,12 @@ void		init_recv_sockets(t_nmap_config *cfg);
 void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
 char		*next_host(t_ip *ip, t_nmap_config *cfg);
-int			ping_host_discovery(t_ip *ip, unsigned scan_count,
+int			ping_adventure(t_ip *ip, unsigned scan_count,
 	t_nmap_config *cfg);
-int			web_host_discovery(t_ip *ip);
+int			web_adventure(t_ip *ip);
+t_ip		*push_adventure_host(t_nmap_config *cfg, t_ip *ip, int prio);
+t_ip		*pop_adventure_host(t_ip *dest, t_nmap_config *cfg, int prio);
+char		*adventure(t_ip *adventure_host, t_nmap_config *cfg);
 int			new_host(t_nmap_config *cfg);
 void		build_probe_packet(t_packet *dest, t_scan_job *scan_job,
 				uint8_t *layer5, uint16_t l5_len);
@@ -587,6 +599,7 @@ extern __thread int			g_high_locked;
 extern __thread int			g_low_locked;
 extern __thread int			g_send_locked;
 extern __thread int			g_rtt_locked;
+extern __thread int			g_adventure_locked;
 extern t_nmap_config		*g_cfg;
 
 #endif

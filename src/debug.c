@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/18 19:17:09 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/26 20:06:43 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 20:46:37 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	debug_invalid_packet(t_nmap_config *cfg, t_packet *packet, char *action)
 const char	*g_nmap_task_strings[] = {
 	[E_TASK_WORKER_SPAWN]	= "WORKER_SPAWN",
 	[E_TASK_NEW_HOST]		= "NEW_HOST",
-	[E_TASK_HOST_DISCOVERY]	= "HOST_DISCOVERY",
+	[E_TASK_ADVENTURE]		= "ADVENTURE",
 	[E_TASK_LISTEN]			= "LISTEN",
 	[E_TASK_PROBE]			= "PROBE",
 	[E_TASK_REPLY]			= "REPLY",

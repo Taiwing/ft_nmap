@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/02 22:36:08 by yforeau           #+#    #+#             */
-/*   Updated: 2022/02/06 10:49:19 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 19:59:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ __thread int	g_high_locked = 0;
 __thread int	g_low_locked = 0;
 __thread int	g_send_locked = 0;
 __thread int	g_rtt_locked = 0;
+__thread int	g_adventure_locked = 0;
 
 void	nmap_mutex_lock(pthread_mutex_t *mutex, int *locked)
 {
