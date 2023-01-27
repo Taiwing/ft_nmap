@@ -12,52 +12,53 @@ NAME		=	ft_nmap
 
 ############################## SOURCES #########################################
 
-JOBSDIR			=	jobs
 NETWORKDIR		=	network
+JOBSDIR			=	jobs
 
-SRCC			=	debug.c\
-					port_report.c\
-					utils.c\
-					main.c\
-					heatmap_report.c\
+SRCC			=	get_options.c\
 					print.c\
-					range_report.c\
 					option_utils.c\
+					main.c\
+					debug.c\
+					port_report.c\
+					heatmap_report.c\
 					verbose.c\
-					get_options.c\
-
-JOBSC			=	update_job.c\
-					mutex.c\
-					worker.c\
-					timeout.c\
-					stats.c\
-					new_host.c\
-					task_utils.c\
-					tasks.c\
+					utils.c\
+					range_report.c\
 
 NETWORKC		=	filter.c\
-					next_host.c\
-					rtt_update.c\
-					parse_reply_packet.c\
-					udp_payloads.c\
-					sockets.c\
-					window.c\
-					probe.c\
-					interfaces.c\
-					scan_result.c\
 					listen.c\
+					scan_result.c\
+					window.c\
+					next_host.c\
+					parse_reply_packet.c\
+					interfaces.c\
+					probe.c\
+					udp_payloads.c\
+					rtt_update.c\
+					host_discovery.c\
 					ports.c\
+					sockets.c\
+
+JOBSC			=	timeout.c\
+					stats.c\
+					tasks.c\
+					task_utils.c\
+					update_job.c\
+					worker.c\
+					mutex.c\
+					new_host.c\
 
 ODIR			=	obj
-OBJ				=	$(patsubst %.c,%.o,$(JOBSC))\
-					$(patsubst %.c,%.o,$(NETWORKC))\
+OBJ				=	$(patsubst %.c,%.o,$(NETWORKC))\
+					$(patsubst %.c,%.o,$(JOBSC))\
 					$(patsubst %.c,%.o,$(SRCC))\
 
 vpath			%.o	$(ODIR)
 vpath			%.h	$(HDIR)
 vpath			%.h	$(SUB1D)/$(HDIR)
-vpath			%.c	$(SRCDIR)/$(JOBSDIR)
 vpath			%.c	$(SRCDIR)/$(NETWORKDIR)
+vpath			%.c	$(SRCDIR)/$(JOBSDIR)
 vpath			%.c	$(SRCDIR)
 
 ############################## BUILD ###########################################
@@ -70,36 +71,37 @@ $(NAME): $(SUB1D)/libft.a $(ODIR) $(OBJ)
 $(SUB1D)/libft.a:
 	make -C $(SUB1D)
 
+get_options.o: ft_nmap.h ft_nmap_network.h libft.h
+print.o: ft_nmap.h ft_nmap_network.h libft.h
+option_utils.o: ft_nmap.h ft_nmap_network.h libft.h
+main.o: ft_nmap.h ft_nmap_network.h libft.h
+filter.o: ft_nmap.h ft_nmap_network.h libft.h
+listen.o: ft_nmap.h ft_nmap_network.h libft.h
+scan_result.o: ft_nmap.h ft_nmap_network.h libft.h
+window.o: ft_nmap.h ft_nmap_network.h libft.h
+next_host.o: ft_nmap.h ft_nmap_network.h libft.h
+parse_reply_packet.o: ft_nmap.h ft_nmap_network.h libft.h
+interfaces.o: ft_nmap.h ft_nmap_network.h libft.h
+probe.o: ft_nmap.h ft_nmap_network.h libft.h
+udp_payloads.o: ft_nmap.h ft_nmap_network.h libft.h
+rtt_update.o: ft_nmap.h ft_nmap_network.h libft.h
+host_discovery.o: ft_nmap.h ft_nmap_network.h libft.h
+ports.o: ft_nmap.h ft_nmap_network.h libft.h
+sockets.o: ft_nmap.h ft_nmap_network.h libft.h
 debug.o: ft_nmap.h ft_nmap_network.h libft.h ft_printf_internal.h
 port_report.o: ft_nmap.h ft_nmap_network.h libft.h
-utils.o: ft_nmap.h ft_nmap_network.h libft.h
-main.o: ft_nmap.h ft_nmap_network.h libft.h
 heatmap_report.o: ft_nmap.h ft_nmap_network.h libft.h
-update_job.o: ft_nmap.h ft_nmap_network.h libft.h
-mutex.o: ft_nmap.h ft_nmap_network.h libft.h
-worker.o: ft_nmap.h ft_nmap_network.h libft.h
+verbose.o: ft_nmap.h ft_nmap_network.h libft.h
 timeout.o: ft_nmap.h ft_nmap_network.h libft.h
 stats.o: ft_nmap.h ft_nmap_network.h libft.h
-new_host.o: ft_nmap.h ft_nmap_network.h libft.h
-task_utils.o: ft_nmap.h ft_nmap_network.h libft.h
 tasks.o: ft_nmap.h ft_nmap_network.h libft.h
-print.o: ft_nmap.h ft_nmap_network.h libft.h
+task_utils.o: ft_nmap.h ft_nmap_network.h libft.h
+update_job.o: ft_nmap.h ft_nmap_network.h libft.h
+worker.o: ft_nmap.h ft_nmap_network.h libft.h
+mutex.o: ft_nmap.h ft_nmap_network.h libft.h
+new_host.o: ft_nmap.h ft_nmap_network.h libft.h
+utils.o: ft_nmap.h ft_nmap_network.h libft.h
 range_report.o: ft_nmap.h ft_nmap_network.h libft.h
-option_utils.o: ft_nmap.h ft_nmap_network.h libft.h
-filter.o: ft_nmap.h ft_nmap_network.h libft.h
-next_host.o: ft_nmap.h ft_nmap_network.h libft.h
-rtt_update.o: ft_nmap.h ft_nmap_network.h libft.h
-parse_reply_packet.o: ft_nmap.h ft_nmap_network.h libft.h
-udp_payloads.o: ft_nmap.h ft_nmap_network.h libft.h
-sockets.o: ft_nmap.h ft_nmap_network.h libft.h
-window.o: ft_nmap.h ft_nmap_network.h libft.h
-probe.o: ft_nmap.h ft_nmap_network.h libft.h
-interfaces.o: ft_nmap.h ft_nmap_network.h libft.h
-scan_result.o: ft_nmap.h ft_nmap_network.h libft.h
-listen.o: ft_nmap.h ft_nmap_network.h libft.h
-ports.o: ft_nmap.h ft_nmap_network.h libft.h
-verbose.o: ft_nmap.h ft_nmap_network.h libft.h
-get_options.o: ft_nmap.h ft_nmap_network.h libft.h
 %.o: %.c
 	@mkdir -p $(ODIR)
 	$(CC) -c $(CFLAGS) $< $(HFLAGS) -o $(ODIR)/$@

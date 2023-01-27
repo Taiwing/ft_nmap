@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/26 22:41:55 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 19:39:47 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,8 @@
 # define	MAX_RETRIES					100
 # define	MAX_PROBE					(MAX_PORTS * SCAN_COUNT)
 # define	MAX_ADVENTURE_HOSTS			256
+# define 	DEF_PING_COUNT				5
+# define	DEF_HOST_DISCOVERY_TIMEOUT	{ 0, 400000 }
 
 // Print format constants
 # define	SERVICE_NAME_MAXLEN			20
@@ -517,6 +519,9 @@ void		init_recv_sockets(t_nmap_config *cfg);
 void		close_sockets(t_nmap_config *cfg);
 void		get_network_info(t_nmap_config *cfg);
 char		*next_host(t_ip *ip, t_nmap_config *cfg);
+int			ping_host_discovery(t_ip *ip, unsigned scan_count,
+	t_nmap_config *cfg);
+int			web_host_discovery(t_ip *ip);
 int			new_host(t_nmap_config *cfg);
 void		build_probe_packet(t_packet *dest, t_scan_job *scan_job,
 				uint8_t *layer5, uint16_t l5_len);
