@@ -31,6 +31,12 @@
   reception ? [I don't believe that for one second, it's simply to illustrate
   what I'm saying]).
 
+- [ADVENTURE] FIX overflowed task list by adventure tasks. Find a way to kill
+  the adventure task one by one, or make them die when a probe/reply task is
+  added to the stack. Or simply add a condition to limit the number of threads
+  running an adventure task (maybe half the speedup value or something). This
+  would probably be simpler but not as nice to be sure.
+
 ---- TODO ----
 
 - Update libft to last version and create (or update) nmap_libft branch to block
@@ -56,19 +62,13 @@
   responses/timeout is the only use and it could be done in an other way, just
   by listing the responses/probes directly instead of using tasks).
 
----- MAYBE ----
+- [ADVENTURE] Print a message when an adventure task is blocking ft_nmap (or
+  before it does more realistically).
 
-- Implement adventure mode with random IPv4 hosts (it would be really cool but
-  it needs to better thought out and it would take time).
-  - Create a HOST_DISCOVERY task (or ADVENTURE_TASK maybe ?)
-  - Add an ip list or array with a max value (maybe) to store the valid ips
-  - In the new task generate a lot of random ips, ping them, and add the results
-    to the ip list (execute a tcp scan on 80 and/or 443 for website version)
-  - Add a condition in the get_target() function (in network/next_host.c) that
-    works the same as for the files. When the ip list is empty execute/add the
-	HOST_DISCOVERY task (execute with pseudo thread if not multithreaded). Then
-	if the list contains a valid ip pop it from the list and return it as the
-	new target.
+- [ADVENTURE] Prefill the ports 80 and 443 scans with and open status for the
+  web adventure since that's the condition for the scan to be run.
+
+---- MAYBE ----
 
 - Implement a "watch" mode for the heatmap option where ft_nmap would be
   continuously scanning the target ports on a regular interval. Updating the map
