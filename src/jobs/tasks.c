@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 21:41:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 22:53:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,9 +48,9 @@ static void task_adventure(t_task *task)
 		for (int i = 0; i < RANDOM_IPS_SIZE && !valid_host && !g_cfg->end
 			&& !g_cfg->adventure_breakloop; ++i)
 			if ((g_cfg->adventure_mode == E_ADVENTURE_ON
-				&& ping_adventure(random_ips + i, 1, NULL))
+				&& !ping_adventure(random_ips + i, 1, NULL))
 				|| (g_cfg->adventure_mode == E_ADVENTURE_WEB
-				&& web_adventure(random_ips + i)))
+				&& !web_adventure(random_ips + i)))
 				valid_host = random_ips + i;
 	}
 	if (valid_host)
