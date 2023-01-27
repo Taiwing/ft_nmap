@@ -6,7 +6,7 @@
 /*   By: yforeau <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/27 20:29:52 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 21:41:10 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/27 23:15:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,10 @@ char	*adventure(t_ip *adventure_host, t_nmap_config *cfg)
 	t_list	*adventure_tasks = NULL;
 	t_task	task = { .type = E_TASK_ADVENTURE };
 
+	//TODO: TOFIX find a way to smoothly pass from this step to scanning
+	// because right now the adventure tasks are overflowing the task list
+	// and are running ad infinitum while the probe/reply are waiting to be
+	// chosen (very big sad).
 	cfg->adventure_breakloop = 0;
 	task_count = !!cfg->speedup ?
 		MAX_ADVENTURE_HOSTS - cfg->adventure_host_count : 1;
