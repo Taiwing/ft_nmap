@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/28 17:46:13 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 20:07:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ static void task_adventure(t_task *task)
 		else if (g_cfg->adventure_mode == E_ADVENTURE_WEB)
 			if ((valid_hosts = group_scan(random_ips, RANDOM_IPS_SIZE,
 				&timeout, E_FTSCAN_TCP_SYN, 80)))
-				valid_hosts = group_scan(random_ips, RANDOM_IPS_SIZE, &timeout,
+				valid_hosts = group_scan(random_ips, valid_hosts, &timeout,
 					E_FTSCAN_TCP_SYN, 443);
 	}
 	if (valid_hosts && !g_cfg->end)
