@@ -59,9 +59,6 @@
 - [ADVENTURE] Print a message when an adventure task is blocking ft_nmap (or
   before it does more realistically).
 
-- [ADVENTURE] Prefill the ports 80 and 443 scans with and open status for the
-  web adventure since that's the condition for the scan to be run.
-
 - [ADVENTURE] Limit the number of adventure threads created in function of the
   number of adventure hosts available (just add the limit in the adventure
   function).

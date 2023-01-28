@@ -6,7 +6,7 @@
 /*   By: yforeau <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/28 17:35:56 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/28 17:47:25 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 19:05:33 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ static int		group_is_done(int *done, t_pollsc *scans, size_t count)
 			ft_exit(EXIT_FAILURE, "ft_scan_result: %s", ft_strerror(ft_errno));
 		done[i] = result.open ? SCAN_OPEN : SCAN_CLOSE;
 		ft_scan_close(scans[i].scan);
-		scans[i].scan *= -1;
+		scans[i].scan = -1;
 	}
 	return (done_count == count);
 }
