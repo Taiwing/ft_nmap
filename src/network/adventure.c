@@ -6,7 +6,7 @@
 /*   By: yforeau <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/27 20:29:52 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/28 14:20:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 14:58:18 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,11 @@ t_ip	*pop_adventure_host(t_ip *dest, t_nmap_config *cfg, int prio)
 	return (ret);
 }
 
+// Share of total thread count that should be allocated to finding hosts
+#define	ADVENTURE_THREAD_SHARE		3
+// Minimum count of adventure threads
+#define	ADVENTURE_THREAD_COUNT_MIN	1
+
 //TODO: maybe print a message when waiting like a dumbass
 char	*adventure(t_ip *adventure_host, t_nmap_config *cfg)
 {
@@ -102,13 +107,9 @@ char	*adventure(t_ip *adventure_host, t_nmap_config *cfg)
 	t_list	*adventure_tasks = NULL;
 	t_task	task = { .type = E_TASK_ADVENTURE };
 
-	//TODO: TOFIX find a way to smoothly pass from this step to scanning
-	// because right now the adventure tasks are overflowing the task list
-	// and are running ad infinitum while the probe/reply are waiting to be
-	// chosen (very big sad).
 	cfg->adventure_breakloop = 0;
-	task_count = !!cfg->speedup ?
-		MAX_ADVENTURE_HOSTS - cfg->adventure_host_count : 1;
+	task_count = cfg->speedup < ADVENTURE_THREAD_SHARE
+		? ADVENTURE_THREAD_COUNT_MIN : cfg->speedup / ADVENTURE_THREAD_SHARE;
 	while (task_count--)
 		ft_lst_push_front(&adventure_tasks, &task, sizeof(task));
 	if (adventure_tasks)

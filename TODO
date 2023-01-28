@@ -31,12 +31,6 @@
   reception ? [I don't believe that for one second, it's simply to illustrate
   what I'm saying]).
 
-- [ADVENTURE] FIX overflowed task list by adventure tasks. Find a way to kill
-  the adventure task one by one, or make them die when a probe/reply task is
-  added to the stack. Or simply add a condition to limit the number of threads
-  running an adventure task (maybe half the speedup value or something). This
-  would probably be simpler but not as nice to be sure.
-
 ---- TODO ----
 
 - Update libft to last version and create (or update) nmap_libft branch to block
@@ -67,6 +61,10 @@
 
 - [ADVENTURE] Prefill the ports 80 and 443 scans with and open status for the
   web adventure since that's the condition for the scan to be run.
+
+- [ADVENTURE] Limit the number of adventure threads created in function of the
+  number of adventure hosts available (just add the limit in the adventure
+  function).
 
 ---- MAYBE ----
 
