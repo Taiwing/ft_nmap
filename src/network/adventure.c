@@ -6,7 +6,7 @@
 /*   By: yforeau <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/27 20:29:52 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 23:15:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 14:20:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ int	web_adventure(t_ip *ip)
 
 t_ip	*push_adventure_host(t_nmap_config *cfg, t_ip *ip, int prio)
 {
-	t_ip	*ret = NULL;	
+	t_ip	*ret = NULL;
 
 	if (prio)
 		nmap_mutex_lock(&cfg->adventure_mutex, &g_adventure_locked);
@@ -83,8 +83,8 @@ t_ip	*push_adventure_host(t_nmap_config *cfg, t_ip *ip, int prio)
 
 t_ip	*pop_adventure_host(t_ip *dest, t_nmap_config *cfg, int prio)
 {
-	t_ip	*ret = NULL;	
-	
+	t_ip	*ret = NULL;
+
 	if (prio)
 		nmap_mutex_lock(&cfg->adventure_mutex, &g_adventure_locked);
 	if (dest && cfg->adventure_host_count > 0)
