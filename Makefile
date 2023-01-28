@@ -29,6 +29,7 @@ SRCC			=	get_options.c\
 NETWORKC		=	filter.c\
 					listen.c\
 					scan_result.c\
+					group_scan.c\
 					window.c\
 					next_host.c\
 					parse_reply_packet.c\
@@ -78,6 +79,7 @@ main.o: ft_nmap.h ft_nmap_network.h libft.h
 filter.o: ft_nmap.h ft_nmap_network.h libft.h
 listen.o: ft_nmap.h ft_nmap_network.h libft.h
 scan_result.o: ft_nmap.h ft_nmap_network.h libft.h
+group_scan.o: ft_nmap.h ft_nmap_network.h libft.h
 window.o: ft_nmap.h ft_nmap_network.h libft.h
 next_host.o: ft_nmap.h ft_nmap_network.h libft.h
 parse_reply_packet.o: ft_nmap.h ft_nmap_network.h libft.h

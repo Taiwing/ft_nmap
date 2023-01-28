@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:25:47 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 20:04:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 18:23:27 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ static void	init_config(t_nmap_config *cfg, int argc, char **argv)
 	init_recv_sockets(cfg);
 	if (cfg->scans[E_UDP])
 		init_udp_payloads(cfg);
-	if (cfg->ping_scan)
+	if (cfg->ping_scan || cfg->adventure_mode != E_ADVENTURE_OFF)
 		ft_atexit(ft_scan_close_all);
 	print_config(cfg);
 }

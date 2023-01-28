@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 22:53:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 17:46:13 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,30 +31,32 @@ static void	task_new_host(t_task *task)
 			ft_lstnew(&listen_task, sizeof(listen_task)), g_cfg, 0);
 }
 
-#define RANDOM_IPS_SIZE	256
+#define RANDOM_IPS_SIZE	128
 
 static void task_adventure(t_task *task)
 {
-	t_ip	*valid_host = NULL;
-	t_ip	random_ips[RANDOM_IPS_SIZE] = { 0 };
+	size_t			valid_hosts = 0;
+	t_ip			random_ips[RANDOM_IPS_SIZE] = { 0 };
+	struct timeval	timeout = DEF_HOST_DISCOVERY_TIMEOUT;
 
 	if (g_cfg->debug > 1)
 		debug_task(g_cfg, task, 0);
-	while (!valid_host && !g_cfg->end && !g_cfg->adventure_breakloop)
+	while (!valid_hosts && !g_cfg->end && !g_cfg->adventure_breakloop)
 	{
 		if (ft_ip_rand(random_ips, RANDOM_IPS_SIZE, g_cfg->ip_mode == E_IPALL
 			? AF_UNSPEC : g_cfg->ip_mode == E_IPV4 ? AF_INET : AF_INET6, 0) < 0)
 			ft_exit(EXIT_FAILURE, "ft_ip_rand: %s", ft_strerror(ft_errno));
-		for (int i = 0; i < RANDOM_IPS_SIZE && !valid_host && !g_cfg->end
-			&& !g_cfg->adventure_breakloop; ++i)
-			if ((g_cfg->adventure_mode == E_ADVENTURE_ON
-				&& !ping_adventure(random_ips + i, 1, NULL))
-				|| (g_cfg->adventure_mode == E_ADVENTURE_WEB
-				&& !web_adventure(random_ips + i)))
-				valid_host = random_ips + i;
+		if (g_cfg->adventure_mode == E_ADVENTURE_ON)
+			valid_hosts = group_scan(random_ips, RANDOM_IPS_SIZE, &timeout,
+				E_FTSCAN_ECHO_PING, 0);
+		else if (g_cfg->adventure_mode == E_ADVENTURE_WEB)
+			if ((valid_hosts = group_scan(random_ips, RANDOM_IPS_SIZE,
+				&timeout, E_FTSCAN_TCP_SYN, 80)))
+				valid_hosts = group_scan(random_ips, RANDOM_IPS_SIZE, &timeout,
+					E_FTSCAN_TCP_SYN, 443);
 	}
-	if (valid_host)
-		push_adventure_host(g_cfg, valid_host, !!g_cfg->speedup);
+	if (valid_hosts && !g_cfg->end)
+		push_adventure_hosts(g_cfg, random_ips, valid_hosts, !!g_cfg->speedup);
 }
 
 static void	task_listen(t_task *task)

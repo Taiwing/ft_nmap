@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/20 15:29:05 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 21:29:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 17:44:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -530,9 +530,11 @@ void		get_network_info(t_nmap_config *cfg);
 char		*next_host(t_ip *ip, t_nmap_config *cfg);
 int			ping_adventure(t_ip *ip, unsigned scan_count,
 	t_nmap_config *cfg);
-int			web_adventure(t_ip *ip);
-t_ip		*push_adventure_host(t_nmap_config *cfg, t_ip *ip, int prio);
+t_ip		*push_adventure_hosts(t_nmap_config *cfg, t_ip *ip,
+	size_t count, int prio);
 t_ip		*pop_adventure_host(t_ip *dest, t_nmap_config *cfg, int prio);
+size_t		group_scan(t_ip *group, size_t count, struct timeval *timeout,
+	enum e_ftscan_type type, uint16_t port);
 char		*adventure(t_ip *adventure_host, t_nmap_config *cfg);
 int			new_host(t_nmap_config *cfg);
 void		build_probe_packet(t_packet *dest, t_scan_job *scan_job,

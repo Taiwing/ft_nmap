@@ -6,11 +6,41 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 09:02:59 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/27 21:39:19 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 17:40:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
+
+/*
+** ping_scan: send 10 probes to check if host is up and estimate rtt
+**
+** Return 0 if host is up and ready to be scanned, 1 otherwise. Exits on error.
+*/
+static int	ping_scan(t_ip *ip, t_nmap_config *cfg)
+{
+	t_scan			scan;
+	int				count;
+	t_scanres		result;
+	struct timeval	timeout = DEF_HOST_DISCOVERY_TIMEOUT;
+
+	if ((scan = ft_echo_ping_open(ip, &timeout)) < 0)
+		ft_exit(EXIT_FAILURE, "ft_echo_ping_open: %s", ft_strerror(ft_errno));
+	for (count = 0; count < DEF_PING_COUNT; ++count)
+	{
+		if (ft_echo_ping(&result, scan) < 0)
+			ft_exit(EXIT_FAILURE, "ft_echo_ping: %s", ft_strerror(ft_errno));
+		if (!result.open)
+			break;
+		if (!count)
+			reset_timeout(cfg, &result.rtt);
+		else
+			rtt_update_from_instance_rtt(&result.rtt);
+	}
+	ft_scan_close(scan);
+	cfg->host_up += count > 0;
+	return (!count);
+}
 
 static char	*get_target(t_nmap_config *cfg, t_ip *ip)
 {
@@ -54,7 +84,7 @@ char		*next_host(t_ip *ip, t_nmap_config *cfg)
 		if ((ret = ft_get_ip(ip, target, family)))
 			ft_dprintf(2, "%s: %s: %s\n", cfg->exec, target, gai_strerror(ret));
 		else if (!cfg->ping_scan
-			|| !(ret = ping_adventure(ip, DEF_PING_COUNT, cfg))
+			|| !(ret = ping_scan(ip, cfg))
 			|| !cfg->skip_non_responsive)
 			break;
 		ft_memdel((void **)&target);
