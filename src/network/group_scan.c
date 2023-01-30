@@ -6,7 +6,7 @@
 /*   By: yforeau <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/28 17:35:56 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/28 19:05:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 20:19:14 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ static size_t	group_results(int *done, t_ip *group, size_t count)
 	return (open);
 }
 
-#define	GROUP_SIZE_MAX	256
+#define	GROUP_SIZE_MAX	512
 
 /*
 ** group_scan: takes an ip array and execute the same scan on all of them

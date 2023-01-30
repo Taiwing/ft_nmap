@@ -6,7 +6,7 @@
 /*   By: yforeau <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/27 20:29:52 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/28 17:40:17 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/28 20:40:40 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,18 +55,10 @@ t_ip	*pop_adventure_host(t_ip *dest, t_nmap_config *cfg, int prio)
 //TODO: maybe print a message when waiting like a dumbass
 char	*adventure(t_ip *adventure_host, t_nmap_config *cfg)
 {
-	int		task_count;
-	t_list	*adventure_tasks = NULL;
-	t_task	task = { .type = E_TASK_ADVENTURE };
+	t_task	adventure_task = { .type = E_TASK_ADVENTURE };
 
 	cfg->adventure_breakloop = 0;
-	task_count = cfg->speedup < ADVENTURE_THREAD_SHARE
-		? ADVENTURE_THREAD_COUNT_MIN : cfg->speedup / ADVENTURE_THREAD_SHARE;
-	while (task_count--)
-		ft_lst_push_front(&adventure_tasks, &task, sizeof(task));
-	if (adventure_tasks)
-		push_front_tasks(&cfg->thread_tasks,
-			adventure_tasks, cfg, cfg->speedup);
+	push_task(&cfg->thread_tasks, cfg, &adventure_task, 1);
 	while (!cfg->adventure_host_count && !cfg->end)
 		if (!cfg->speedup)
 			pseudo_thread_worker(1);
