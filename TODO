@@ -31,15 +31,6 @@
   reception ? [I don't believe that for one second, it's simply to illustrate
   what I'm saying]).
 
-- [ADVENTURE] The program waits on adventure_tasks during new_host's execution.
-  This is bad because adventure_tasks take too long and nothing happens. We can
-  either try to reduce adventure's execution time or not close them in new_host.
-
-- [ADVENTURE] Fix multithreaded adventure. For some reason it takes longer when
-  we have multiple adventure threads running in parallel. This could be because
-  of the problem above, or because the scan functions are not made to handle
-  that much (I did not test them to that extent).
-
 - [ADVENTURE] Ensure that the ft_scan_close(-something) bug has really been
   fixed. It looks like it, but I'm not sure...
 
@@ -70,10 +61,6 @@
 
 - [ADVENTURE] Print a message when an adventure task is blocking ft_nmap (or
   before it does more realistically).
-
-- [ADVENTURE] Limit the number of adventure threads created in function of the
-  number of adventure hosts available (just add the limit in the adventure
-  function).
 
 ---- MAYBE ----
 
