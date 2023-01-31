@@ -6,7 +6,7 @@
 /*   By: yforeau <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/27 20:29:52 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/28 20:40:40 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/31 18:11:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,12 +47,6 @@ t_ip	*pop_adventure_host(t_ip *dest, t_nmap_config *cfg, int prio)
 	return (ret);
 }
 
-// Share of total thread count that should be allocated to finding hosts
-#define	ADVENTURE_THREAD_SHARE		3
-// Minimum count of adventure threads
-#define	ADVENTURE_THREAD_COUNT_MIN	1
-
-//TODO: maybe print a message when waiting like a dumbass
 char	*adventure(t_ip *adventure_host, t_nmap_config *cfg)
 {
 	t_task	adventure_task = { .type = E_TASK_ADVENTURE };
