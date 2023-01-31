@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/15 10:45:13 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/28 20:07:03 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/01/31 14:38:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,14 +49,22 @@ static void task_adventure(t_task *task)
 		if (g_cfg->adventure_mode == E_ADVENTURE_ON)
 			valid_hosts = group_scan(random_ips, RANDOM_IPS_SIZE, &timeout,
 				E_FTSCAN_ECHO_PING, 0);
-		else if (g_cfg->adventure_mode == E_ADVENTURE_WEB)
+		else if (g_cfg->adventure_mode == E_ADVENTURE_WEB && !g_cfg->end
+			&& !g_cfg->adventure_breakloop)
 			if ((valid_hosts = group_scan(random_ips, RANDOM_IPS_SIZE,
-				&timeout, E_FTSCAN_TCP_SYN, 80)))
+				&timeout, E_FTSCAN_TCP_SYN, 80)) && !g_cfg->end
+				&& !g_cfg->adventure_breakloop)
 				valid_hosts = group_scan(random_ips, valid_hosts, &timeout,
 					E_FTSCAN_TCP_SYN, 443);
 	}
 	if (valid_hosts && !g_cfg->end)
+	{
+		debug_print(g_cfg, "%s: found %zu valid hosts\n",
+			g_nmap_task_strings[task->type], valid_hosts);
+		for (size_t i = 0; g_cfg->debug && i < valid_hosts; ++i)
+			debug_print(g_cfg, "%s\n", ft_ip_str(random_ips + i));
 		push_adventure_hosts(g_cfg, random_ips, valid_hosts, !!g_cfg->speedup);
+	}
 }
 
 static void	task_listen(t_task *task)
