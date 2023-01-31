@@ -42,7 +42,7 @@ Usage:
 		[--max-retries retries] [--scan-delay time]
 		[--initial-rtt-timeout time] [--min-rtt-timeout time]
 		[--max-rtt-timeout time] [--disable-backoff] [--disable-ping]
-		[--skip-non-responsive] host ...
+		[--skip-non-responsive] [--adventure | --web-adventure] host ...
 
 Options:
 	-d, --debug
@@ -94,6 +94,13 @@ Options:
 		Disable ping echo scans.
 	--skip-non-responsive
 		Skip hosts that do not respond to echo scans.
+	--adventure
+		Find random responding hosts and scan them. Adventure mode will start
+		when ft_nmap is done scanning the hosts provided as arguments and in
+		the file if any. NOTE: works best with IPv4 flag (IPv6 hosts are
+		really hard to find at random)
+	--web-adventure
+		Same as adventure mode but only on hosts listening on port 80 and 443.
 ```
 
 #### example:
