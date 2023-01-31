@@ -59,8 +59,7 @@
   responses/timeout is the only use and it could be done in an other way, just
   by listing the responses/probes directly instead of using tasks).
 
-- [ADVENTURE] Print a message when an adventure task is blocking ft_nmap (or
-  before it does more realistically).
+- [ADVENTURE] Add an adventure section in the README
 
 ---- MAYBE ----
 
