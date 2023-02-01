@@ -149,6 +149,62 @@ Options that take a 'time' value are in milliseconds by default. They
 can be appended a time unit which will be one of: us (microseconds),
 ms (milliseconds), s (seconds), m (minutes) or h (hours).
 
+## Adventure mode
+
+The --adventure and --web-adventure options allow the user to scan random hosts.
+ft\_nmap will generate a lot of random ips and scan them until it gets replies.
+This is an other form of target specification, like providing a host as an
+argument or reading a host list from a file. ft\_nmap will keep on scanning
+until it is stopped by the user (with a Ctrl+C). When a responding host is found
+ft\_nmap will execute the scans requested by the user.
+
+The difference between --adventure mode and --web-adventure mode is that the
+first one uses a ping scan to detect hosts. The --web-adventure will only select
+hosts that are actively listening on the http and https ports (80 and 443).
+
+#### example:
+
+```shell
+# executing an IPv4 SYN scan on random web servers
+./ft_nmap -4 -sS --web-adventure
+```
+
+possible output:
+
+```
+--- Network ---
+IPv4 Status: on
+IPv6 Status: on
+Default Interface: tap0
+
+--- Scan ---
+Number of threads: 0
+Number of ports to scan: 1024
+Scans to be performed: SYN
+
+Host: 18.155.95.119
+Scan took 5.77588 seconds
+IP address: 18.155.95.119
+Ports not shown: 1022 Filtered
+
+Open ports:
+| Port  | Service              | SYN  |
+---------------------------------------
+| 80    | http                 | O    |
+| 443   | https                | O    |
+
+Host: 35.157.184.38
+Scan took 7.61362 seconds
+IP address: 35.157.184.38
+Ports not shown: 1022 Filtered
+
+Open ports:
+| Port  | Service              | SYN  |
+---------------------------------------
+| 80    | http                 | O    |
+| 443   | https                | O    |
+```
+
 ## Scan states
 
 Each scan type given in scan list is a column in the final host report
