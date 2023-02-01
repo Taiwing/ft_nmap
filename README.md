@@ -162,6 +162,12 @@ The difference between --adventure mode and --web-adventure mode is that the
 first one uses a ping scan to detect hosts. The --web-adventure will only select
 hosts that are actively listening on the http and https ports (80 and 443).
 
+> This feature technically works with IPv6. By default it will generate both
+> IPv4 and IPv6 addresses but this is not recommended. These options should only
+> be used with IPv4 (so the -4 option). It is much easier to find hosts in the
+> IPv4 address space because of
+> [how saturated it is](https://en.wikipedia.org/wiki/IPv4_address_exhaustion).
+
 #### example:
 
 ```shell
@@ -174,7 +180,7 @@ possible output:
 ```
 --- Network ---
 IPv4 Status: on
-IPv6 Status: on
+IPv6 Status: off
 Default Interface: tap0
 
 --- Scan ---
