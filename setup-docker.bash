@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 
 docker build -t $(basename $PWD)-docker .
 #docker run -it $(basename $PWD)-docker:latest
