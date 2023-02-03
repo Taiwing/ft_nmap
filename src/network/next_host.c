@@ -6,14 +6,14 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 09:02:59 by yforeau           #+#    #+#             */
-/*   Updated: 2023/01/28 17:40:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/02/03 18:00:00 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nmap.h"
 
 /*
-** ping_scan: send 10 probes to check if host is up and estimate rtt
+** ping_scan: send probes to check if host is up and estimate rtt
 **
 ** Return 0 if host is up and ready to be scanned, 1 otherwise. Exits on error.
 */
