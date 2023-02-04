@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/22 11:36:28 by yforeau           #+#    #+#             */
-/*   Updated: 2022/03/06 10:54:19 by yforeau          ###   ########.fr       */
+/*   Updated: 2023/02/04 14:27:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 # include <errno.h>
 # include <linux/if.h>
 
-# define	PORT_DEF					45654	//TODO: TBD, not sure we will keep this one
+# define	PORT_DEF					45654
 
 # define	MAX_UDP_PAYLOADS			0x100
 # define	UDP_PAYLOADS_FILE			"./data/nmap-payloads"
@@ -178,7 +178,6 @@ typedef struct		s_send_window
 
 /*
 ** Time functions
-** TODO: maybe move this to libft
 */
 
 void		shitty_usleep(struct timeval *time);
